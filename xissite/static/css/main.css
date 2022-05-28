@@ -1,0 +1,249 @@
+ /*  TABLE OF CONTENTS  
+ 
+ 1. Main Grid Configuation
+ 2. Building Blocks
+ 3. MAIN BUTTONS
+ 4. LINK SETTINGS
+ 5. CHECKOUT BUTTON
+ 6. TEXT SETTINGS
+ 7. Site Fonts
+ 8. Scrollbar changes
+ 9. HTML and BODY
+ 
+ */
+
+ 
+ 
+ 
+ /*  Main Grid Configuation */
+
+.main-grid {
+    height: 100vh;
+    width: 100vw;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(4, 1fr) ;
+  }
+  
+
+
+   /*  Building Blocks  */
+  .card {
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    flex-direction: column;
+    font-size: 1.5em;
+    background-color: black;
+    font-family:'HelveticaNeueLT Pro 65 Md';
+    color: aqua;
+  }
+  
+  .buffer-card {
+    grid-column: 1 / 4;
+    background-color: #CFCFCF;
+  }
+  
+  .buffer-card-wcolumn {
+    grid-column: 2 / 4;
+    background-color: #CFCFCF;
+  }
+  
+  .column-card {
+    grid-column: 1 / 2;
+    grid-row: 2 / 5;
+    background-color: #4E6E5D;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .button-card {
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    font-size: 3em;
+    background-color: black;
+  }
+  
+  .product-image-card {
+    grid-column: 2 / 4;
+    grid-row: 2 / 5;
+    background-color: #CFCFCF;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .button-card:hover {
+    transform: translateY(-3px) scale(1.1);
+  }
+  
+  .card-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    grid-column: 1 / 4;
+    background-color: black;
+    font-size: 5em;
+  }
+  
+  /* MAIN BUTTONS */
+  .mainbuttons:hover {
+    background-color: #CFCFCF;
+  }
+
+/* LINK SETTINGS */
+a:link {
+  text-decoration: none;
+  font-family:'HelveticaNeueLT Pro 65 Md';
+  color: aqua;
+}
+
+a:visited {
+  text-decoration: none;
+  font-family:'HelveticaNeueLT Pro 65 Md';
+  color: white;
+}
+
+a:hover {
+  text-decoration: none;
+  color: purple;
+}
+
+a:active {
+  text-decoration: none;
+  color: purple;
+}
+
+
+  /* CHECKOUT BUTTON */
+button {
+  background-color: #3BC14A; /* Green */
+  border: none;
+  color: white;
+  padding: 1em 2em;
+  text-align: center;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family:'HelveticaNeueLT Pro 65 Md';
+}
+
+.back {
+  background-color: #4D5057;
+  cursor: pointer;
+}
+
+.back:hover {
+  color: #CFCFCF;
+  cursor: pointer;
+}
+
+.checkout {
+  background-color: #3BC14A;
+  width: 100%;
+  height: 4em;
+  position: relative;
+  font-size: 1em;
+}
+
+.checkout:hover {
+  color: #4DA167;
+  cursor: pointer;
+}
+  
+  /* TEXT SETTINGS */
+  .titletext {
+    color: #f5f5f5;
+    font-family: 'pexico_microregular';
+  }
+
+  .description {
+    color: #f5f5f5;
+    font-family:'HelveticaNeueLT Pro 65 Md';
+    font-size: 1em;
+    padding: .5em .5em;
+  }
+  
+  .desctitle {
+    color: #f5f5f5;
+    font-family:'HelveticaNeueLT Pro 65 Md';
+    font-size: 2em;
+    padding: .5em .5em;
+    margin: 0%;
+  }
+  
+  /*  Site Fonts */
+  
+  @font-face {
+    font-family: 'pexico_microregular';
+    src: url('../fonts/setup_-_pexicomicro-regular-webfont.woff2') format('woff2'),
+         url('../fonts/setup_-_pexicomicro-regular-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+  
+  }
+  
+  @font-face {
+    font-family:'HelveticaNeueLT Pro 65 Md';
+    src: url('../fonts/HelveticaNeueLTPro-Md.eot');
+    src: url('../fonts/HelveticaNeueLTPro-Md.eot?#iefix') format('embedded-opentype'),
+    url('../fonts/HelveticaNeueLTPro-Md.woff2') format('woff2'),
+    url('../fonts/HelveticaNeueLTPro-Md.woff') format('woff'),
+    url('../fonts/HelveticaNeueLTPro-Md.ttf') format('truetype'),
+    url('../fonts/HelveticaNeueLTPro-Md.otf') format('opentype'),
+    url('../fonts/HelveticaNeueLTPro-Md.svg#HelveticaNeueLTPro-Md') format('svg');
+    font-weight: 500;
+    font-style: normal;
+    font-stretch: normal;
+    unicode-range: U+0020-02DC;
+  }
+  
+  /*  Scrollbar changes */
+  /*
+  body::-webkit-scrollbar {
+    width: 0.25rem;
+  }
+  
+  body::-webkit-scrollbar-track {
+    background: black;
+  }
+  
+  body::-webkit-scrollbar-thumb {
+    background: #8230a4;
+  }
+
+  NOT NEEDED BC HTML AND BODY REMOVE ALL NEED FOR SCROLLBAR
+  */
+  
+/*  HTML and BODY */
+/*  (Removes overflow by making content fill screen and removes scrollbar) */
+html {
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+  margin:0;
+  
+}
+
+body {
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+  margin:0;
+  animation: fadeInAnimation ease 3s;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+}
+
+@keyframes fadeInAnimation {
+  0% {
+      opacity: 0;
+      background-color: transparent;
+  }
+  50% {
+      opacity: 1;
+      background-color: #4D5057;
+   }
+}
