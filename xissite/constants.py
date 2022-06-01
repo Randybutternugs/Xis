@@ -1,0 +1,9 @@
+
+STRIPE_SECRET_KEY = 'sk_test_51KyKprGjhGCkZIA1cVsqA0wQCz7gLnYSI9dgnkicu3ZiLlkR5fmsi9IbuObb30tIogXR1qSN3Gyae9ttlcmwc2VQ00oqXnbACF'
+STRIPE_PUBLISHABLE_KEY = 'pk_test_51KyKprGjhGCkZIA1kWujqcDZSVbZfQV4K9jdKzt6f4ynhdD77Befi1VuERMLw9JOZLsu4MCLaHiHvbYYONjNsvZa00HHxE631y'
+
+#webhook
+endpoint_secret = 'whsec_fae63b8434767512665c47f0455bfb9812e5ca696a91bb394edfad39a6e81385'
+
+
+HP_Price_id = 'price_1KyMGfGjhGCkZIA1EHcmGKe8'
