@@ -1,0 +1,15 @@
+{% extends "base.html" %} 
+{% block title %} Database Viewer {% endblock %}
+{% block pagetitle %} Database {% endblock %}
+{% block content %} 
+
+{%  for customer in customerinf%}
+    <div class="card">
+        {{ customer.name }} </br>
+        {{ customer.email }} </br>
+        {{ customer.date }} </br>
+    </div>
+{% endfor %}
+
+
+{% endblock %}

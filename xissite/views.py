@@ -9,3 +9,4 @@ def home():
 @views.route('/sell')
 def sale():
     return render_template("sell.html")
+
