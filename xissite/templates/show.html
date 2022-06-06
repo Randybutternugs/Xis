@@ -1,13 +1,15 @@
 {% extends "base.html" %} 
 {% block title %} Database Viewer {% endblock %}
 {% block pagetitle %} Database {% endblock %}
+{% block sectionconfig %}<section class="db-grid">{% endblock %}
 {% block content %} 
 
 {%  for customer in customerinf%}
-    <div class="card">
+    <div class="dbcard">
         {{ customer.name }} </br>
         {{ customer.email }} </br>
-        {{ customer.date }} </br>
+        {{ customer.creation_date }} </br>
+        <a href="/viewdb/{{customer.id}}">Press for More Info</a>
     </div>
 {% endfor %}
 

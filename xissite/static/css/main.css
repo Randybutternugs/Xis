@@ -1,14 +1,18 @@
  /*  TABLE OF CONTENTS  
  
- 1. Main Grid Configuation
- 2. Building Blocks
- 3. MAIN BUTTONS
- 4. LINK SETTINGS
- 5. CHECKOUT BUTTON
- 6. TEXT SETTINGS
- 7. Site Fonts
- 8. Scrollbar changes
- 9. HTML and BODY
+  Main Grid Configuation
+  Database View Grid Configuation
+  Building Blocks
+  Database View Building Blocks
+  MAIN BUTTONS
+  LINK SETTINGS
+  CHECKOUT PAGE BUTTONS
+  LOGIN PAGE BUTTON
+  LOGIN INPUT FIELDS
+  TEXT SETTINGS
+  Site Fonts
+  Scrollbar changes
+  HTML and BODY
  
  */
 
@@ -24,75 +28,144 @@
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(4, 1fr) ;
   }
-  
 
+ /*  Database View Grid Configuation */
+ .db-grid {
+  background-color: #3BC14A;
+  height: 100vh;
+  width: 100vw;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: auto ;
+}
 
-   /*  Building Blocks  */
-  .card {
-    align-items: center;
-    justify-content: center;
-    display: flex;
-    flex-direction: column;
-    font-size: 1.5em;
-    background-color: black;
-    font-family:'HelveticaNeueLT Pro 65 Md';
-    color: aqua;
-  }
+  /*  Building Blocks  */
+.card {
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  flex-direction: column;
+  font-size: 1.5em;
+  background-color: black;
+  font-family:'HelveticaNeueLT Pro 65 Md';
+  color: #CFCFCF;
+}
+
+.buffer-card {
+  grid-column: 1 / 4;
+  background-color: #CFCFCF;
+}
+
+.buffer-card-wcolumn {
+  grid-column: 2 / 4;
+  background-color: #CFCFCF;
+}
+
+.column-card {
+  grid-column: 1 / 2;
+  grid-row: 2 / 5;
+  background-color: #4E6E5D;
+  display: flex;
+  flex-direction: column;
+}
+
+.button-card {
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  font-size: 3em;
+  background-color: black;
+}
+
+.product-image-card {
+  grid-column: 2 / 4;
+  grid-row: 2 / 5;
+  background-color: #CFCFCF;
+  display: flex;
+  flex-direction: column;
+}
+
+.button-card:hover {
+  transform: translateY(-3px) scale(1.1);
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  grid-column: 1 / 4;
+  background-color: black;
+  font-size: 5em;
+}
+
+.card-login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  grid-column: 1 / 4;
+  grid-row: 2 / 5;
+  grid-auto-rows: auto;
+  background-color: #3BC14A;
+  font-size: 5em;
+}
+
+/*   Database View Building Blocks */
+
+.dbcard {
+  align-items: left;
+  justify-content: center;
+  padding-left: 25%;
+  display: flex;
+  flex-direction: column;
+  font-size: 1.5em;
+  background-color: black;
+  font-family:'HelveticaNeueLT Pro 65 Md';
+  color: #CFCFCF;
+}
+
+.card-purchaseno {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  grid-column: 1 / 4;
+  background-color: black;
   
-  .buffer-card {
-    grid-column: 1 / 4;
-    background-color: #CFCFCF;
-  }
-  
-  .buffer-card-wcolumn {
-    grid-column: 2 / 4;
-    background-color: #CFCFCF;
-  }
-  
-  .column-card {
-    grid-column: 1 / 2;
-    grid-row: 2 / 5;
-    background-color: #4E6E5D;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .button-card {
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    font-size: 3em;
-    background-color: black;
-  }
-  
-  .product-image-card {
-    grid-column: 2 / 4;
-    grid-row: 2 / 5;
-    background-color: #CFCFCF;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .button-card:hover {
-    transform: translateY(-3px) scale(1.1);
-  }
-  
-  .card-title {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    grid-column: 1 / 4;
-    background-color: black;
-    font-size: 5em;
-  }
-  
-  /* MAIN BUTTONS */
-  .mainbuttons:hover {
-    background-color: #CFCFCF;
-  }
+}
+
+.paystatpaid {
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  flex-direction: column;
+  font-size: 1.5em;
+  background-color: #3BC14A;
+  font-family:'HelveticaNeueLT Pro 65 Md';
+  color: #CFCFCF;
+  border-style: solid;
+}
+
+.paystatnotpaid {
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  flex-direction: column;
+  font-size: 1.5em;
+  background-color: red;
+  font-family:'HelveticaNeueLT Pro 65 Md';
+  color: white;
+  border-style: solid;
+}
+
+/* MAIN BUTTONS */
+.mainbuttons:hover {
+  background-color: #CFCFCF;
+}
 
 /* LINK SETTINGS */
+
 a:link {
   text-decoration: none;
   font-family:'HelveticaNeueLT Pro 65 Md';
@@ -116,9 +189,12 @@ a:active {
 }
 
 
-  /* CHECKOUT BUTTON */
-button {
-  background-color: #3BC14A; /* Green */
+  /* CHECKOUT PAGE BUTTONS */
+
+
+.back {
+  background-color: #4D5057;
+  cursor: pointer;
   border: none;
   color: white;
   padding: 1em 2em;
@@ -128,11 +204,6 @@ button {
   align-items: center;
   justify-content: center;
   font-family:'HelveticaNeueLT Pro 65 Md';
-}
-
-.back {
-  background-color: #4D5057;
-  cursor: pointer;
 }
 
 .back:hover {
@@ -146,33 +217,97 @@ button {
   height: 4em;
   position: relative;
   font-size: 1em;
+  background-color: #3BC14A; /* Green */
+  border: none;
+  color: white;
+  padding: 1em 2em;
+  text-align: center;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family:'HelveticaNeueLT Pro 65 Md';
 }
 
 .checkout:hover {
   color: #4DA167;
   cursor: pointer;
 }
-  
-  /* TEXT SETTINGS */
-  .titletext {
-    color: #f5f5f5;
-    font-family: 'pexico_microregular';
-  }
 
-  .description {
-    color: #f5f5f5;
-    font-family:'HelveticaNeueLT Pro 65 Md';
-    font-size: 1em;
-    padding: .5em .5em;
-  }
-  
-  .desctitle {
-    color: #f5f5f5;
-    font-family:'HelveticaNeueLT Pro 65 Md';
-    font-size: 2em;
-    padding: .5em .5em;
-    margin: 0%;
-  }
+/* LOGIN BUTTON */
+.loginbutton {
+  width: 100%;
+  height: 1em;
+  position: relative;
+  font-size: .5em;
+  background-color: #CFCFCF; 
+  border: none;
+  color: black;
+  padding: 1em 2em;
+  text-align: center;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'pexico_microregular';
+}
+
+/* LOGIN INPUT FIELDS */
+.pwinp, .usrinp {
+  height: 5.5em;
+  font-size: .25em;
+  background-color: #CFCFCF; 
+  border: none;
+  color: black;
+  padding: .25em .25em;
+  text-align: center;
+  text-decoration: none;
+  align-items: center;
+  justify-content: center;
+  font-family: 'pexico_microregular';
+}
+
+.userlabel, .passlabel {
+  color: #f5f5f5;
+  font-size: .75em;
+  font-family: 'pexico_microregular';
+}
+
+/* TEXT SETTINGS */
+.titletext {
+  color: #f5f5f5;
+  font-family: 'pexico_microregular';
+}
+
+.purchnotext {
+  color: #8E9093;
+  font-family: 'HelveticaNeueLT Pro 65 Md';
+  font-size: 2em;
+}
+
+.notice {
+  color: #4D5057;
+}
+
+.titlehighlight {
+  color: yellowgreen;
+}
+
+
+.description {
+  color: #f5f5f5;
+  font-family:'HelveticaNeueLT Pro 65 Md';
+  font-size: 1em;
+  padding: .5em .5em;
+}
+
+.desctitle {
+  color: #f5f5f5;
+  font-family:'HelveticaNeueLT Pro 65 Md';
+  font-size: 2em;
+  padding: .5em .5em;
+  margin: 0%;
+}
   
   /*  Site Fonts */
   
