@@ -1,0 +1,52 @@
+{% extends "base.html" %} 
+{% block title %} Database Viewer {% endblock %}
+{% block pagetitle %} <span class = "titlehighlight">Info For:&nbsp</span> {{customer_info.name}} {% endblock %}
+
+{% block sectionconfig %}<section class="db-grid">{% endblock %}
+
+{% block content %} 
+
+<div class="card-purchaseno purchnotext">
+    <p>Total Number of Purchases: &nbsp</p> {{customer_purchasesno}} 
+</div>
+
+<div class="card-purchaseno purchnotext">
+    <p class="notice">Most Recent Purchase Is on The Bottom</p>
+</div>
+
+{% for i in customer_purchase_info %}
+    <div class="card">
+        {{i.product_name}}</br>
+        {{i.purchase_date}}</br>
+    </div>
+
+    <div class="card">
+        <p> SHIPPING ADDRESS: </p>
+        {{i.line1}}</br>
+
+        {% if i.line2 is not none %}
+        {{i.line2}}
+
+        {% else %}
+
+        {% endif %}
+
+        {{i.city}} {{i.state}} {{i.postal_code}}</br>
+    </div>
+
+    {%if i.pay_status == "paid" %}
+    <div class="paystatpaid">
+        <p> PAID </p>
+    </div>
+    {% else %}
+    <div class="paystatnotpaid">
+        <p> {{i.pay_status}} </p>
+    </div>
+    {% endif %}
+    
+{% endfor %}
+
+
+{% endblock %}
+
+

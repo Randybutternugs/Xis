@@ -7,3 +7,8 @@ endpoint_secret = 'whsec_fae63b8434767512665c47f0455bfb9812e5ca696a91bb394edfad3
 
 
 HP_Price_id = 'price_1KyMGfGjhGCkZIA1EHcmGKe8'
+
+#DB
+utherr = 'pbkdf2:sha256:260000$Eqv0Pi1vv3Q6g5dg$ae6edc01736b9e0f99e633e67e1dfdcacfe74ddbaa345e2880d02a8411a91250'
+
+pahwur = 'pbkdf2:sha256:260000$iCuXV4wOpxZ6mdLK$7630e538a1075973640d2d2869f3b7b437d934f8fb30f1f4bd792fb65b76be15'

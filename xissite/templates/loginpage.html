@@ -1,0 +1,24 @@
+{% extends "base.html" %} 
+{% block title %} Database Login {% endblock %}
+{% block pagetitle %} ADMIN LOGIN {% endblock %}
+{% block sectionconfig %}<section class="main-grid">{% endblock %}
+{% block content %} 
+
+<div class="card-login">
+    <form method="POST">
+
+        <label for="username" class="userlabel" >Username</label>
+        <input id="username" name="username" class="usrinp" placeholder="Enter Username"/>
+
+
+        <label for="password" class="passlabel">Password</label>
+        <input id="password" name="password" placeholder="Enter Password" class="pwinp"/> 
+
+
+
+        <button type="submit" class="loginbutton">LOGIN</button>
+
+
+    </form>
+</div>
+{% endblock %}
