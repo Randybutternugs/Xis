@@ -39,6 +39,15 @@
   grid-template-rows: auto ;
 }
 
+ /*  Sell Grid Configuation */
+ .sell-grid {
+  height: 100vh;
+  width: 100vw;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(4, 1fr) ;
+}
+
   /*  Building Blocks  */
 .card {
   align-items: center;
@@ -80,9 +89,6 @@
 .product-image-card {
   grid-column: 2 / 4;
   grid-row: 2 / 5;
-  background-color: #CFCFCF;
-  display: flex;
-  flex-direction: column;
 }
 
 .button-card:hover {
@@ -169,7 +175,7 @@
 a:link {
   text-decoration: none;
   font-family:'HelveticaNeueLT Pro 65 Md';
-  color: aqua;
+  color: white;
 }
 
 a:visited {
@@ -243,6 +249,7 @@ a:active {
   background-color: #CFCFCF; 
   border: none;
   color: black;
+  margin-top: 1em;
   padding: 1em 2em;
   text-align: center;
   text-decoration: none;
@@ -254,7 +261,7 @@ a:active {
 
 /* LOGIN INPUT FIELDS */
 .pwinp, .usrinp {
-  height: 5.5em;
+  height: 3em;
   font-size: .25em;
   background-color: #CFCFCF; 
   border: none;
@@ -269,8 +276,9 @@ a:active {
 
 .userlabel, .passlabel {
   color: #f5f5f5;
-  font-size: .75em;
+  font-size: .70em;
   font-family: 'pexico_microregular';
+  margin-top: 1em;
 }
 
 /* TEXT SETTINGS */
@@ -381,4 +389,50 @@ body {
       opacity: 1;
       background-color: #4D5057;
    }
+}
+
+/* MOBILE DEVICES */
+@media (max-width: 600px) {
+
+  /* Home Page */
+  .card {
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    flex-direction: column;
+    font-size: 2vh;
+    background-color: black;
+    font-family:'HelveticaNeueLT Pro 65 Md';
+    color: #CFCFCF;
+  }
+
+  /* Sell Page */
+  .column-card {
+    grid-column: 1 / 4;
+    grid-row: auto;
+    background-color: #4E6E5D;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .product-image-card {
+    grid-column: 1 / 4;
+    grid-row: auto;
+    object-fit: cover;
+    width: 100%;
+    max-height: 100%;
+    background-image: url(../images/Schematic.png);
+  }
+
+  .sell-grid {
+    background-color: #3BC14A;
+    height: 100vh;
+    width: 100vw;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: auto ;
+  }
+
+
+
 }
