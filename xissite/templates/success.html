@@ -1,20 +1,14 @@
 {% extends "base.html" %} 
 {% block title %} Success {% endblock %}
+{% block titleconfig %} <div class="card-title" style="background-color: #3BC14A; flex-direction: column;"> {% endblock %}
 {% block pagetitle %} THANK YOU! {% endblock %}
+{%block titleicon %}<img src="../static/icons/check.svg" class="midicon"> {% endblock %}
+{% block head %}
+<meta http-equiv="refresh" content="12; url={{url_for('views.home')}}" />
+{% endblock %}
 {% block content %} 
-<div class="card">1</div>
-<div class="card">
-
-    <form action="/">
-        <button class="back" id="backbutton">Back</button>
-        </form>
-
-</div>
-<div class="card">3</div>
-<div class="card">4</div>
-<div class="card">5</div>
-<div class="card">6</div>
-<div class="card">7</div>
-<div class="card">8</div>
-<div class="card">9</div>
+<div class="card"><p style="text-align: center; color: white;">THANK YOU FOR YOUR PURCHASE!</p></div>
+<div class="card"><p style="text-align: center; color: white; font-size: 75%;">An Order Confirmation Has Been Sent To Your Email! </br> (Check Your Junk/Spam Folder) </br> Send any questions or concerns to email@xis.com </p></div>
+<div class="card"></div>
+<div class="card"><p style="text-align: center; font-size: 75%;">You Will Be Redirected To The Home Page Shortly.</p></div>
 {% endblock %}

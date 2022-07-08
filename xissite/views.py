@@ -10,3 +10,6 @@ def home():
 def sale():
     return render_template("sell.html")
 
+@views.route('/about')
+def about():
+    return render_template("about.html")

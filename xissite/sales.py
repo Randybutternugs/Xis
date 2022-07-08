@@ -1,17 +1,19 @@
 from flask import Blueprint, Flask, redirect, render_template, request, jsonify
+import requests
+from random import shuffle
 import os
 import stripe
 from werkzeug.security import generate_password_hash, check_password_hash
 from . import db
 
-from .models import Customer, Purchase_info
-from .constants import STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY, HP_Price_id, endpoint_secret
+from .models import Customer, Purchase_info, current_product
+from .constants import STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY, HP_Price_id, endpoint_secret, MAIL_KEY
 
 sales = Blueprint('sales', __name__)
 
 stripe.api_key = STRIPE_SECRET_KEY
 
-YOUR_DOMAIN = 'http://localhost:5000'
+MAIN_DOMAIN = 'http://localhost:5000/'
 
 @sales.route('/create-checkout-session', methods=['POST'])
 def create_checkout_session():
@@ -28,8 +30,8 @@ def create_checkout_session():
                 },
             ],
             mode='payment',
-            success_url=YOUR_DOMAIN + '/success',
-            cancel_url=YOUR_DOMAIN + '/cancel',
+            success_url=MAIN_DOMAIN + '/success',
+            cancel_url=MAIN_DOMAIN + '/cancel',
             automatic_tax={'enabled': True},
         )
     except Exception as e:
@@ -80,6 +82,7 @@ def webhook():
         if session.payment_status == "paid":
         # Fulfill the purchase
             print("Payment is Paid...n stuff.")
+        
             fulfill_order(session)
 
     elif event['type'] == 'checkout.session.async_payment_succeeded':
@@ -98,12 +101,6 @@ def webhook():
 
     return jsonify(success=True)
 
-def fulfill_order(session):
-  # TODO: fill me in
-  print("Fulfilling order")
-
-
-
 
 def create_order(session):
     
@@ -118,7 +115,7 @@ def create_order(session):
     c_country = customer_ship_address["country"]
     c_line1 = customer_ship_address["line1"]
     c_line2 = customer_ship_address["line2"]
-    c_postal = int(customer_ship_address["postal_code"])
+    c_postal = customer_ship_address["postal_code"]
     c_state = customer_ship_address["state"]
  
     paym_status = session["payment_status"]
@@ -145,9 +142,32 @@ def create_order(session):
         print("Creating order for new customer")
         
         
+def fulfill_order(session):
+    customer_email = session["customer_details"]["email"]
+    customer_name = session["customer_details"]["name"]
+    customer_ship_address = session["customer_details"]["address"]
+    print("Fulfilling order")
+    return requests.post(
+        "https://api.mailgun.net/v3/sandbox1e1554f4a83440028cc731e33aa0acab.mailgun.org/messages",
+        auth=("api", MAIL_KEY),
+        data={"from": "XIS Big_Xissy@sandbox1e1554f4a83440028cc731e33aa0acab.mailgun.org",
+              "to": customer_email,
+              "subject": "Confirmation For Hydroponics Order",
+			  "template": "emailconfirmationtest",
+			  "v:customer": customer_name,
+              "v:product": current_product,
+              "v:purchase_total": "$200"})
 
-    
 
 def email_customer_about_failed_payment(session):
-  # TODO: fill me in
-    print("Emailing customer")
+    customer_email = session["customer_details"]["email"]
+    customer_name = session["customer_details"]["name"]
+    customer_ship_address = session["customer_details"]["address"]
+    print("Emailing customer About Failure")
+    return requests.post(
+        "https://api.mailgun.net/v3/sandbox1e1554f4a83440028cc731e33aa0acab.mailgun.org/messages",
+        auth=("api", MAIL_KEY),
+        data={"from": "XIS Big_Xissy@sandbox1e1554f4a83440028cc731e33aa0acab.mailgun.org",
+              "to": customer_email,
+              "subject": "Payment Failed For Hydroponics Order",
+              "text": "Order Again With a Different Card Number."})
