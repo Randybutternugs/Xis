@@ -1,17 +1,118 @@
-{% extends "base.html" %} 
+{% extends "base.html" %}
 {% block title %} Database Viewer {% endblock %}
-{% block pagetitle %} Database {% endblock %}
-{% block sectionconfig %}<section class="db-grid">{% endblock %}
-{% block content %} 
+{% block head %} 
+<style scoped>
+    html {
+        font-family:'HelveticaNeueLT Pro 65 Md';
+        height: 100%;
+        width: 100%;
+        overflow-x: scroll;
+        overflow-y: scroll;
+        margin:0;
+      }
 
-{%  for customer in customerinf%}
+      body::-webkit-scrollbar {
+        width: 0.25rem;
+      }
+      
+      body::-webkit-scrollbar-track {
+        background: black;
+      }
+      
+      body::-webkit-scrollbar-thumb {
+        background: #0BE12B;
+      }
+
+      .searchinp {
+        z-index: 0;
+        height: 80%;
+        font-size: 135%;
+        background-color: #CFCFCF; 
+        border: none;
+        color: black;
+        padding: .25em .25em;
+        text-decoration: none;
+        font-family: 'pexico_microregular';
+        margin-left: 5%;
+        align-items: center;
+      }
+
+      .searchinp:focus {
+        z-index: 2;
+      }
+
+      .searchinp:focus-visible {
+        outline: 2px solid #0BE12B;
+        border-radius: 3px;
+      }
+
+      input::placeholder {
+        font-size: 75%;
+        padding: 0 0 0 3%;
+      }
+     
+
+      .searchlabel {
+        position: absolute;
+        z-index: 1;
+        color: #f5f5f5;
+        font-size: 100%;
+        font-family: 'pexico_microregular';
+        margin: 2% 0 0 7%;
+      }
+
+      .subicon {
+        border: none;
+        height: 100%;
+        width:85%;
+        padding: 0 25% 0 5%;
+        background-color: #0BE12B;
+      }
+
+      .SearchButton {
+        background-color:#0BE12B;
+        border: none;
+        text-align: center;
+        cursor:pointer;
+        color: #0BE12B;
+        font-family:'HelveticaNeueLT Pro 65 Md';
+        padding: 0;
+        height: 2% 5% 2% 5%;
+        text-decoration:none;
+        align-items: center;
+        justify-content: center;
+      }
+
+</style>
+{% endblock %}
+{% block sectionconfig %}<section class="db-grid">{% endblock %}
+{% block titleconfig %} <div class="card-title"> {% endblock %}
+{% block pagetitle %} Database {% endblock %}
+{% block titleicon %} 
+<img src="../static/icons/piechart.svg" class="topicon" onclick="window.top.location.href='/viewdb';"> 
+<img src="../static/icons/door.svg" class="topicon" onclick="window.top.location.href='/logout';"> 
+
+{% endblock %}
+{% block content %}
+
+<div class="dbcard">
+    <form style="margin: 5% 0 2% 0; display: flex; justify-content: space evenly;" method="POST" action="">
+        {{ form.hidden_tag() }}
+        {{ form.SearchWord(class="searchinp", placeholder="Search Email or Purchase-ID:") }} <button class="SearchButton" type=submit style="background-color: #0BE12B; border: none; align-self: auto; color: #0BE12B;"><img src="../static/icons/search.svg" class="subicon" title="Submit"> </button>
+    </form>
+</div>
+
+{%  for customer in customerinf %}
     <div class="dbcard">
-        {{ customer.name }} </br>
-        {{ customer.email }} </br>
-        {{ customer.creation_date }} </br>
-        <a href="/viewdb/{{customer.id}}">Press for More Info</a>
+        <p style="margin: 5% 0 -5% 5%;">{{ customer.name }}</p> </br>
+        <p style="margin: 1% 0 -5% 5%;">{{ customer.email }}</p> </br>
+        <p style="margin: 1% 0 0 5%;">{{ customer.creation_date }}</p> </br>
+        <div class="minfo" onclick="window.top.location.href='/viewdb/{{customer.id}}';">
+            <p style="font-size: 75%;">Press for More Info</p>
+        </div>
     </div>
 {% endfor %}
 
 
 {% endblock %}
+

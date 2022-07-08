@@ -1,27 +1,51 @@
 {% extends "base.html" %} 
 {% block title %} Database Viewer {% endblock %}
-{% block pagetitle %} <span class = "titlehighlight">Info For:&nbsp</span> {{customer_info.name}} {% endblock %}
+{% block head %} 
+<style scoped>
+    html {
+        font-family:'HelveticaNeueLT Pro 65 Md';
+        height: 100%;
+        width: 100%;
+        overflow-x: scroll;
+        overflow-y: scroll;
+        margin:0;
+      }
 
+      body::-webkit-scrollbar {
+        width: 0.25rem;
+      }
+      
+      body::-webkit-scrollbar-track {
+        background: black;
+      }
+      
+      body::-webkit-scrollbar-thumb {
+        background: #0BE12B;
+      }
+</style>
+{% endblock %}
 {% block sectionconfig %}<section class="db-grid">{% endblock %}
+{% block titleconfig %} <div class="card-title" style="padding: 5%;" onclick = "window.top.location.href='/viewdb';"> {% endblock %}
+{% block titletext %}<p class="titletext" style="margin: auto; padding: 1%; text-align: center;"><a href="/viewdb" style="font-family: pexico_microregular;">{% endblock %}
+{% block pagetitle %} <span class = "titlehighlight">Info For:&nbsp</span> {{customer_info.name}} {% endblock %}
+{% block titleicon %}<img src="../static/icons/backarrow.svg" class="topicon" style="margin: auto; padding-top: 2%;" onclick="window.top.location.href='/viewdb';">  {% endblock %}
 
 {% block content %} 
 
-<div class="card-purchaseno purchnotext">
-    <p>Total Number of Purchases: &nbsp</p> {{customer_purchasesno}} 
+<div class="dbcard">
+    <p style="text-align: center;">Total Number of Purchases:&nbsp{{customer_purchasesno}} </p> 
+    <p style="text-align: center; font-size:1em;">Most Recent Purchase Is on The Bottom</p>
 </div>
+<div class="dbcard" style="background-color: #CFCFCF; min-height: 20px; height: auto;"> </div>
 
-<div class="card-purchaseno purchnotext">
-    <p class="notice">Most Recent Purchase Is on The Bottom</p>
-</div>
 
 {% for i in customer_purchase_info %}
-    <div class="card">
-        {{i.product_name}}</br>
-        {{i.purchase_date}}</br>
-    </div>
 
     <div class="card">
-        <p> SHIPPING ADDRESS: </p>
+        <p style="margin: auto; padding-top: 5%;">{{i.product_name}}</br>
+        {{i.purchase_date}}</p></br>
+
+        <p style="margin: 0 0 5% 5%;"> SHIPPING ADDRESS: </br>
         {{i.line1}}</br>
 
         {% if i.line2 is not none %}
@@ -31,15 +55,17 @@
 
         {% endif %}
 
-        {{i.city}} {{i.state}} {{i.postal_code}}</br>
+        {{i.city}} {{i.state}} {{i.postal_code}}</br></p>
     </div>
 
+    <div class="dbcard" style="background-color: #CFCFCF; min-height: 20px; height: auto;"> </div>
+
     {%if i.pay_status == "paid" %}
-    <div class="paystatpaid">
-        <p> PAID </p>
+    <div class="card" style="color: white; border-bottom: 4px solid #CFCFCF; grid-column: 1 / 4; background-color: #6DD87D;">
+        <p style="margin-left: 5%;"> PAID </p>
     </div>
     {% else %}
-    <div class="paystatnotpaid">
+    <div class="card" style="color: white; border-bottom: 4px solid #CFCFCF; grid-column: 1 / 4; background-color: #6DD87D;">
         <p> {{i.pay_status}} </p>
     </div>
     {% endif %}

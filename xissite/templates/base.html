@@ -25,8 +25,12 @@
         {% block sectionconfig %}
         <section class="main-grid">
         {% endblock %}
+        {% block titleconfig %}
             <div class="card-title">
-                <p class="titletext">{% block pagetitle %} Page Title {% endblock %} </p>
+        {% endblock %}
+                {% block titletext %}<p class="titletext"><a href="/" style="font-family: pexico_microregular;">{% endblock %}{% block pagetitle %} Page Title {% endblock %}</a></p>
+                {%block titleicon %}
+                {% endblock %}
             </div>
             {% block content %}
 

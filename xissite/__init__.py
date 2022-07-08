@@ -2,7 +2,9 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from os import path
 from flask_login import LoginManager
+from flask_wtf.csrf import CSRFProtect
 
+#csrf = CSRFProtect()
 db = SQLAlchemy()
 DB_NAME = "customerinfo.db"
 
@@ -11,6 +13,7 @@ def create_app():
     app.config['SECRET_KEY'] = 'kfoaew90ifq209fjoiskdf'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_NAME}'
+    #csrf.init_app(app)
     db.init_app(app)
 
     from .views import views

@@ -1,14 +1,14 @@
 {% extends "base.html" %} 
-{% block title %} Cancelled {% endblock %}
-{% block pagetitle %} Cold Feet? {% endblock %}
+{% block title %} Order Cancelled {% endblock %}
+{% block titleconfig %} <div class="card-title" style="background-color: red; flex-direction: column;"> {% endblock %}
+{% block pagetitle %} Aww Man... {% endblock %}
+{%block titleicon %}<img src="../static/icons/cancel.svg" class="midicon"> {% endblock %}
+{% block head %}
+<meta http-equiv="refresh" content="10; url={{url_for('views.home')}}" />
+{% endblock %}
 {% block content %} 
-<div class="card">1</div>
-<div class="card">2</div>
-<div class="card">3</div>
-<div class="card">4</div>
-<div class="card">5</div>
-<div class="card">6</div>
-<div class="card">7</div>
-<div class="card">8</div>
-<div class="card">9</div>
+<div class="card"><p style="text-align: center; color: white;">ORDER CANCELLED!</p></div>
+<div class="card"><p style="text-align: center; color: white; font-size: 75%;">We'd love to hear your feedback! </br> Navigate to the Contact page to get in touch!</p></div>
+<div class="card"></div>
+<div class="card"><p style="text-align: center; font-size: 75%;">You Will Be Redirected To The Home Page Shortly.</p></div>
 {% endblock %}

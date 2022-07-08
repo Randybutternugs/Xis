@@ -4,6 +4,7 @@ from . import db
 from .constants import utherr, pahwur
 from sqlalchemy.sql import func
 import datetime
+import uuid
 
 current_product = "Hydroponics System V1"
 
@@ -28,10 +29,12 @@ class Purchase_info(db.Model):
     country = db.Column(db.String(500), nullable = False)
     line1 = db.Column(db.String(500), nullable = False)
     line2 = db.Column(db.String(500), nullable = True)
-    postal_code = db.Column(db.Integer, nullable = False)
+    postal_code = db.Column(db.String(500), nullable = False)
     state = db.Column(db.String(500), nullable = False)
 
     pay_status = db.Column(db.String(50), default='Awaiting Payment')
+    purchase_id = db.Column(db.String(35), unique=True, default = uuid.uuid4())
+
 
 
 class User(db.Model, UserMixin):
