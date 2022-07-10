@@ -9,7 +9,7 @@
 
 <div class="card-login">
     <form method="POST">
-
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         
         <label for="username" class="userlabel" >Username</label>
         <input id="username" name="username" class="usrinp" placeholder="Enter Username"/>

@@ -1,0 +1,91 @@
+{% extends "base.html" %}  
+{% block title %} Contact Us {% endblock %}
+{% block head %}
+<style scoped>
+
+      div::-webkit-scrollbar {
+        width: 0.25rem;
+      }
+      
+      div::-webkit-scrollbar-track {
+        background: black;
+      }
+      
+      div::-webkit-scrollbar-thumb {
+        background: #0BE12B;
+      }
+
+
+
+    .emailinp {
+        z-index: 0;
+        height: 80%;
+        font-size: 135%;
+        background-color: #CFCFCF; 
+        border: none;
+        color: black;
+        padding: .25em .25em;
+        text-decoration: none;
+        font-family: 'pexico_microregular';
+        margin-left: 5%;
+        align-items: center;
+      }
+
+      .emailinp:focus {
+        z-index: 2;
+      }
+
+      .emailinp:focus-visible {
+        outline: 2px solid #0BE12B;
+        border-radius: 3px;
+      }
+
+      input::placeholder {
+        font-size: 65%;
+        text-align: center;
+      }
+
+
+</style>
+{% endblock %}
+{% block sectionconfig %} <section class="main-grid" style="grid-template-rows: repeat(7, 1fr) ;"> {% endblock %}
+{% block titleconfig %} <div class="card-aux-title" style="background-color: #6DD87D;"> {% endblock %}
+{% block titletext %} <p class="titletext"><a href="/" style="font-family: pexico_microregular;"> {% endblock %}
+{% block pagetitle %} BACK {% endblock %}
+{% block titleicon %} <p style="color: white; font-family: 'pexico_microregular'; text-align: center; align-self: center; font-size: 200%; text-decoration: underline;">Contact Us</p> {% endblock %}
+{% block content %} 
+
+<div class="column-card" style="border: 5px solid black; grid-row: 3 / 8; overflow: auto; overflow-x: hidden;">
+    <p style="text-align: center; margin-top: 5%; font-size: 115%; font-family: 'pexico_microregular'; border: 3px solid black;">We Want to Hear Your Thoughts!</p>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <ul class=flashes>
+        {% for message in messages %}
+            <li style="color: {{errcolo}}; margin-bottom: -5%;">{{ message }}</li>
+        {% endfor %}
+        </ul>
+        {% endif %}
+    {% endwith %}
+    <form style="margin: 5% 0 2% 5%; display: inline-block;" method="POST" action="">
+        {{ form.csrf_token }}
+        <p style="margin: 5% 0 1% 5%; font-size: 120%;"> Feedback Type </p>
+        {% for subfield in form.feedbacktype %}
+            <tr style="font-size: 120%;">
+                <td>{{ subfield(style="accent-color: #0BE12B; margin-left: 5%;") }}</td>
+                <td>{{ subfield.label }}</td>
+            </tr>
+        {% endfor %}
+
+        <p style="margin: 8% 0 2% 5%; font-size: 120%;"> Order ID:<span style="color:#0BE12B;">*</span> </p>
+        {{ form.orderno(class="emailinp", placeholder="Enter Relevant Order ID") }}
+        <p style="margin: 2% 0 2% 5%; font-size: 65%; color:#0BE12B;"> Optional, Only For Feedback About An Existing Order </p>
+
+        <p style="margin: 8% 0 2% 5%; font-size: 120%;"> Sender's Email </p>
+        {{ form.feedbackemail(class="emailinp", style="margin-bottom: 5%;", placeholder="Enter An Email we Can Respond To!") }}
+        {{ form.feedbackfield(class="emailinp", placeholder="Type Your Feedback Here.") }}
+        {{ form.submit(style="background-color: #0BE12B; border: none; align-self: center; color: white; background-color: #0BE12B; font-family: 'pexico_microregular'; font-size: 120%; text-align: center; height: 100%; width:85%; padding: 5% 5% 5% 5%; margin-left: 5%;") }}
+
+    </form>
+</div>
+
+{% endblock %}

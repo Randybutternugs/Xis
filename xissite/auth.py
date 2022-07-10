@@ -1,8 +1,7 @@
 from operator import contains
 from xmlrpc.client import boolean
-from flask import Blueprint, Flask, redirect, url_for, render_template, request, jsonify
+from flask import Blueprint, Flask, redirect, url_for, render_template, request, jsonify, flash
 from sqlalchemy.sql import func
-from flask_msearch import Search
 import os
 import stripe
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -16,15 +15,14 @@ csrf = CSRFProtect()
 
 from . import db
 
-from .models import Customer, Purchase_info, User
+from .models import Customer, FeedBack, Purchase_info, User, FeedBack
 from .constants import STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY, HP_Price_id, endpoint_secret, utherr, pahwur
 
 auth = Blueprint('auth', __name__)
 
-@auth.route('/login', methods=['GET','POST'])
-@csrf.exempt
+@auth.route('/login', methods=['GET','POST'])       
 def login():
-
+    csrf.protect()
 
     if request.method == 'GET':
         admencheck = db.session.query(User).first()
@@ -53,7 +51,6 @@ def login():
 
 @auth.route('/logout')
 @login_required
-@csrf.exempt
 def logout():
     logout_user()
     return redirect(url_for('auth.login'))
@@ -61,30 +58,28 @@ def logout():
 #DATABASE VIEWER ------
 @auth.route('/viewdb', methods=['GET','POST'])
 @login_required
-@csrf.exempt
 def viewdatabase():
     customerinf = Customer.query.order_by(Customer.id)
     form = SearchForm() 
     
     if form.validate_on_submit():
-        try:
-            foundid = db.session.query(Customer.id).filter_by(email = form.SearchWord.data).first()[0]
-            return redirect('/viewdb/' + str(foundid))
-            #return render_template('show.html', customerinf=customerinf, form=form)
-    #else:
-        #customerinf = db.session.query(Purchase_info).filter_by(purchase_id = {form.SearchWord.data}).all()
-        #return render_template('show.html', customerinf=customerinf, form=form)
-        except TypeError:
-            print("Email Not in Database")
-
-
-
-
+        if "@" in form.SearchWord.data:
+            try:
+                foundid = db.session.query(Customer.id).filter_by(email = form.SearchWord.data).first()[0]
+                return redirect('/viewdb/' + str(foundid))
+            except Exception as e:
+                flash(u'Email Not Found')
+        else:
+            try:
+                foundid = db.session.query(Purchase_info.customer_id).filter_by(id = form.SearchWord.data).first()[0]
+                return redirect('/viewdb/' + str(foundid))
+            except Exception as e:
+                flash(u'Purchase ID Not Found')
+                
     return render_template('show.html', customerinf=customerinf, form=form)
 
 @auth.route('/viewdb/<int:customerid>', methods=['GET'])
 @login_required
-@csrf.exempt
 def viewcustomer(customerid):
     customer_info = Customer.query.get(customerid)
     #Big one lol, queries Customer purchases using customer id as x value and number of purchase objects as y, returns (x,y), use [] to only grab item in index 1 of coordinate pair :D
@@ -93,6 +88,14 @@ def viewcustomer(customerid):
     customer_purchase_info = db.session.query(Purchase_info).filter_by(customer_id = customer_info.id).all()
     return render_template('showmore.html', customer_info = customer_info, customer_purchase_info = customer_purchase_info, customer_purchasesno = customer_purchasesno)
 
+@auth.route('/viewdb/feedbackview', methods=['GET'])
+@login_required
+def viewfeedback():
+    feedback_info = FeedBack.query.order_by(FeedBack.id)
+
+
+    return render_template('feedbackview.html', feedback_info=feedback_info,)
+
 class SearchForm(FlaskForm):
-    SearchWord = StringField('', validators=[DataRequired(), Length(min = 6, max = 40)])
+    SearchWord = StringField('', validators=[DataRequired(), Length(min = 1, max = 40)])
     submit = SubmitField('')

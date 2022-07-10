@@ -1,0 +1,8 @@
+{% extends "base.html" %} 
+{% block title %} Database Viewer {% endblock %}
+{% block head %} {% endblock %}
+{% block sectionconfig %}<section class="db-grid">{% endblock %}
+{% block titleconfig %} <div class="card-title" style="padding: 5%;" onclick = "window.top.location.href='/viewdb';"> {% endblock %}
+{% block titletext %}<p class="titletext" style="margin: auto; padding: 1%; text-align: center;"><a href="/viewdb" style="font-family: pexico_microregular;">{% endblock %}
+{% block pagetitle %} <span class = "titlehighlight">Info For:&nbsp</span> {{customer_info.name}} {% endblock %}
+{% block titleicon %}<img src="../static/icons/backarrow.svg" class="topicon" style="margin: auto; padding-top: 2%;" onclick="window.top.location.href='/viewdb';">  {% endblock %}

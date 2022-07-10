@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %} Database Viewer {% endblock %}
+{% block title %} Feedback Viewer {% endblock %}
 {% block head %} 
 <style scoped>
     html {
@@ -97,29 +97,18 @@
 {% block content %}
 
 <div class="dbcard">
-    <form style="margin: 5% 0 2% 0; display: flex; justify-content: space evenly;" method="POST" action="">
-        {{ form.csrf_token }}
-        {{ form.SearchWord(class="searchinp", placeholder="Search Email or Purchase-ID:") }} <button class="SearchButton" type=submit style="background-color: #0BE12B; border: none; align-self: auto; color: #0BE12B;"><img src="../static/icons/search.svg" class="subicon" title="Submit"> </button>
-    </form>
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <ul class=flashes>
-        {% for message in messages %}
-          <li style="color: #CFCFCF;">{{ message }}</li>
-        {% endfor %}
-        </ul>
-      {% endif %}
-    {% endwith %}
-</div>
 
-{%  for customer in customerinf %}
+{%  for feedback in feedback_info %}
     <div class="dbcard">
-        <p style="margin: 5% 0 -5% 5%;">{{ customer.name }}</p> </br>
-        <p style="margin: 1% 0 -5% 5%;">{{ customer.email }}</p> </br>
-        <p style="margin: 1% 0 0 5%;">{{ customer.creation_date }}</p> </br>
-        <div class="minfo" onclick="window.top.location.href='/viewdb/{{customer.id}}';">
-            <p style="font-size: 75%;">Press for More Info</p>
-        </div>
+        <p style="margin: 3% 0 0 5%;"><span style="color: #0BE12B;">FEEDBACK ID: </span></br>{{ feedback.id }}</p> </br>
+        <p style="margin: 0 0 0 5%;"><span style="color: #0BE12B;">TIME POSTED: </span></br>{{ feedback.date }}</p> </br>
+        <p style="margin: 0 0 0 5%;"><span style="color: #0BE12B;">EMAIL: </span></br>{{ feedback.feedbackmail }}</p> </br>
+        <p style="margin: 0 0 0 5%;"><span style="color: #0BE12B;">TYPE: </span></br>{{ feedback.feedbacktype }}</p> </br>
+        <p style="margin: 0 0 1% 5%;"><span style="color: #0BE12B;">ORDER ID: </span></br>{{ feedback.feedbackorderid }}</p> </br>
+        <p style="margin: 5% 0 2% 5%;"><span style="color: #0BE12B;">FEEDBACK: </span></br>{{ feedback.feedbackfullfield }}</p> </br>
+    </div>
+    <div class="dbcard" style="width: 100%; text-align: center;">
+        <p>-----------------------------------------</p>
     </div>
 {% endfor %}
 
