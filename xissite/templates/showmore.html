@@ -33,8 +33,9 @@
 {% block content %} 
 
 <div class="dbcard">
-    <p style="text-align: center;">Total Number of Purchases:&nbsp{{customer_purchasesno}} </p> 
-    <p style="text-align: center; font-size:1em;">Most Recent Purchase Is on The Bottom</p>
+  <p style="text-align: center; font-size: 150%;">{{customer_info.email}} </p> 
+    <p style="text-align: center; font-size: 100%;">Total Number of Purchases:&nbsp{{customer_purchasesno}} </p> 
+    <p style="text-align: center; font-size: 75%;">Most Recent Purchase Is on The Bottom</p>
 </div>
 <div class="dbcard" style="background-color: #CFCFCF; min-height: 20px; height: auto;"> </div>
 
@@ -45,7 +46,9 @@
         <p style="margin: auto; padding-top: 5%;">{{i.product_name}}</br>
         {{i.purchase_date}}</p></br>
 
-        <p style="margin: 0 0 5% 5%;"> SHIPPING ADDRESS: </br>
+        <p style="font-size: 100%; margin: 2% 0 5% 5%;">Purchase ID:</br><span style="color: #CFCFCF; font-size: 75%;"> {{i.id}}  </span></p>
+
+        <p style="margin: 0 0 5% 5%;"> SHIPPING ADDRESS: </br><span style="font-size: 75%;">
         {{i.line1}}</br>
 
         {% if i.line2 is not none %}
@@ -55,10 +58,8 @@
 
         {% endif %}
 
-        {{i.city}} {{i.state}} {{i.postal_code}}</br></p>
+        {{i.city}} {{i.state}} {{i.postal_code}}</br></span></p>
     </div>
-
-    <div class="dbcard" style="background-color: #CFCFCF; min-height: 20px; height: auto;"> </div>
 
     {%if i.pay_status == "paid" %}
     <div class="card" style="color: white; border-bottom: 4px solid #CFCFCF; grid-column: 1 / 4; background-color: #6DD87D;">

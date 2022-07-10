@@ -4,7 +4,6 @@ from . import db
 from .constants import utherr, pahwur
 from sqlalchemy.sql import func
 import datetime
-import uuid
 
 current_product = "Hydroponics System V1"
 
@@ -33,7 +32,6 @@ class Purchase_info(db.Model):
     state = db.Column(db.String(500), nullable = False)
 
     pay_status = db.Column(db.String(50), default='Awaiting Payment')
-    purchase_id = db.Column(db.String(35), unique=True, default = uuid.uuid4())
 
 
 
@@ -41,3 +39,12 @@ class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key = True)
     user_name = db.Column(db.String(150), default = utherr)
     pass_word = db.Column(db.String(150), default = pahwur)
+
+
+class FeedBack(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    feedbackmail = db.Column(db.String(40), nullable = False)
+    feedbacktype = db.Column(db.Integer, nullable = False)
+    feedbackorderid = db.Column(db.Integer, nullable = True)
+    feedbackfullfield = db.Column(db.String(600), nullable = False)
+    date = db.Column(db.DateTime(timezone=True), default=func.now())

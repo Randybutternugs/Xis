@@ -8,6 +8,9 @@ from . import db
 
 from .models import Customer, Purchase_info, current_product
 from .constants import STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY, HP_Price_id, endpoint_secret, MAIL_KEY
+from flask_wtf.csrf import CSRFProtect
+
+csrf = CSRFProtect()
 
 sales = Blueprint('sales', __name__)
 
@@ -15,6 +18,7 @@ stripe.api_key = STRIPE_SECRET_KEY
 
 MAIN_DOMAIN = 'http://localhost:5000/'
 
+@csrf.exempt
 @sales.route('/create-checkout-session', methods=['POST'])
 def create_checkout_session():
     try:
@@ -49,11 +53,13 @@ def cancel():
 
 
 #WEBHOOKS ----------------
+@csrf.exempt
 @sales.route('/webhook', methods=['POST', 'GET'])
 def webhook():
     event = None
     payload = request.data
     sig_header = request.headers['STRIPE_SIGNATURE']
+    print(sig_header)
 
     try:
         event = stripe.Webhook.construct_event(
@@ -170,4 +176,4 @@ def email_customer_about_failed_payment(session):
         data={"from": "XIS Big_Xissy@sandbox1e1554f4a83440028cc731e33aa0acab.mailgun.org",
               "to": customer_email,
               "subject": "Payment Failed For Hydroponics Order",
-              "text": "Order Again With a Different Card Number."})
+              "text": "Please Order Again With a Different Card Number."})
