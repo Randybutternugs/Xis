@@ -26,6 +26,7 @@
         color: black;
         padding: .25em .25em;
         text-decoration: none;
+        margin-right: 85%;
         font-family: 'pexico_microregular';
         margin-left: 5%;
         align-items: center;
@@ -43,6 +44,24 @@
       input::placeholder {
         font-size: 65%;
         text-align: center;
+      }
+
+      @media screen and (max-width: 600px) {
+
+        .emailinp {
+          z-index: 0;
+          height: 80%;
+          font-size: 135%;
+          background-color: #CFCFCF; 
+          border: none;
+          color: black;
+          padding: .25em .25em;
+          text-decoration: none;
+          font-family: 'pexico_microregular';
+          margin-left: 5%;
+          align-items: center;
+        }
+  
       }
 
 
@@ -83,7 +102,7 @@
         <p style="margin: 8% 0 2% 5%; font-size: 120%;"> Sender's Email </p>
         {{ form.feedbackemail(class="emailinp", style="margin-bottom: 5%;", placeholder="Enter An Email we Can Respond To!") }}
         {{ form.feedbackfield(class="emailinp", placeholder="Type Your Feedback Here.") }}
-        {{ form.submit(style="background-color: #0BE12B; border: none; align-self: center; color: white; background-color: #0BE12B; font-family: 'pexico_microregular'; font-size: 120%; text-align: center; height: 100%; width:85%; padding: 5% 5% 5% 5%; margin-left: 5%;") }}
+        {{ form.submit(style="background-color: #0BE12B; border: none; align-self: center; color: white; background-color: #0BE12B; font-family: 'pexico_microregular'; font-size: 120%; text-align: center; height: 100%; width:85%; padding: 5% 5% 5% 5%; margin-left: 5%; margin-top: 5%;") }}
 
     </form>
 </div>

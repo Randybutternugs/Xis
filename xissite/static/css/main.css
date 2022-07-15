@@ -149,6 +149,7 @@
     color: black;
     grid-column: 1 / 4;
     grid-row: 1 / 3;
+    min-height: 100%;
   }
 
   .card-shop-title > .titletext {
@@ -410,4 +411,352 @@ body {
       opacity: 1;
       background-color: #4D5057;
    }
+}
+
+/* 
+------- DESKTOP ------ 
+-----TABLE OF CONTENTS-----
+
+
+*/
+@media screen and (min-width: 601px) {
+
+  /* ----- TEXT SETTINGS ----- */
+  .titletext {
+    color: #f5f5f5;
+    font-family: 'pexico_microregular';
+    border-style: solid;
+    font-size: 150%;
+    margin-left: 5%;
+    margin-top: 5%;
+    padding: 5px 10px 5px 10px;
+    z-index: 1;
+  }
+
+  .subhead {
+    text-align: center;
+    justify-content: center;
+    color: white;
+    font-size: 115%;
+  }
+
+  .subhead > .title {
+    margin: 3% 0 0 0;
+    font-size: 150%;
+  }
+
+  .subhead > .info {
+    font-size: 75%;
+    margin: 0 0 3% 0;
+  }
+
+  .subhead > .purchtext {
+    font-size: 75%;
+    margin: 0 0 0 0;
+  }
+
+  /* ----- ICON SETTINGS ----- */
+  .topicon {
+    filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(194deg) brightness(109%) contrast(101%);
+    margin-right: 5%;
+    margin-top: 5%;
+  }
+
+  .midicon  {
+    filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(194deg) brightness(109%) contrast(101%);
+    height: 15em;
+    margin: auto;
+  }
+
+  /* ----- BUTTON SETTINGS ----- */
+  .BuyButton {
+    background-color:#44c767;
+    border:1px solid #18ab29;
+    text-align: center;
+    cursor:pointer;
+    color:#ffffff;
+    font-family:'HelveticaNeueLT Pro 65 Md';
+    font-size:17px;
+    padding:16px 31px;
+    margin: .5% 5% 2% 5%;
+    text-decoration:none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .BuyButton:hover {
+    background-color:#5cbf2a;
+  }
+  
+  .BuyButton:active {
+    position:relative;
+    top:1px;
+  }
+
+  /* ----- GRID/BLOCK SETTINGS ----- */
+  .main-grid {
+    height: 100vh;
+    width: 100vw;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(6, 1fr) ;
+  }
+
+  .card {
+    grid-column: 1 / 4;
+    align-items: left;
+    justify-content: center;
+    display: flex;
+    flex-direction: column;
+    font-size: 1.25em;
+    background-color: black;
+    font-family:'HelveticaNeueLT Pro 65 Md';
+    color: #CFCFCF;
+  }
+ 
+  .card > a {
+    margin: auto 0 auto 10%;
+  }
+
+  .card-footer {
+    grid-column: 1 / 4;
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    background-color: black;
+    font-family:'HelveticaNeueLT Pro 65 Md';
+    color: #CFCFCF;
+  }
+
+  .card-footer > img {
+    margin: auto;
+    filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(194deg) brightness(109%) contrast(101%);
+    height: 25px;
+    width: auto;
+  }
+
+  .card-footer > p {
+    margin: auto;
+    font-size: 75%;
+  }
+
+  .buffer-card {
+    grid-column: 1 / 4;
+    background-color: black;
+  }
+
+  .card-title {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    color: black;
+    grid-column: 1 / 4;
+    grid-row: 1 / 3;
+    background-repeat: no-repeat;
+  }
+  
+
+  /*-----SELL PAGE-----*/
+
+  .card-shop-title {
+    color: black;
+    grid-column: 1 / 4;
+    grid-row: 1 / 3;
+  }
+
+  .card-shop-title > .titletext {
+    position: absolute; 
+    z-index: 1;
+    margin-left: 2%;
+    margin-top: 2%;
+    color: white;
+    background: rgba(0, 0, 0, .5);
+  }
+
+  .sellimg {
+    max-width:100%;
+    max-height:100%;
+  }
+
+  .column-card {
+    color: black;
+    grid-column: 1 / 4;
+    grid-row: 3 / 7;
+  }
+
+  .column-card > h1 {
+    text-align: center;
+    font-size: 200%;
+  }
+
+  .column-card > h3 {
+    text-align: center;
+    font-size: 150%;
+  }
+
+  .column-card > p {
+    font-size: 125%;
+    margin: 0 5% 0 5%;
+  }
+
+  .column-card > h4 {
+    text-align: left;
+    margin-left: 5%;
+    position: absolute;
+    left: 0;
+    bottom: .55em;
+    font-size: 200%;
+  }
+
+  .checkout {
+    background-color: #3BC14A;
+    width: 100%;
+    height: 4em;
+    font-size: 1em;
+    background-color: #3BC14A; /* Green */
+    border: none;
+    color: white;
+    padding: 1em 2em;
+    text-align: center;
+    text-decoration: none;
+    justify-content: center;
+    font-family:'HelveticaNeueLT Pro 65 Md';
+    position: absolute;
+    right: 0;
+    bottom: 0;
+  }
+    
+  .checkout:hover {
+    color: #4DA167;
+    cursor: pointer;
+  }
+
+
+  /* -----About Page----- */
+
+  .card-aux-title {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    color: black;
+    grid-column: 1 / 4;
+    grid-row: 1 / 3;
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+  }
+
+  .card-aux-title > .titletext {
+    color: white;
+    background: rgba(0, 0, 0, .5);
+  }
+
+
+  /* ----- Login Page ----- */
+
+  .card-login {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    grid-column: 1 / 4;
+    grid-row: 3 / 7;
+    background-color: #3BC14A;
+    font-size: 5em;
+  }
+
+
+  /* LOGIN BUTTON */
+
+  .loginbutton {
+    width: 100%;
+    height: 1em;
+    position: relative;
+    font-size: .5em;
+    background-color: #CFCFCF; 
+    border: none;
+    color: black;
+    margin-top: 1em;
+    padding: 1em 2em;
+    text-align: center;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'pexico_microregular';
+  }
+
+  .loginbutton:hover, .loginbutton:active {
+    color:green;
+    background-color: black;
+  }
+    
+  /* LOGIN INPUT FIELDS */
+
+  .pwinp, .usrinp {
+    height: 3em;
+    font-size: .25em;
+    width: 55%;
+    background-color: #CFCFCF; 
+    border: none;
+    color: black;
+    padding: .25em .25em;
+    text-decoration: none;
+    font-family: 'pexico_microregular';
+    margin-right: 90%;
+    margin-left: 1%;
+  }
+    
+  .userlabel, .passlabel {
+    color: #f5f5f5;
+    font-size: 55%;
+    font-family: 'pexico_microregular';
+    margin-top: 1em;
+    margin-right: 90%;
+    margin-left: 1%;
+  }
+
+  /* ----- VIEW DB ----- */
+
+  .db-grid {
+    background-color: #6DD87D;
+    height: 100vh;
+    width: 100vw;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-auto-rows: auto;
+    grid-auto-flow: row;
+  }
+
+  .dbcard {
+    align-items: left;
+    justify-content: center;
+    grid-column: 1 / 4;
+    display: inline-block;
+    flex-direction: row;
+    background-color: black;
+  }
+
+  .dbcard > p {
+    font-family:'HelveticaNeueLT Pro 65 Md';
+    font-size: 1.5em;
+    color: #CFCFCF;
+  }
+
+  .dbcard > .minfo {
+    font-family:'HelveticaNeueLT Pro 65 Md';
+    font-size: 1.5em;
+    color: #CFCFCF;
+    margin: 0 10% 10% 10%;
+    padding: 1%;
+    background-color: #0BE12B;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .minfo:hover, .minfo:active {
+    color:green;
+    background-color: black;
+  }
+
 }

@@ -9,6 +9,14 @@
 <script src="https://js.stripe.com/v3/"></script>
 
 <style scoped>
+
+  html {
+    font-family:'HelveticaNeueLT Pro 65 Md';
+    height: 100%;
+    width: 100%;
+    overflow-x: hidden;
+    margin:0;
+  }
   
     /* position dots up a bit */
   .flickity-page-dots {
@@ -34,9 +42,6 @@
   }
 
   .gallery-cell {
-    width: 100%;
-    height: 100%;
-    margin-right: 10px;
     background: #CFCFCF;
     border-radius: 5px;
     counter-increment: gallery-cell;
@@ -44,11 +49,19 @@
 
   /* cell number */
   .gallery-cell:before {
-    display: block;
     text-align: center;
     line-height: 200px;
     font-size: 80px;
     color: white;
+  }
+
+  .flickity-slider {
+    display: flex;
+    align-items: center;
+  }
+
+  .flickity-viewport {
+    transition: height 0.2s;
   }
 
 </style>
@@ -59,7 +72,7 @@
 {% block titleconfig %} <div class="card-shop-title"> {% endblock %}
 {% block titleicon %}
 
-  <div class="gallery js-flickity" data-flickity='{"setGallerySize": false}'>
+  <div class="gallery js-flickity" data-flickity='{"setGallerySize": false, "wrapAround": true, "adaptiveHeight": true, "imagesLoaded": true}'>
     <div class="gallery-cell">
       <img src="../static/images/fill SS.png" class="sellimg">
     </div>
