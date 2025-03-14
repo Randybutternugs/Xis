@@ -5,6 +5,7 @@ STRIPE_PUBLISHABLE_KEY = 'pk_test_51KyKprGjhGCkZIA1kWujqcDZSVbZfQV4K9jdKzt6f4ynh
 #webhook
 endpoint_secret = 'whsec_fae63b8434767512665c47f0455bfb9812e5ca696a91bb394edfad39a6e81385'
 
+MAIL_KEY = 'TEST'
 
 HP_Price_id = 'price_1KyMGfGjhGCkZIA1EHcmGKe8'
 

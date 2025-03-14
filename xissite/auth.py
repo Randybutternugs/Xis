@@ -27,7 +27,7 @@ def login():
     if request.method == 'GET':
         admencheck = db.session.query(User).first()
         if admencheck == None:
-            newmin = User(user_name = None, pass_word = None)
+            newmin = User(user_name = "randy", pass_word = "Hello")
             db.session.add(newmin)
             db.session.commit()
             print('\n \n \n Newmin Created \n \n \n')
