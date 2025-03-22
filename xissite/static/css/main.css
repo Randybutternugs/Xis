@@ -280,13 +280,14 @@
   .pwinp, .usrinp {
     height: 3em;
     font-size: .25em;
+    width: 100%;
     background-color: #CFCFCF; 
     border: none;
     color: black;
     padding: .25em .25em;
     text-decoration: none;
     font-family: 'pexico_microregular';
-    margin-left: 5%;
+    margin: 0.5em 0 1em 0;
   }
     
   .userlabel, .passlabel {
@@ -294,7 +295,7 @@
     font-size: 55%;
     font-family: 'pexico_microregular';
     margin-top: 1em;
-    margin-left: 5%;
+    align-self: flex-start;
   }
 
   /* ----- VIEW DB ----- */
@@ -397,9 +398,6 @@ body {
   width: 100%;
   overflow-x: hidden;
   margin:0;
-  animation: fadeInAnimation ease 3s;
-  animation-iteration-count: 1;
-  animation-fill-mode: forwards;
 }
   
 @keyframes fadeInAnimation {
@@ -696,15 +694,14 @@ body {
   .pwinp, .usrinp {
     height: 3em;
     font-size: .25em;
-    width: 55%;
+    width: 100%;
     background-color: #CFCFCF; 
     border: none;
     color: black;
     padding: .25em .25em;
     text-decoration: none;
     font-family: 'pexico_microregular';
-    margin-right: 90%;
-    margin-left: 1%;
+    margin: 0.5em 0 1em 0;
   }
     
   .userlabel, .passlabel {
@@ -712,8 +709,7 @@ body {
     font-size: 55%;
     font-family: 'pexico_microregular';
     margin-top: 1em;
-    margin-right: 90%;
-    margin-left: 1%;
+    align-self: flex-start;
   }
 
   /* ----- VIEW DB ----- */

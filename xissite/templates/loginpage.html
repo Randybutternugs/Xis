@@ -12,11 +12,24 @@
             border: 8px solid black; 
             padding: 10%;
         }
-
+        
+        /* Form container */
+        .login-form-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        /* Form styling */
+        .login-form-container form {
+            width: 90%;
+            display: flex;
+            flex-direction: column;
+        }
     }
 
     @media screen and (min-width: 601px) {
-
         .maintext {
             color: black; 
             font-family: 'pexico_microregular'; 
@@ -28,11 +41,79 @@
             margin-bottom: 2%;
             margin-top: -2%;
         }
-
+        
+        /* Form container */
+        .login-form-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        /* Form styling */
+        .login-form-container form {
+            width: 60%;
+            display: flex;
+            flex-direction: column;
+        }
     }
-
-
-
+    
+    /* Modal Flash Message Styling - IMPROVED SIZE */
+    .flash-modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.7);
+        overflow: auto;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .flash-modal-content {
+        background-color: #ff5252;
+        color: white;
+        margin: auto;
+        padding: 30px;
+        border-radius: 4px;
+        width: 80%;
+        max-width: 500px;
+        position: relative;
+        text-align: center;
+        font-family: 'pexico_microregular';
+        font-size: 1.2rem;
+        border: 3px solid white;
+    }
+    
+    /* Increased size for mobile */
+    @media screen and (max-width: 600px) {
+        .flash-modal-content {
+            width: 90%;
+            font-size: 1.1rem;
+            padding: 20px;
+        }
+    }
+    
+    .close-button {
+        color: white;
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        font-size: 2rem;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    
+    .close-button:hover {
+        color: #ddd;
+    }
+    
+    .show-modal {
+        display: flex;
+    }
 </style>
 {% endblock %}
 {% block sectionconfig %}<section class="main-grid">{% endblock %}
@@ -41,22 +122,44 @@
 {% block titleicon %} <p class="maintext">Employee Login</p>{% endblock %}
 
 {% block content %} 
+<!-- Flash Message Modal -->
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <div id="flashModal" class="flash-modal show-modal">
+        <div class="flash-modal-content">
+            <span class="close-button" onclick="closeModal()">&times;</span>
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <script>
+        function closeModal() {
+            document.getElementById('flashModal').style.display = 'none';
+        }
+        
+        // Auto-close the modal after 5 seconds
+        setTimeout(function() {
+            closeModal();
+        }, 5000);
+    </script>
+    {% endif %}
+{% endwith %}
 
 <div class="card-login">
-    <form method="POST">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-        
-        <label for="username" class="userlabel" >Username</label>
-        <input id="username" name="username" class="usrinp" placeholder="Enter Username"/>
+    <div class="login-form-container">
+        <form method="POST">
+            {{ form.csrf_token }}
+            
+            <label for="username" class="userlabel">Username</label>
+            <input id="username" name="username" class="usrinp" placeholder="Enter Username"/>
 
+            <label for="password" class="passlabel">Password</label>
+            <input id="password" name="password" type="password" placeholder="Enter Password" class="pwinp"/> 
 
-        <label for="password" class="passlabel">Password</label>
-        <input id="password" name="password" placeholder="Enter Password" class="pwinp"/> 
-
-
-        <button type="submit" class="loginbutton">LOGIN</button>
-
-
-    </form>
+            <button type="submit" class="loginbutton">LOGIN</button>
+        </form>
+    </div>
 </div>
 {% endblock %}
