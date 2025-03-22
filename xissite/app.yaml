@@ -1,0 +1,42 @@
+# app.yaml - Configuration for Google Cloud Engine
+runtime: python39
+
+# Service name
+service: default
+
+# Environment variables (secure in production)
+env_variables:
+  FLASK_SECRET_KEY: "your_production_secret_key_here"
+  FLASK_ENV: "production"
+  STRIPE_SECRET_KEY: "sk_production_key_here"
+  STRIPE_PUBLISHABLE_KEY: "pk_production_key_here"
+  STRIPE_WEBHOOK_SECRET: "whsec_production_key_here"
+  HP_PRICE_ID: "price_id_here"
+  MAIL_KEY: "production_mail_key_here"
+
+# Scaling settings
+automatic_scaling:
+  min_instances: 1
+  max_instances: 10
+  min_idle_instances: 1
+  max_concurrent_requests: 50
+
+# Request handlers
+handlers:
+  # Static files
+  - url: /static
+    static_dir: xissite/static
+    secure: always
+
+  # All other URLs
+  - url: /.*
+    script: auto
+    secure: always
+
+# Network settings
+network:
+  session_affinity: true
+
+# Security settings
+inbound_services:
+- warmup
