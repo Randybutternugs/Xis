@@ -16,21 +16,15 @@ from dotenv import load_dotenv
 if os.path.exists('vars.env'):
     load_dotenv('vars.env')
 
-# Default values if environment variables aren't set
-DEFAULT_STRIPE_SECRET_KEY = 'sk_test_51KyKprGjhGCkZIA1cVsqA0wQCz7gLnYSI9dgnkicu3ZiLlkR5fmsi9IbuObb30tIogXR1qSN3Gyae9ttlcmwc2VQ00oqXnbACF'
-DEFAULT_STRIPE_PUBLISHABLE_KEY = 'pk_test_51KyKprGjhGCkZIA1kWujqcDZSVbZfQV4K9jdKzt6f4ynhdD77Befi1VuERMLw9JOZLsu4MCLaHiHvbYYONjNsvZa00HHxE631y'
-DEFAULT_HP_PRICE_ID = 'price_1KyMGfGjhGCkZIA1EHcmGKe8'
-DEFAULT_ENDPOINT_SECRET = 'whsec_fae63b8434767512665c47f0455bfb9812e5ca696a91bb394edfad39a6e81385'
-DEFAULT_USERHASH = 'pbkdf2:sha256:260000$Eqv0Pi1vv3Q6g5dg$ae6edc01736b9e0f99e633e67e1dfdcacfe74ddbaa345e2880d02a8411a91250'
-DEFAULT_PASSHASH = 'pbkdf2:sha256:260000$iCuXV4wOpxZ6mdLK$7630e538a1075973640d2d2869f3b7b437d934f8fb30f1f4bd792fb65b76be15'
-
-# Get values from environment variables or use defaults
-STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', DEFAULT_STRIPE_SECRET_KEY)
-STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', DEFAULT_STRIPE_PUBLISHABLE_KEY)
-HP_Price_id = os.environ.get('HP_PRICE_ID', DEFAULT_HP_PRICE_ID)
-endpoint_secret = os.environ.get('STRIPE_WEBHOOK_SECRET', DEFAULT_ENDPOINT_SECRET)
-utherr = os.environ.get('ADMIN_USERNAME_HASH', DEFAULT_USERHASH)
-pahwur = os.environ.get('ADMIN_PASSWORD_HASH', DEFAULT_PASSHASH)
+# Get values from environment variables
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
+STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY')
+HP_PRICE_ID = os.environ.get('HP_PRICE_ID')
+STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET')
+ADMIN_USERNAME_HASH = os.environ.get('ADMIN_USERNAME_HASH')
+ADMIN_PASSWORD_HASH = os.environ.get('ADMIN_PASSWORD_HASH')
+DEFAULT_USERHASH = os.environ.get('DEFAULT_USERHASH')
+DEFAULT_PASSHASH = os.environ.get('DEFAULT_PASSHASH')
 
 csrf = CSRFProtect()
 
@@ -58,7 +52,7 @@ def login():
     if request.method == 'GET':
         admencheck = db.session.query(User).first()
         if admencheck == None:
-            newmin = User(user_name="randy", pass_word="Hello")
+            newmin = User(email="randy", password=generate_password_hash("Hello",method='pbkdf2:sha256'))
             db.session.add(newmin)
             db.session.commit()
             print('\n \n \n Newmin Created \n \n \n')
@@ -67,8 +61,8 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
 
-        usernamechk = check_password_hash(utherr, username)
-        passwordchk = check_password_hash(pahwur, password)
+        usernamechk = check_password_hash(ADMIN_USERNAME_HASH, username)
+        passwordchk = check_password_hash(ADMIN_PASSWORD_HASH, password)
 
         if usernamechk and passwordchk:
             uszur = User.query.get(1)
