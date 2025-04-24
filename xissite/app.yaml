@@ -13,6 +13,10 @@ env_variables:
   STRIPE_WEBHOOK_SECRET: "whsec_production_key_here"
   HP_PRICE_ID: "price_id_here"
   MAIL_KEY: "production_mail_key_here"
+  ADMIN_USERNAME_HASH: "production_admin_username_hash_here"
+  ADMIN_PASSWORD_HASH: "production_admin_password_hash_here"
+  DEFAULT_USERHASH: "production_default_user_hash_here"
+  DEFAULT_PASSHASH: "production_default_pass_hash_here"
 
 # Scaling settings
 automatic_scaling:

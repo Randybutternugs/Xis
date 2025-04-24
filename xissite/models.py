@@ -9,9 +9,6 @@ from dotenv import load_dotenv
 if os.path.exists('vars.env'):
     load_dotenv('vars.env')
 
-# Default values if environment variables aren't set
-DEFAULT_USERHASH = 'pbkdf2:sha256:260000$Eqv0Pi1vv3Q6g5dg$ae6edc01736b9e0f99e633e67e1dfdcacfe74ddbaa345e2880d02a8411a91250'
-DEFAULT_PASSHASH = 'pbkdf2:sha256:260000$iCuXV4wOpxZ6mdLK$7630e538a1075973640d2d2869f3b7b437d934f8fb30f1f4bd792fb65b76be15'
 
 # Get values from environment variables or use defaults
 admin_username = os.environ.get('ADMIN_USERNAME_HASH', DEFAULT_USERHASH)
