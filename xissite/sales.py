@@ -7,14 +7,13 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from . import db
 
 from .models import Customer, Purchase_info, current_product
-from .constants import STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY, HP_Price_id, endpoint_secret, MAIL_KEY
 from flask_wtf.csrf import CSRFProtect
 
 csrf = CSRFProtect()
 
 sales = Blueprint('sales', __name__)
 
-stripe.api_key = STRIPE_SECRET_KEY
+stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
 
 MAIN_DOMAIN = 'http://localhost:5000/'
 
@@ -29,7 +28,7 @@ def create_checkout_session():
             line_items=[
                 {
                     # Provide the exact Price ID (for example, pr_1234) of the product you want to sell
-                    'price': HP_Price_id,
+                    'price': os.environ.get('HP_PRICE_ID'),
                     'quantity': 1,
                 },
             ],
@@ -63,7 +62,7 @@ def webhook():
 
     try:
         event = stripe.Webhook.construct_event(
-            payload, sig_header, endpoint_secret
+            payload, sig_header, os.environ.get('STRIPE_WEBHOOK_SECRET')
         )
     except ValueError as e:
         # Invalid payload
@@ -155,7 +154,7 @@ def fulfill_order(session):
     print("Fulfilling order")
     return requests.post(
         "https://api.mailgun.net/v3/sandbox1e1554f4a83440028cc731e33aa0acab.mailgun.org/messages",
-        auth=("api", MAIL_KEY),
+        auth=("api", os.environ.get('MAIL_KEY')),
         data={"from": "XIS Big_Xissy@sandbox1e1554f4a83440028cc731e33aa0acab.mailgun.org",
               "to": customer_email,
               "subject": "Confirmation For Hydroponics Order",
@@ -172,7 +171,7 @@ def email_customer_about_failed_payment(session):
     print("Emailing customer About Failure")
     return requests.post(
         "https://api.mailgun.net/v3/sandbox1e1554f4a83440028cc731e33aa0acab.mailgun.org/messages",
-        auth=("api", MAIL_KEY),
+        auth=("api", os.environ.get('MAIL_KEY')),
         data={"from": "XIS Big_Xissy@sandbox1e1554f4a83440028cc731e33aa0acab.mailgun.org",
               "to": customer_email,
               "subject": "Payment Failed For Hydroponics Order",
