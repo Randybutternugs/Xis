@@ -1,7 +1,6 @@
-from flask_login import UserMixin
 from . import db
+from flask_login import UserMixin
 from sqlalchemy.sql import func
-import datetime
 import os
 from dotenv import load_dotenv
 
@@ -9,48 +8,38 @@ from dotenv import load_dotenv
 if os.path.exists('vars.env'):
     load_dotenv('vars.env')
 
-
-# Get values from environment variables or use defaults
-admin_username = os.environ.get('ADMIN_USERNAME_HASH', DEFAULT_USERHASH)
-admin_password = os.environ.get('ADMIN_PASSWORD_HASH', DEFAULT_PASSHASH)
-
-current_product = "Hydroponics System V1"
-
-class Customer(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(150), unique=True, nullable=False)
-    name = db.Column(db.String(150), nullable=False)
-    creation_date = db.Column(db.DateTime(timezone=True), default=func.current_timestamp()) 
-    notes_on_customer = db.Column(db.String(500), nullable=True)
-    buys = db.relationship('Purchase_info', backref='customer')
-
-
-class Purchase_info(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'))
-    product_name = db.Column(db.String(20), default=current_product)
-    purchase_date = db.Column(db.DateTime(timezone=True), default=func.now())
-
-    city = db.Column(db.String(500), nullable=False)
-    country = db.Column(db.String(500), nullable=False)
-    line1 = db.Column(db.String(500), nullable=False)
-    line2 = db.Column(db.String(500), nullable=True)
-    postal_code = db.Column(db.String(500), nullable=False)
-    state = db.Column(db.String(500), nullable=False)
-
-    pay_status = db.Column(db.String(50), default='Awaiting Payment')
-
-
-class User(db.Model, UserMixin):
-    id = db.Column(db.Integer, primary_key=True)
-    user_name = db.Column(db.String(150), default=admin_username)
-    pass_word = db.Column(db.String(150), default=admin_password)
-
+# Configuration
+admin_username = os.environ.get('ADMIN_USERNAME_HASH')
+admin_password = os.environ.get('ADMIN_PASSWORD_HASH')
+current_product = "HydroGardenMaxSomething 2000"
 
 class FeedBack(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    feedbackmail = db.Column(db.String(40), nullable=False)
-    feedbacktype = db.Column(db.Integer, nullable=False)
-    feedbackorderid = db.Column(db.Integer, nullable=True)
-    feedbackfullfield = db.Column(db.String(600), nullable=False)
+    email = db.Column(db.String(150))
+    subject = db.Column(db.String(150))
+    content = db.Column(db.String(10000))
     date = db.Column(db.DateTime(timezone=True), default=func.now())
+    
+class User(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(150), unique=True)
+    password = db.Column(db.String(150))
+
+class Customer(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(150), nullable=False)
+    name = db.Column(db.String(150))
+    purchase = db.relationship('Purchase_info')
+
+class Purchase_info(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    city = db.Column(db.String(150))
+    country = db.Column(db.String(150))
+    line1 = db.Column(db.String(150))
+    line2 = db.Column(db.String(150))
+    postal_code = db.Column(db.String(150))
+    state = db.Column(db.String(150))
+    pay_status = db.Column(db.String(150))
+    date = db.Column(db.DateTime(timezone=True), default=func.now())
+    customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'))
+    customer = db.relationship('Customer')
