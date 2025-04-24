@@ -52,7 +52,7 @@ def login():
     if request.method == 'GET':
         admencheck = db.session.query(User).first()
         if admencheck == None:
-            newmin = User(email="randy", password=generate_password_hash("Hello",method='pbkdf2:sha256'))
+            newmin = User(email=ADMIN_USERNAME_HASH, password=ADMIN_PASSWORD_HASH)
             db.session.add(newmin)
             db.session.commit()
             print('\n \n \n Newmin Created \n \n \n')
