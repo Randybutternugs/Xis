@@ -53,22 +53,6 @@
     margin: auto;
   }
 
-  /* HomePage Logo styling for mobile */
-  .logo-img {
-    height: auto;
-    max-width: 140px;
-    border: none;
-    float: left;
-    margin: 10px 0 0 10px;
-    /* Temporary filter to make the logo white - remove this when you have a white logo */
-    filter: brightness(0) invert(1);
-  }
-  
-  /* Remove border from titletext when it contains logo */
-  .titletext {
-    border-style: none;
-  }
-
   /* ----- BUTTON SETTINGS ----- */
   .BuyButton {
     background-color:#44c767;
@@ -481,23 +465,6 @@ body {
     height: 15em;
     margin: auto;
   }
-
-  /* HomePage Logo styling for desktop */
-  .logo-img {
-    height: auto;
-    max-width: 180px;
-    border: none;
-    float: left;
-    margin: 15px 0 0 15px;
-    /* Temporary filter to make the logo white - remove this when you have a white logo */
-    filter: brightness(0) invert(1);
-  }
-  
-  /* Remove border from titletext when it contains logo */
-  .titletext {
-    border-style: none;
-  }
-
 
   /* ----- BUTTON SETTINGS ----- */
   .BuyButton {
