@@ -21,7 +21,9 @@ def create_app():
     app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY', str(uuid.uuid4()))
     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_NAME}'
     app.config['WTF_CSRF_CHECK_DEFAULT'] = False
-    
+
+
+
     csrf = CSRFProtect()
     csrf.init_app(app)
     db.init_app(app)
