@@ -13,10 +13,10 @@ env_variables:
   STRIPE_WEBHOOK_SECRET: "whsec_production_key_here"
   HP_PRICE_ID: "price_id_here"
   MAIL_KEY: "production_mail_key_here"
-  ADMIN_USERNAME_HASH: "production_admin_username_hash_here"
-  ADMIN_PASSWORD_HASH: "production_admin_password_hash_here"
-  DEFAULT_USERHASH: "production_default_user_hash_here"
-  DEFAULT_PASSHASH: "production_default_pass_hash_here"
+  ADMIN_USERNAME_HASH: 'scrypt:32768:8:1$RkmSaBoEJHHEOrob$a436468c6580b68f67c3fdd733a7c52c38da768ee6dd9414da8dbdafa78ae5f92e0793fc613a78a9cd6ea5312abd5d23faf868eb0e0d2e1f52a06d1164547718'
+  ADMIN_PASSWORD_HASH: 'scrypt:32768:8:1$zOlfRPNfqJrkzdpu$94f1b0d718e1e0363f1fe709065c9d4b229819b03bb9e85c6bb61dc9f2737435e2dca08331f37a08fe2e9c70f68f0018a3a9ebb97e06d1e2f91363def8c535f6'
+  DEFAULT_USERHASH: 'scrypt:32768:8:1$RkmSaBoEJHHEOrob$a436468c6580b68f67c3fdd733a7c52c38da768ee6dd9414da8dbdafa78ae5f92e0793fc613a78a9cd6ea5312abd5d23faf868eb0e0d2e1f52a06d1164547718'
+  DEFAULT_PASSHASH: 'scrypt:32768:8:1$zOlfRPNfqJrkzdpu$94f1b0d718e1e0363f1fe709065c9d4b229819b03bb9e85c6bb61dc9f2737435e2dca08331f37a08fe2e9c70f68f0018a3a9ebb97e06d1e2f91363def8c535f6'
 
 # Scaling settings
 automatic_scaling:

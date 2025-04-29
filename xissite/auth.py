@@ -16,6 +16,11 @@ from dotenv import load_dotenv
 if os.path.exists('vars.env'):
     load_dotenv('vars.env')
 
+#os.environ['ADMIN_USERNAME_HASH'] = 'scrypt:32768:8:1$RkmSaBoEJHHEOrob$a436468c6580b68f67c3fdd733a7c52c38da768ee6dd9414da8dbdafa78ae5f92e0793fc613a78a9cd6ea5312abd5d23faf868eb0e0d2e1f52a06d1164547718'
+#os.environ['ADMIN_PASSWORD_HASH'] = 'scrypt:32768:8:1$zOlfRPNfqJrkzdpu$94f1b0d718e1e0363f1fe709065c9d4b229819b03bb9e85c6bb61dc9f2737435e2dca08331f37a08fe2e9c70f68f0018a3a9ebb97e06d1e2f91363def8c535f6'
+#os.environ['DEFAULT_USERHASH'] = 'scrypt:32768:8:1$RkmSaBoEJHHEOrob$a436468c6580b68f67c3fdd733a7c52c38da768ee6dd9414da8dbdafa78ae5f92e0793fc613a78a9cd6ea5312abd5d23faf868eb0e0d2e1f52a06d1164547718'
+#os.environ['DEFAULT_PASSHASH'] = 'scrypt:32768:8:1$zOlfRPNfqJrkzdpu$94f1b0d718e1e0363f1fe709065c9d4b229819b03bb9e85c6bb61dc9f2737435e2dca08331f37a08fe2e9c70f68f0018a3a9ebb97e06d1e2f91363def8c535f6'
+
 # Get values from environment variables
 STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
 STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY')
@@ -60,6 +65,9 @@ def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
+
+        print("\n \n \n HELLO THIS IS THE HASH NEXT: ")
+        print(ADMIN_USERNAME_HASH)
 
         usernamechk = check_password_hash(ADMIN_USERNAME_HASH, username)
         passwordchk = check_password_hash(ADMIN_PASSWORD_HASH, password)
