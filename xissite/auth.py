@@ -60,14 +60,11 @@ def login():
             newmin = User(email=ADMIN_USERNAME_HASH, password=ADMIN_PASSWORD_HASH)
             db.session.add(newmin)
             db.session.commit()
-            print('\n \n \n Newmin Created \n \n \n')
+            
         
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-
-        print("\n \n \n HELLO THIS IS THE HASH NEXT: ")
-        print(ADMIN_USERNAME_HASH)
 
         usernamechk = check_password_hash(ADMIN_USERNAME_HASH, username)
         passwordchk = check_password_hash(ADMIN_PASSWORD_HASH, password)
@@ -78,7 +75,7 @@ def login():
             return redirect(url_for('auth.viewdatabase'))
         else:
             print("\n \n INVALID LOGIN DETECTED...\n \n")
-            flash('Invalid login credentials', 'error')
+            #flash('Invalid login credentials', 'error')
 
     return render_template('loginpage.html', form=form, boolean=True)  # Pass form to template
 
