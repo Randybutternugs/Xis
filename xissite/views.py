@@ -18,11 +18,13 @@ def home():
 @views.route('/sell')
 @csrf.exempt
 def sale():
-    return render_template("sell.html")
+    return render_template("home.html")
+    #return render_template("sell.html")
 
 @views.route('/about')
 def about():
-    return render_template("about.html")
+    return render_template("home.html")
+    #return render_template("about.html")
 
 @views.route('/contact', methods=['GET','POST'])
 def contact():
@@ -48,8 +50,8 @@ def contact():
             errcolo = 'red'
             flash(u'Error: Please Check Your Information or Try Refreshing The Page')
 
-
-    return render_template("contact.html", form=form, errcolo=errcolo)
+    return render_template("home.html")
+    #return render_template("contact.html", form=form, errcolo=errcolo)
 
 class ContactForm(FlaskForm):
     feedbackemail = StringField('Email', validators=[DataRequired(), Length(min = 1, max = 40), Email(message=None, check_deliverability=True, allow_smtputf8=True, allow_empty_local=False)])
