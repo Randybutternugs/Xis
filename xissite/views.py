@@ -23,8 +23,8 @@ def sale():
 
 @views.route('/about')
 def about():
-    return render_template("home.html")
-    #return render_template("about.html")
+    #return render_template("home.html")
+    return render_template("about.html")
 
 @views.route('/contact', methods=['GET','POST'])
 def contact():
