@@ -1,5 +1,5 @@
-# app.yaml - Configuration for Google Cloud Engine
-runtime: python39
+# app.yaml - Configuration for Google App Engine
+runtime: python313
 
 # Service name
 service: default
