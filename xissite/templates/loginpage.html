@@ -1,60 +1,40 @@
-{% extends "base.html" %} 
+{% extends "base.html" %}
 {% block title %} Employee Login {% endblock %}
-{% block head %} 
-<style scoped>
-    @media screen and (max-width: 600px) {
-        .maintext {
-            color: black; 
-            font-family: 'pexico_microregular'; 
-            text-align: center; 
-            align-self: center; 
-            font-size: 200%; 
-            border: 8px solid black; 
-            padding: 10%;
-        }
 
-    }
+{% block sectionconfig %}<section class="login-grid">{% endblock %}
+{% block titleconfig %}{% endblock %}
+{% block titletext %}{% endblock %}
+{% block pagetitle %}{% endblock %}
+{% block titleicon %}{% endblock %}
 
-    @media screen and (min-width: 601px) {
+{% block content %}
 
-        .maintext {
-            color: black; 
-            font-family: 'pexico_microregular'; 
-            text-align: center; 
-            align-self: center; 
-            font-size: 200%; 
-            border: 8px solid black; 
-            padding: 2%;
-            margin-bottom: 2%;
-            margin-top: -2%;
-        }
+<!-- Header with Logo -->
+<div class="login-header">
+    <a href="/" class="logo-link"><img src="../static/images/white.svg" alt="TULL" class="header-logo"></a>
+    <span class="login-header-title">Employee</span>
+</div>
 
-    }
-
-</style>
-{% endblock %}
-{% block sectionconfig %}<section class="main-grid">{% endblock %}
-{% block titleconfig %}<div class="card-aux-title" style="background-color: #CFCFCF;">{% endblock %}
-{% block pagetitle %} BACK {% endblock %}
-{% block titleicon %} <p class="maintext">Employee Login</p>{% endblock %}
-
-{% block content %} 
-
-<div class="card-login">
-    <form method="POST">
+<!-- Login Form -->
+<div class="login-content">
+    <form method="POST" class="login-form">
+        <h1 class="login-form-title">SYSTEM <span>LOGIN</span></h1>
+        
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         
-        <label for="username" class="userlabel" >Username</label>
-        <input id="username" name="username" class="usrinp" placeholder="Enter Username"/>
+        <label for="username" class="login-label">// Username</label>
+        <input type="text" id="username" name="username" class="login-input" placeholder="Enter username" autocomplete="username"/>
 
+        <label for="password" class="login-label">// Password</label>
+        <input type="password" id="password" name="password" class="login-input" placeholder="Enter password" autocomplete="current-password"/>
 
-        <label for="password" class="passlabel">Password</label>
-        <input id="password" name="password" placeholder="Enter Password" class="pwinp"/> 
-
-
-        <button type="submit" class="loginbutton">LOGIN</button>
-
-
+        <button type="submit" class="login-submit">Authenticate →</button>
     </form>
 </div>
+
+<!-- Footer -->
+<div class="login-footer">
+    <p>TULL LLC. 2022 // Authorized Personnel Only</p>
+</div>
+
 {% endblock %}

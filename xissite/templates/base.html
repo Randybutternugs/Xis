@@ -24,6 +24,10 @@
         {% endblock %}
     </head>
     <body>
+        <!-- Transition Screen -->
+        <div class="transition-screen" id="transitionScreen">
+            <img src="../static/images/Tulllogo.svg" alt="TULL" class="transition-logo">
+        </div>
         
         <!--[if lt IE 7]>
             <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="#">upgrade your browser</a> to improve your experience.</p>
@@ -43,6 +47,40 @@
             {% endblock %}
         </section>
         
+        <script>
+            // Transition screen logic
+            (function() {
+                const transition = document.getElementById('transitionScreen');
+                
+                // Hide transition screen after page loads
+                window.addEventListener('load', function() {
+                    setTimeout(function() {
+                        transition.classList.add('hidden');
+                    }, 400);
+                });
+                
+                // Show transition screen when navigating away
+                document.addEventListener('click', function(e) {
+                    const link = e.target.closest('a');
+                    if (link && link.href && !link.href.startsWith('javascript') && 
+                        !link.target && !link.href.includes('#') &&
+                        link.hostname === window.location.hostname) {
+                        e.preventDefault();
+                        transition.classList.remove('hidden');
+                        setTimeout(function() {
+                            window.location.href = link.href;
+                        }, 300);
+                    }
+                });
+                
+                // Handle browser back/forward
+                window.addEventListener('pageshow', function(e) {
+                    if (e.persisted) {
+                        transition.classList.add('hidden');
+                    }
+                });
+            })();
+        </script>
     </body>
     
 </html>
