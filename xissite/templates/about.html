@@ -1,19 +1,81 @@
 {% extends "base.html" %}
-{% block title %} About Page {% endblock %}
-{% block head %}
+{% block title %} About TULL {% endblock %}
 
-{% endblock %}
-
-{% block sectionconfig %}<section class="main-grid">{% endblock %}
-{% block titleconfig %}<div class="card-aux-title" style="background-color: #880808;">{% endblock %}
-{% block pagetitle %} BACK {% endblock %}
-{% block titleicon %} <p style="color: white; font-family: 'pexico_microregular'; text-align: center; align-self: center; font-size: 200%; text-decoration: underline;">About</p>{% endblock %}
+{% block sectionconfig %}<section class="about-grid">{% endblock %}
+{% block titleconfig %}{% endblock %}
+{% block titletext %}{% endblock %}
+{% block pagetitle %}{% endblock %}
+{% block titleicon %}{% endblock %}
 
 {% block content %}
 
-<div class="column-card">
-    <p style="text-align: center; margin-top: 5%; font-size: 200%; font-family: 'pexico_microregular'; border: 3px solid black;">Tull</p>
-    <p style="margin: 2% 10% 2% 10%;">We are an agricultural technology company focused on the development of accessible, data-driven, and efficient hydroponics systems. We have developed a comprehensive electronics suite responsible for automating the growing process while gathering data neglected by most US grow operations.</br></br> Data inputs like electrical conductivity, dissolved oxygen content, ambient temperature, relative humidity, barometric pressure, water temperature, light levels, total dissolved solids, acidity, and more, enable the user to obtain a comprehensive analysis of the plant's surroundings and growing conditions in a way that has never been offered before. Our system aggregates these data points and utilizes Artificial Intelligence to deduce the best course of action to maintain optimal health and conditions. This direct feedback to the cultivator, from our system, takes the guesswork out of farming and drastically reduces overhead in commercial farm operations. </br></br> The material composition of our tower unit and subcomponents is polyhydroxyalkanoate (PHA), a natural, biodegradable biomaterial that can decompose in normal, natural soil conditions. So, no microplastics, nylons or toxic leeching chemicals can taint the plants growing in our systems. The net cups we manufacture are a copper-nanocomposite that will aid in mitigating biotic factors like disease and algae growth by passively sanitizing the water. Material composition matters. </br></br> Additionally, we offer a solution to the ever-present issue of getting bioavailable silicone into liquid fertilizer. We offer a grow medium that delivers water-soluble bioavailable silica which strengthens plant cell walls and improves resistance to biotic and abiotic factors alike. </br></br> Our towers are modular, easy to maintain, and built for both performance and simplicity. We intend to empower growers with sustainable, data-driven systems that deliver healthier, high-quality plants, higher yields, and to reduce overhead, increase yield, and make farms what they ought to be in this day and age. </br></br></p>
+<!-- Header with Logo -->
+<div class="about-header">
+    <a href="/" class="logo-link"><img src="../static/images/white.svg" alt="TULL" class="header-logo"></a>
+    <span class="about-header-title">ABOUT</span>
+</div>
+
+<!-- Hero Section -->
+<div class="about-hero">
+    <h1>BUILDING THE <span>FUTURE</span> OF FARMING.</h1>
+    <p>We are an agricultural technology company developing accessible, data-driven, and efficient hydroponic systems. No gimmicks. No compromises. Just better growing.</p>
+</div>
+
+<!-- Intelligence Section -->
+<div class="about-section">
+    <h2>// DATA-DRIVEN INTELLIGENCE</h2>
+    <p>Our comprehensive electronics suite automates the growing process while capturing data that most US operations ignore entirely.</p>
+    
+    <div class="stat-block">
+        <div class="stat-item">
+            <span class="number">10+</span>
+            <span class="label">Sensor Inputs</span>
+        </div>
+        <div class="stat-item">
+            <span class="number">24/7</span>
+            <span class="label">Monitoring</span>
+        </div>
+        <div class="stat-item">
+            <span class="number">AI</span>
+            <span class="label">Powered Analysis</span>
+        </div>
+    </div>
+    
+    <p>Electrical conductivity, dissolved oxygen, ambient temperature, relative humidity, barometric pressure, water temperature, light levels, total dissolved solids, pH, and more. Our system aggregates these data points and uses artificial intelligence to determine optimal growing conditions—taking the guesswork out of farming and drastically reducing overhead.</p>
+    
+    <div class="about-image">
+        <img src="../static/images/No_fill_SS.png" alt="TULL Proprietary Circuit Board">
+        <div class="about-image-caption">Proprietary Control Board // Rev 2.0</div>
+    </div>
+</div>
+
+<!-- Materials Section -->
+<div class="about-section">
+    <h2>// MATERIAL COMPOSITION MATTERS</h2>
+    <p>Our tower units and subcomponents are manufactured from polyhydroxyalkanoate (PHA)—a natural, biodegradable biomaterial that decomposes in normal soil conditions. Zero microplastics. Zero nylons. Zero toxic leaching chemicals contaminating your plants.</p>
+    <p>Our net cups feature a copper-nanocomposite that passively sanitizes nutrient water, mitigating biotic factors like disease and algae growth before they become problems.</p>
+</div>
+
+<!-- Tower Section -->
+<div class="about-section">
+    <h2>// THE SYSTEM</h2>
+    <p>Our towers are modular, easy to maintain, and built for both performance and simplicity. We also offer a proprietary grow medium that delivers water-soluble bioavailable silica—strengthening plant cell walls and improving resistance to biotic and abiotic stress factors.</p>
+    
+    <div class="about-image">
+        <img src="../static/images/TullTower_Electronics_running_2.JPEG" alt="TULL Tower System in Action">
+        <div class="about-image-caption">Tower System // Development Unit</div>
+    </div>
+</div>
+
+<!-- Mission Section -->
+<div class="about-section">
+    <h2>// THE MISSION</h2>
+    <p>Empower growers with sustainable, data-driven systems that deliver healthier plants, higher yields, and reduced overhead. Make farms what they ought to be.</p>
+</div>
+
+<!-- Footer -->
+<div class="about-footer">
+    <p>TULL LLC. 2022</p>
 </div>
 
 {% endblock %}
