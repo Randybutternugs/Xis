@@ -12,7 +12,12 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <title>{% block title %} Tab Title {% endblock %}</title>
         <meta name="description" content="">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- UPDATED: Added viewport-fit=cover for iPhone safe areas -->
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+        <!-- NEW: iPhone status bar styling (makes top bar black) -->
+        <meta name="theme-color" content="#000000">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
         <link rel="icon" href="{{ url_for('static', filename='icons/tullicon.ico') }}" type="image/x-icon">
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}">
         {% block head %}
@@ -29,7 +34,7 @@
         {% block titleconfig %}
             <div class="card-title">
         {% endblock %}
-                {% block titletext %}<p class="titletext"><a href="/" style="font-family: pexico_microregular;">{% endblock %}{% block pagetitle %} Page Title {% endblock %}</a></p>
+                {% block titletext %}<a href="/" class="logo-link">{% endblock %}{% block pagetitle %}<p class="titletext">Page Title</p>{% endblock %}</a>
                 {%block titleicon %}
                 {% endblock %}
             </div>
