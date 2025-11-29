@@ -1,17 +1,48 @@
-{% extends "base.html" %} 
-{% block title %} Home Page {% endblock %}
-{% block titleconfig %} <div class="card-title" style="background-image: url('../static/images/splashdemo.png');"> {% endblock %}
-<!-- Logo - place Tull_Logo.png in static/images/ -->
-{% block pagetitle %}<img src="../static/images/white.svg" alt="TULL" class="header-logo">{% endblock %}
-{%block titleicon %}<img src="../static/icons/databaseicon.svg" class="topicon" onclick="window.top.location.href='/viewdb';"> {% endblock %}
-{% block content %} 
-<div class="buffer-card"> <span class="subhead"> <p class="title">Growers Are About to Get a Huge Upgrade</p> </br> <p class="info"> </br>"Modern" hydroponic companies have milked our wallets </br> only providing a glorfied plastic water tower and pump</br></br> We've developed the next generation of hydroponics </br> No continuous overhead, guesswork or headaches</p> <p class="purchtext">Soon you'll be able to use this button to buy one.</p></span>  <a href="/sell" class="BuyButton">Buy a Tull Tower</a></div>
-<div class="card"><a id="contact" href="/contact"> CONTACT <span style="color: #6DD87D;">TULL</span> </a></div>   
-<div class="card"><a id="about" href="/about"> ABOUT <span style="color: #6DD87D;">TULL</span> </a></div>
-<div class="card-footer">
-    <p>TULL LLC. 2022</p> 
-    <a href="https://www.instagram.com/tull_llc/" target="_blank" style="margin: auto; display: inline-block;"><img src="../static/icons/instagram.svg" style="filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(194deg) brightness(109%) contrast(101%); height: 25px; width: auto;"></a>
-    <!-- UPDATED: Changed Twitter to X icon -->
-    <a href="https://x.com/tull_llc/" target="_blank" style="margin: auto; display: inline-block;"><img src="../static/icons/x-icon.svg" style="filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(194deg) brightness(109%) contrast(101%); height: 25px; width: auto;"></a>
+{% extends "base.html" %}
+{% block title %} TULL Hydroponics {% endblock %}
+
+{% block sectionconfig %}<section class="home-grid">{% endblock %}
+{% block titleconfig %}{% endblock %}
+{% block titletext %}{% endblock %}
+{% block pagetitle %}{% endblock %}
+{% block titleicon %}{% endblock %}
+
+{% block content %}
+
+<!-- Header with Logo -->
+<div class="home-header">
+    <a href="/" class="logo-link"><img src="../static/images/white.svg" alt="TULL" class="header-logo"></a>
+    <img src="../static/icons/databaseicon.svg" class="topicon" onclick="window.top.location.href='/viewdb';" style="cursor: pointer;">
 </div>
+
+<!-- Hero Section with Background -->
+<div class="home-hero">
+    <div class="home-hero-bg" style="background-image: url('../static/images/splashdemo.png');"></div>
+    <div class="home-hero-content">
+        <h1>GROWERS ARE ABOUT TO GET A <span>HUGE UPGRADE</span></h1>
+        <p>"Modern" hydroponic companies have milked our wallets. Offering nothing more than a glorified plastic water tower and pump. We've developed the next generation of hydroponics. No continuous overhead. No guesswork. No headaches.</p>
+    </div>
+</div>
+
+<!-- Call to Action -->
+<div class="home-cta">
+    <a href="/sell" class="home-cta-button">Buy a Tull Tower</a>
+    <p class="home-cta-note">// Pre-orders opening soon</p>
+</div>
+
+<!-- Navigation -->
+<nav class="home-nav">
+    <a href="/contact" class="home-nav-item">Contact <span>TULL</span></a>
+    <a href="/about" class="home-nav-item">About <span>TULL</span></a>
+</nav>
+
+<!-- Footer -->
+<div class="home-footer">
+    <p>TULL LLC. 2022</p>
+    <div class="home-footer-social">
+        <a href="https://www.instagram.com/tull_llc/" target="_blank"><img src="../static/icons/instagram.svg" alt="Instagram"></a>
+        <a href="https://x.com/tull_llc/" target="_blank"><img src="../static/icons/x-icon.svg" alt="X"></a>
+    </div>
+</div>
+
 {% endblock %}
