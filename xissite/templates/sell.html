@@ -1,106 +1,97 @@
-{% extends "base.html" %} 
-{% block title %} Buy Now {% endblock %}
-{% block head %} 
+{% extends "base.html" %}
 
-<link rel="stylesheet" href="../static/scripts/flickity.min.css">
-<script src="../static/scripts/flickity.pkgd.min.js"></script>
+{% block title %}Tull Tower V1 | Buy Now{% endblock %}
 
-<script src="https://polyfill.io/v3/polyfill.min.js?version=3.52.1&features=fetch"></script>
-<script src="https://js.stripe.com/v3/"></script>
-
-<style scoped>
-
-  html {
-    font-family:'HelveticaNeueLT Pro 65 Md';
-    height: 100%;
-    width: 100%;
-    overflow-x: hidden;
-    margin:0;
-  }
-  
-    /* position dots up a bit */
-  .flickity-page-dots {
-    bottom: 10px;
-  }
-
-  /* dots are lines */
-  .flickity-page-dots .dot {
-    height: 4px;
-    width: 40px;
-    margin: 0;
-    border-radius: 0;
-  }
-  
-  * {
-    -webkit-box-sizing: border-box;
-    box-sizing: border-box;
-  }
-  
-  .gallery {
-    background: #EEE;
-    height: 100%;
-  }
-
-  .gallery-cell {
-    background: #CFCFCF;
-    border-radius: 5px;
-    counter-increment: gallery-cell;
-  }
-
-  /* cell number */
-  .gallery-cell:before {
-    text-align: center;
-    line-height: 200px;
-    font-size: 80px;
-    color: white;
-  }
-
-  .flickity-slider {
-    display: flex;
-    align-items: center;
-  }
-
-  .flickity-viewport {
-    transition: height 0.2s;
-  }
-
-</style>
-
+{% block head %}
+<!-- Flickity CSS for image carousel -->
+<link rel="stylesheet" href="{{ url_for('static', filename='scripts/flickity.min.css') }}">
 {% endblock %}
-{% block pagetitle %} BACK {% endblock %}
-{% block sectionconfig %}<section class="main-grid">{% endblock %}
-{% block titleconfig %} <div class="card-shop-title"> {% endblock %}
+
+{% block sectionconfig %}<section class="sell-grid">{% endblock %}
+
+{% block titleconfig %}
+<div class="sell-header">
+{% endblock %}
+
+{% block titletext %}
+<a href="/" class="logo-link">
+{% endblock %}
+
+{% block pagetitle %}
+<img src="{{ url_for('static', filename='images/Tulllogo.svg') }}" alt="Tull" class="header-logo">
+{% endblock %}
+
 {% block titleicon %}
-
-  <div class="gallery js-flickity" data-flickity='{"setGallerySize": false, "wrapAround": true, "adaptiveHeight": true, "imagesLoaded": true}'>
-    <div class="gallery-cell">
-      <img src="../static/images/fill SS.png" class="sellimg">
-    </div>
-    <div class="gallery-cell">
-      <img src="../static/images/No fill SS.png" class="sellimg">
-    </div>
-    <div class="gallery-cell">
-      <img src="../static/images/Schematic.png" class="sellimg">
-    </div>
-    <div class="gallery-cell">
-      <img src="../static/images/splashdemo.png" class="sellimg">
-    </div>
-    <div class="gallery-cell">
-      <img src="../static/images/fill SS.png" class="sellimg">
-    </div>
-  </div>
-
+<a href="/" class="sell-back-link">
+    <span>← Back</span>
+</a>
 {% endblock %}
 
-{% block content %} 
-<div class="column-card">
-  <h1> The V1 XIS Hydroponics Unit </h1>
-  <h3>Our first system</h3>
-  <p>Blah Blah Blah Blah. Blah Blah. DOo Doo Mega Dee Dee. Additionally, mega dee dee mega doo doo deee. So thats about it to say the least. Blah Blah Blah Blah. Blah Blah. DOo Doo Mega Dee Dee. Additionally, mega dee dee mega doo doo deee. So thats about it to say the least.</p>
+{% block content %}
 
-  <h4><span style="font-family: pexico_microregular;"> Full Price: &dollar;200</span></h4>
-  <form action="/create-checkout-session" method="POST">
-    <button type="submit" class="checkout" id="checkout-button" style="font-family: pexico_microregular;">CHECKOUT</button>
-  </form>
+<div class="sell-gallery">
+    <div class="gallery js-flickity" data-flickity='{"setGallerySize": false, "wrapAround": true, "adaptiveHeight": true, "imagesLoaded": true, "pageDots": true, "prevNextButtons": false}'>
+        <div class="gallery-cell">
+            <img src="{{ url_for('static', filename='images/fill SS.png') }}" class="sell-img" alt="Tull Tower Front View">
+        </div>
+        <div class="gallery-cell">
+            <img src="{{ url_for('static', filename='images/No fill SS.png') }}" class="sell-img" alt="Tull Tower Components">
+        </div>
+        <div class="gallery-cell">
+            <img src="{{ url_for('static', filename='images/Schematic.png') }}" class="sell-img" alt="Tull Tower Schematic">
+        </div>
+        <div class="gallery-cell">
+            <img src="{{ url_for('static', filename='images/splashdemo.png') }}" class="sell-img" alt="Tull Tower Demo">
+        </div>
+    </div>
 </div>
+
+<div class="sell-content">
+    <div class="sell-product-header">
+        <span class="sell-badge">NOW AVAILABLE</span>
+        <h1>TULL TOWER <span>V1</span></h1>
+        <p class="sell-tagline">The future of home hydroponics</p>
+    </div>
+    
+    <div class="sell-description">
+        <h2>// OVERVIEW</h2>
+        <p>The Tull Tower V1 is our flagship aeroponic growing system, designed for growers who demand data-driven precision. With integrated sensors monitoring every aspect of your grow, you'll have complete visibility into your plant's environment.</p>
+        
+        <h2>// KEY FEATURES</h2>
+        <ul class="sell-features">
+            <li><span class="feature-highlight">10+ Sensors</span> — Temperature, humidity, pH, EC, light, and more</li>
+            <li><span class="feature-highlight">Biodegradable Net Cups</span> — PHA biomaterial, copper-nanocomposite infused</li>
+            <li><span class="feature-highlight">7 Growing Modules</span> — 35 plant capacity per tower</li>
+            <li><span class="feature-highlight">Smart Monitoring</span> — 24/7 data logging with app integration</li>
+        </ul>
+    </div>
+    
+    <div class="sell-purchase">
+        <div class="sell-price-block">
+            <span class="sell-price-label">// PRICE</span>
+            <span class="sell-price">$200</span>
+            <span class="sell-shipping">Free shipping to US & Canada</span>
+        </div>
+        
+        <form action="/create-checkout-session" method="POST">
+            <button type="submit" class="sell-checkout-btn" id="checkout-button">
+                Proceed to Checkout <span class="arrow">→</span>
+            </button>
+        </form>
+        
+        <p class="sell-note">Secure payment powered by Stripe</p>
+    </div>
+</div>
+
+<div class="sell-footer">
+    <div class="sell-footer-links">
+        <a href="/about">About Us</a>
+        <a href="/contact">Contact</a>
+    </div>
+    <p>© 2025 Tull Hydroponics</p>
+</div>
+
+<!-- Flickity JS -->
+<script src="{{ url_for('static', filename='scripts/flickity.pkgd.min.js') }}"></script>
+
 {% endblock %}

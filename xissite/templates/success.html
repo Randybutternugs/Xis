@@ -1,14 +1,73 @@
-{% extends "base.html" %} 
-{% block title %} Success {% endblock %}
-{% block titleconfig %} <div class="card-title" style="background-color: #3BC14A; flex-direction: column;"> {% endblock %}
-{% block pagetitle %} THANK YOU! {% endblock %}
-{%block titleicon %}<img src="../static/icons/check.svg" class="midicon"> {% endblock %}
+{% extends "base.html" %}
+
+{% block title %}Order Confirmed | Tull Hydroponics{% endblock %}
+
 {% block head %}
-<meta http-equiv="refresh" content="12; url={{url_for('views.home')}}" />
+<meta http-equiv="refresh" content="12; url={{ url_for('views.home') }}">
 {% endblock %}
-{% block content %} 
-<div class="card"><p style="text-align: center; color: white;">THANK YOU FOR YOUR PURCHASE!</p></div>
-<div class="card"><p style="text-align: center; color: white; font-size: 75%;">An Order Confirmation Has Been Sent To Your Email! </br> (Check Your Junk/Spam Folder) </br> Send any questions or concerns to email@xis.com </p></div>
-<div class="card"></div>
-<div class="card"><p style="text-align: center; font-size: 75%;">You Will Be Redirected To The Home Page Shortly.</p></div>
+
+{% block sectionconfig %}<section class="status-grid">{% endblock %}
+
+{% block titleconfig %}
+<div class="status-header">
+{% endblock %}
+
+{% block titletext %}
+<a href="/" class="logo-link">
+{% endblock %}
+
+{% block pagetitle %}
+<img src="{{ url_for('static', filename='images/Tulllogo.svg') }}" alt="Tull" class="header-logo">
+{% endblock %}
+
+{% block titleicon %}{% endblock %}
+
+{% block content %}
+
+<div class="status-hero status-success">
+    <div class="status-icon-wrapper">
+        <svg class="status-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+    </div>
+    <h1>THANK YOU!</h1>
+    <p class="status-subtitle">Your order has been confirmed</p>
+</div>
+
+<div class="status-content">
+    <div class="status-message">
+        <h2>// WHAT'S NEXT</h2>
+        <p>An order confirmation has been sent to your email address. Please check your inbox (and spam/junk folder) for details about your purchase.</p>
+    </div>
+    
+    <div class="status-details">
+        <div class="status-detail-item">
+            <span class="detail-icon">📧</span>
+            <span class="detail-text">Confirmation email sent</span>
+        </div>
+        <div class="status-detail-item">
+            <span class="detail-icon">📦</span>
+            <span class="detail-text">Processing begins within 24 hours</span>
+        </div>
+        <div class="status-detail-item">
+            <span class="detail-icon">🚚</span>
+            <span class="detail-text">Tracking info provided when shipped</span>
+        </div>
+    </div>
+    
+    <div class="status-contact">
+        <p>Questions about your order?</p>
+        <a href="/contact" class="status-contact-link">Contact Us →</a>
+    </div>
+</div>
+
+<div class="status-redirect">
+    <p>Redirecting to home page in 12 seconds...</p>
+    <a href="/" class="status-home-link">Go to Home Now →</a>
+</div>
+
+<div class="status-footer">
+    <p>© 2025 Tull Hydroponics</p>
+</div>
+
 {% endblock %}

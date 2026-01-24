@@ -1,35 +1,42 @@
 {% extends "base.html" %}
-{% block title %} About TULL {% endblock %}
+
+{% block title %}About | Tull Hydroponics{% endblock %}
+
+{% block head %}{% endblock %}
 
 {% block sectionconfig %}<section class="about-grid">{% endblock %}
-{% block titleconfig %}{% endblock %}
-{% block titletext %}{% endblock %}
-{% block pagetitle %}{% endblock %}
-{% block titleicon %}{% endblock %}
+
+{% block titleconfig %}
+<div class="about-header">
+{% endblock %}
+
+{% block titletext %}
+<a href="/" class="logo-link">
+{% endblock %}
+
+{% block pagetitle %}
+<img src="{{ url_for('static', filename='images/Tulllogo.svg') }}" alt="Tull" class="header-logo">
+{% endblock %}
+
+{% block titleicon %}
+<span class="about-header-title">ABOUT</span>
+{% endblock %}
 
 {% block content %}
 
-<!-- Header with Logo -->
-<div class="about-header">
-    <a href="/" class="logo-link"><img src="../static/images/white.svg" alt="TULL" class="header-logo"></a>
-    <span class="about-header-title">ABOUT</span>
-</div>
-
-<!-- Hero Section -->
 <div class="about-hero">
-    <h1>BUILDING THE <span>FUTURE</span> OF FARMING.</h1>
-    <p>We are an agricultural technology company developing accessible, data-driven, and efficient hydroponic systems. No gimmicks. No compromises. Just better growing.</p>
+    <h1>BUILDING THE FUTURE OF <span>FARMING</span></h1>
+    <p>We're an agricultural technology company developing next-generation aeroponic tower systems. Our mission is to make precision growing accessible to everyone — from home growers to commercial operations.</p>
 </div>
 
-<!-- Intelligence Section -->
 <div class="about-section">
-    <h2>// DATA-DRIVEN INTELLIGENCE</h2>
-    <p>Our comprehensive electronics suite automates the growing process while capturing data that most US operations ignore entirely.</p>
+    <h2>// Data-Driven Intelligence</h2>
+    <p>Every Tull Tower is equipped with a comprehensive sensor array that monitors your growing environment in real-time. Temperature, humidity, pH, electrical conductivity, light levels — all captured and analyzed to help you optimize your grow.</p>
     
     <div class="stat-block">
         <div class="stat-item">
             <span class="number">10+</span>
-            <span class="label">Sensor Inputs</span>
+            <span class="label">Integrated Sensors</span>
         </div>
         <div class="stat-item">
             <span class="number">24/7</span>
@@ -37,45 +44,40 @@
         </div>
         <div class="stat-item">
             <span class="number">AI</span>
-            <span class="label">Powered Analysis</span>
+            <span class="label">Powered Insights</span>
         </div>
     </div>
     
-    <p>Electrical conductivity, dissolved oxygen, ambient temperature, relative humidity, barometric pressure, water temperature, light levels, total dissolved solids, pH, and more. Our system aggregates these data points and uses artificial intelligence to determine optimal growing conditions. Taking the guesswork out of farming and drastically reducing overhead.</p>
-    
     <div class="about-image">
-        <img src="../static/images/No_fill_SS.png" alt="TULL Proprietary Circuit Board">
-        <div class="about-image-caption">Proprietary Control Board // Rev 2.0</div>
+        <img src="{{ url_for('static', filename='images/No_fill_SS.png') }}" alt="Tull Tower Circuit Board">
+        <div class="about-image-caption">Integrated Sensor Module</div>
     </div>
 </div>
 
-<!-- Materials Section -->
 <div class="about-section">
-    <h2>// MATERIAL COMPOSITION MATTERS</h2>
-    <p>Our tower units and subcomponents are manufactured from polyhydroxyalkanoate (PHA): a natural, biodegradable biomaterial that decomposes in normal soil conditions. Zero microplastics. Zero nylons. Zero toxic leaching chemicals contaminating your plants.</p>
-    <p>Our net cups feature a copper-nanocomposite that passively sanitizes nutrient water, mitigating biotic factors like disease and algae growth before they become problems.</p>
+    <h2>// Material Composition Matters</h2>
+    <p>Our proprietary net cups are manufactured from PHA biomaterial — a fully biodegradable polymer that breaks down naturally without leaving microplastics. Each cup is infused with copper-nanocomposite technology that provides natural antimicrobial properties, keeping your root zone healthy without harsh chemicals.</p>
+    <p>This isn't just sustainable — it's better for your plants and better for the environment.</p>
 </div>
 
-<!-- Tower Section -->
 <div class="about-section">
-    <h2>// THE SYSTEM</h2>
-    <p>Our towers are modular, easy to maintain, and built for both performance and simplicity. We also offer a proprietary grow medium that delivers water-soluble bioavailable silica—strengthening plant cell walls and improving resistance to biotic and abiotic stress factors.</p>
+    <h2>// The System</h2>
+    <p>Each Tull Tower features seven 5-way growing modules, giving you capacity for 35 plants in a compact vertical footprint. The aeroponic delivery system ensures your roots get maximum oxygen exposure while using up to 95% less water than traditional growing methods.</p>
     
     <div class="about-image">
-        <img src="../static/images/TullTower_Electronics_running_2.JPEG" alt="TULL Tower System in Action">
-        <div class="about-image-caption">Tower System // Development Unit</div>
+        <img src="{{ url_for('static', filename='images/TullTower_Electronics_running_2.JPEG') }}" alt="Tull Tower in Operation">
+        <div class="about-image-caption">Tull Tower V1 — Electronics Running</div>
     </div>
 </div>
 
-<!-- Mission Section -->
 <div class="about-section">
-    <h2>// THE MISSION</h2>
-    <p>Empower growers with sustainable, data-driven systems that deliver healthier plants, higher yields, and reduced overhead. Make farms what they ought to be.</p>
+    <h2>// The Mission</h2>
+    <p>We believe the future of food production is local, data-driven, and sustainable. Tull Hydroponics is building the tools to make that future a reality — starting with systems that are accessible, reliable, and designed for real growers.</p>
+    <p>Whether you're growing herbs on your kitchen counter or scaling up a commercial operation, we're here to help you grow smarter.</p>
 </div>
 
-<!-- Footer -->
 <div class="about-footer">
-    <p>TULL LLC. 2022</p>
+    <p>© 2025 Tull Hydroponics. All rights reserved.</p>
 </div>
 
 {% endblock %}

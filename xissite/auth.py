@@ -1,123 +1,288 @@
-from operator import contains
-from xmlrpc.client import boolean
-from flask import Blueprint, Flask, redirect, url_for, render_template, request, jsonify, flash
+"""
+Authentication & Database Viewer Routes
+=======================================
+
+This module handles:
+- Admin login/logout authentication
+- Investor login/logout authentication
+- Customer database viewer (protected routes)
+- Search functionality for customers and orders
+- Feedback viewer for customer submissions
+- Investor portal (protected route)
+
+All routes except /login require authentication via Flask-Login.
+"""
+
+from flask import Blueprint, redirect, url_for, render_template, request, flash, session
 from sqlalchemy.sql import func
 import os
-import stripe
-from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.security import check_password_hash
 from flask_login import login_user, login_required, logout_user, current_user
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, PasswordField, BooleanField
+from wtforms import StringField, SubmitField, PasswordField
 from wtforms.validators import DataRequired, Length
 from flask_wtf.csrf import CSRFProtect
-from dotenv import load_dotenv
-
-# Try to load environment variables from vars.env
-if os.path.exists('vars.env'):
-    load_dotenv('vars.env')
-
-#os.environ['ADMIN_USERNAME_HASH'] = 'scrypt:32768:8:1$RkmSaBoEJHHEOrob$a436468c6580b68f67c3fdd733a7c52c38da768ee6dd9414da8dbdafa78ae5f92e0793fc613a78a9cd6ea5312abd5d23faf868eb0e0d2e1f52a06d1164547718'
-#os.environ['ADMIN_PASSWORD_HASH'] = 'scrypt:32768:8:1$zOlfRPNfqJrkzdpu$94f1b0d718e1e0363f1fe709065c9d4b229819b03bb9e85c6bb61dc9f2737435e2dca08331f37a08fe2e9c70f68f0018a3a9ebb97e06d1e2f91363def8c535f6'
-#os.environ['DEFAULT_USERHASH'] = 'scrypt:32768:8:1$RkmSaBoEJHHEOrob$a436468c6580b68f67c3fdd733a7c52c38da768ee6dd9414da8dbdafa78ae5f92e0793fc613a78a9cd6ea5312abd5d23faf868eb0e0d2e1f52a06d1164547718'
-#os.environ['DEFAULT_PASSHASH'] = 'scrypt:32768:8:1$zOlfRPNfqJrkzdpu$94f1b0d718e1e0363f1fe709065c9d4b229819b03bb9e85c6bb61dc9f2737435e2dca08331f37a08fe2e9c70f68f0018a3a9ebb97e06d1e2f91363def8c535f6'
-
-# Get values from environment variables
-STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
-STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY')
-HP_PRICE_ID = os.environ.get('HP_PRICE_ID')
-STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET')
-ADMIN_USERNAME_HASH = os.environ.get('ADMIN_USERNAME_HASH')
-ADMIN_PASSWORD_HASH = os.environ.get('ADMIN_PASSWORD_HASH')
-DEFAULT_USERHASH = os.environ.get('DEFAULT_USERHASH')
-DEFAULT_PASSHASH = os.environ.get('DEFAULT_PASSHASH')
-
-csrf = CSRFProtect()
+from functools import wraps
 
 from . import db
+from .models import Customer, FeedBack, Purchase_info, User
 
-from .models import Customer, FeedBack, Purchase_info, User, FeedBack
+# Initialize CSRF protection
+csrf = CSRFProtect()
 
-# Form classes
+# Create Blueprint
+auth = Blueprint('auth', __name__)
+
+
+# ============================================================================
+# FORMS
+# ============================================================================
+
 class LoginForm(FlaskForm):
+    """Admin/Investor login form with username and password fields."""
     username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
-    submit = SubmitField('Login')
+    submit = SubmitField('Authenticate')
+
 
 class SearchForm(FlaskForm):
+    """Search form for finding customers by email or purchase ID."""
     SearchWord = StringField('', validators=[DataRequired(), Length(min=1, max=40)])
     submit = SubmitField('')
 
-auth = Blueprint('auth', __name__)
 
-@auth.route('/login', methods=['GET','POST'])       
+# ============================================================================
+# CUSTOM DECORATORS
+# ============================================================================
+
+def admin_required(f):
+    """Decorator to require admin access (not investor)."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return redirect(url_for('auth.login'))
+        if session.get('user_type') != 'admin':
+            flash('Admin access required.', 'error')
+            return redirect(url_for('auth.login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+def investor_required(f):
+    """Decorator to require investor access."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return redirect(url_for('auth.login'))
+        if session.get('user_type') != 'investor':
+            flash('Investor access required.', 'error')
+            return redirect(url_for('auth.login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+# ============================================================================
+# AUTHENTICATION ROUTES
+# ============================================================================
+
+@auth.route('/login', methods=['GET', 'POST'])       
 def login():
+    """
+    Login page for both Admin and Investor users.
+    
+    GET: Displays login form, creates admin user if none exists
+    POST: Validates credentials against hashed values in environment variables
+          Redirects to appropriate portal based on user type
+    
+    Environment Variables Required:
+        ADMIN_USERNAME_HASH: Werkzeug-hashed admin username
+        ADMIN_PASSWORD_HASH: Werkzeug-hashed admin password
+        INVESTOR_USERNAME_HASH: Werkzeug-hashed investor username
+        INVESTOR_PASSWORD_HASH: Werkzeug-hashed investor password
+    """
     csrf.protect()
-    form = LoginForm()  # Create form instance
-
+    form = LoginForm()
+    
+    # Get hashed credentials from environment
+    admin_username_hash = os.environ.get('ADMIN_USERNAME_HASH')
+    admin_password_hash = os.environ.get('ADMIN_PASSWORD_HASH')
+    investor_username_hash = os.environ.get('INVESTOR_USERNAME_HASH')
+    investor_password_hash = os.environ.get('INVESTOR_PASSWORD_HASH')
+    
+    # Validate environment configuration (admin is required, investor is optional)
+    if not admin_username_hash or not admin_password_hash:
+        print("[ERROR] Admin credentials not configured in environment variables")
+        flash('System configuration error. Please contact administrator.', 'error')
+        return render_template('loginpage.html', form=form)
+    
+    # On first visit, ensure admin user exists in database
     if request.method == 'GET':
-        admencheck = db.session.query(User).first()
-        if admencheck == None:
-            newmin = User(email=ADMIN_USERNAME_HASH, password=ADMIN_PASSWORD_HASH)
-            db.session.add(newmin)
+        admin_check = db.session.query(User).first()
+        if admin_check is None:
+            new_admin = User(email=admin_username_hash, password=admin_password_hash, user_type='admin')
+            db.session.add(new_admin)
             db.session.commit()
-            
-        
+            print("[SETUP] Admin user created in database")
+    
+    # Handle login attempt
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
+        username = request.form.get('username', '')
+        password = request.form.get('password', '')
+        
+        # Check ADMIN credentials first
+        admin_username_valid = check_password_hash(admin_username_hash, username)
+        admin_password_valid = check_password_hash(admin_password_hash, password)
+        
+        if admin_username_valid and admin_password_valid:
+            user = User.query.filter_by(user_type='admin').first()
+            if not user:
+                user = User.query.get(1)
+            if user:
+                login_user(user, remember=True)
+                session['user_type'] = 'admin'
+                print(f"[AUTH] Successful ADMIN login")
+                return redirect(url_for('auth.viewdatabase'))
+            else:
+                print("[ERROR] Admin user record not found in database")
+                flash('Authentication error. Please try again.', 'error')
+                return render_template('loginpage.html', form=form)
+        
+        # Check INVESTOR credentials if admin didn't match
+        if investor_username_hash and investor_password_hash:
+            investor_username_valid = check_password_hash(investor_username_hash, username)
+            investor_password_valid = check_password_hash(investor_password_hash, password)
+            
+            if investor_username_valid and investor_password_valid:
+                # Check if investor user exists, create if not
+                investor_user = User.query.filter_by(user_type='investor').first()
+                if not investor_user:
+                    investor_user = User(
+                        email=investor_username_hash, 
+                        password=investor_password_hash, 
+                        user_type='investor'
+                    )
+                    db.session.add(investor_user)
+                    db.session.commit()
+                    print("[SETUP] Investor user created in database")
+                
+                login_user(investor_user, remember=True)
+                session['user_type'] = 'investor'
+                print(f"[AUTH] Successful INVESTOR login")
+                return redirect(url_for('auth.investor_portal'))
+        
+        # Neither admin nor investor credentials matched
+        print("[AUTH] Invalid login attempt")
+        flash('Invalid credentials', 'error')
 
-        usernamechk = check_password_hash(ADMIN_USERNAME_HASH, username)
-        passwordchk = check_password_hash(ADMIN_PASSWORD_HASH, password)
+    return render_template('loginpage.html', form=form)
 
-        if usernamechk and passwordchk:
-            uszur = User.query.get(1)
-            login_user(uszur, remember=True)
-            return redirect(url_for('auth.viewdatabase'))
-        else:
-            print("\n \n INVALID LOGIN DETECTED...\n \n")
-            #flash('Invalid login credentials', 'error')
-
-    return render_template('loginpage.html', form=form, boolean=True)  # Pass form to template
 
 @auth.route('/logout')
 @login_required
 def logout():
+    """Log out the current user and redirect to login page."""
+    user_type = session.get('user_type', 'unknown')
+    session.pop('user_type', None)
     logout_user()
+    print(f"[AUTH] {user_type.upper()} user logged out")
     return redirect(url_for('auth.login'))
 
-#DATABASE VIEWER ------
-@auth.route('/viewdb', methods=['GET','POST'])
+
+# ============================================================================
+# INVESTOR PORTAL
+# ============================================================================
+
+@auth.route('/investor')
 @login_required
+@investor_required
+def investor_portal():
+    """
+    Investor portal page - restricted to investor users only.
+    
+    Displays confidential investor materials, pitch deck, financials, etc.
+    """
+    return render_template('investor.html')
+
+
+# ============================================================================
+# DATABASE VIEWER ROUTES (Admin Only)
+# ============================================================================
+
+@auth.route('/viewdb', methods=['GET', 'POST'])
+@login_required
+@admin_required
 def viewdatabase():
-    customerinf = Customer.query.order_by(Customer.id)
-    form = SearchForm() 
+    """
+    Main database viewer page (Admin only).
+    
+    Displays all customers with search functionality.
+    Search supports:
+        - Email addresses (containing @)
+        - Purchase IDs (numeric strings)
+    """
+    customerinf = Customer.query.order_by(Customer.id.desc())
+    form = SearchForm()
     
     if form.validate_on_submit():
-        if "@" in form.SearchWord.data:
-            try:
-                foundid = db.session.query(Customer.id).filter_by(email=form.SearchWord.data).first()[0]
-                return redirect('/viewdb/' + str(foundid))
-            except Exception as e:
-                flash(u'Email Not Found')
+        search_term = form.SearchWord.data.strip()
+        
+        if "@" in search_term:
+            # Search by email
+            customer = Customer.query.filter_by(email=search_term).first()
+            if customer:
+                return redirect(f'/viewdb/{customer.id}')
+            else:
+                flash('Email not found in database')
         else:
-            try:
-                foundid = db.session.query(Purchase_info.customer_id).filter_by(id=form.SearchWord.data).first()[0]
-                return redirect('/viewdb/' + str(foundid))
-            except Exception as e:
-                flash(u'Purchase ID Not Found')
+            # Search by purchase ID
+            purchase = Purchase_info.query.filter_by(id=search_term).first()
+            if purchase:
+                return redirect(f'/viewdb/{purchase.customer_id}')
+            else:
+                flash('Purchase ID not found in database')
                 
     return render_template('show.html', customerinf=customerinf, form=form)
 
+
 @auth.route('/viewdb/<int:customerid>', methods=['GET'])
 @login_required
+@admin_required
 def viewcustomer(customerid):
-    customer_info = Customer.query.get(customerid)
-    customer_purchasesno = db.session.query(Customer.id, func.count(Customer.id)).join(Customer.buys).filter_by(customer_id=customer_info.id).first()[1]
-    customer_purchase_info = db.session.query(Purchase_info).filter_by(customer_id=customer_info.id).all()
-    return render_template('showmore.html', customer_info=customer_info, customer_purchase_info=customer_purchase_info, customer_purchasesno=customer_purchasesno)
+    """
+    Detailed view of a single customer and their purchase history (Admin only).
+    
+    Args:
+        customerid: Database ID of the customer to view
+    """
+    customer_info = Customer.query.get_or_404(customerid)
+    
+    # Count total purchases for this customer
+    customer_purchasesno = db.session.query(func.count(Purchase_info.id))\
+        .filter(Purchase_info.customer_id == customerid)\
+        .scalar()
+    
+    # Get all purchases, ordered by date (most recent last)
+    customer_purchase_info = Purchase_info.query\
+        .filter_by(customer_id=customerid)\
+        .order_by(Purchase_info.purchase_date.asc())\
+        .all()
+    
+    return render_template(
+        'showmore.html', 
+        customer_info=customer_info, 
+        customer_purchase_info=customer_purchase_info, 
+        customer_purchasesno=customer_purchasesno
+    )
+
 
 @auth.route('/viewdb/feedbackview', methods=['GET'])
 @login_required
+@admin_required
 def viewfeedback():
-    feedback_info = FeedBack.query.order_by(FeedBack.id)
+    """
+    View all customer feedback submissions (Admin only).
+    
+    Displays feedback ordered by most recent first.
+    """
+    feedback_info = FeedBack.query.order_by(FeedBack.id.desc())
     return render_template('feedbackview.html', feedback_info=feedback_info)

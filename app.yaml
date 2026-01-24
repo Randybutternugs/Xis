@@ -1,46 +1,149 @@
-# app.yaml - Configuration for Google App Engine
-runtime: python313
+# ============================================================================
+# TULL HYDROPONICS - Google App Engine Configuration
+# ============================================================================
+# Deploy with: gcloud app deploy
+# View logs: gcloud app logs tail -s default
+# ============================================================================
 
-# Service name
+runtime: python312
+
+# Entry point - uses gunicorn for production
+entrypoint: gunicorn -b :$PORT main:app
+
+# Service name (default is the main service)
 service: default
 
-# Environment variables (secure in production)
+# ============================================================================
+# ENVIRONMENT VARIABLES
+# ============================================================================
+# IMPORTANT: Replace all placeholder values before deploying!
+# 
+# To generate secure keys:
+#   python -c "import secrets; print(secrets.token_hex(32))"
+#
+# To generate password hashes for admin credentials:
+#   python -c "from werkzeug.security import generate_password_hash; print(generate_password_hash('your_password'))"
+# ============================================================================
+
 env_variables:
-  FLASK_SECRET_KEY: "your_production_secret_key_here"
+  # Flask Configuration
+  FLASK_SECRET_KEY: "REPLACE_WITH_SECURE_RANDOM_KEY"
   FLASK_ENV: "production"
-  STRIPE_SECRET_KEY: "sk_production_key_here"
-  STRIPE_PUBLISHABLE_KEY: "pk_production_key_here"
-  STRIPE_WEBHOOK_SECRET: "whsec_production_key_here"
-  HP_PRICE_ID: "price_id_here"
-  MAIL_KEY: "production_mail_key_here"
+  
+  # Your production domain (update this!)
+  MAIN_DOMAIN: "https://YOUR_PROJECT_ID.appspot.com"
+  
+  # Stripe API Keys
+  # Get these from: https://dashboard.stripe.com/apikeys
+  STRIPE_SECRET_KEY: "sk_live_REPLACE_WITH_YOUR_KEY"
+  STRIPE_PUBLISHABLE_KEY: "pk_live_REPLACE_WITH_YOUR_KEY"
+  STRIPE_WEBHOOK_SECRET: "whsec_REPLACE_WITH_YOUR_KEY"
+  
+  # Stripe Product Price ID
+  # Create a product in Stripe Dashboard and get the Price ID
+  HP_PRICE_ID: "price_REPLACE_WITH_YOUR_PRICE_ID"
+  
+  # Mailgun API Key for order confirmation emails
+  # Get from: https://app.mailgun.com/app/account/security/api_keys
+  MAIL_KEY: "REPLACE_WITH_YOUR_MAILGUN_KEY"
+  
+  # Admin Credentials (hashed values)
+  # Generate with: python -c "from werkzeug.security import generate_password_hash; print(generate_password_hash('your_username'))"
+  # These are example hashes - REPLACE with your own!
   ADMIN_USERNAME_HASH: 'scrypt:32768:8:1$RkmSaBoEJHHEOrob$a436468c6580b68f67c3fdd733a7c52c38da768ee6dd9414da8dbdafa78ae5f92e0793fc613a78a9cd6ea5312abd5d23faf868eb0e0d2e1f52a06d1164547718'
   ADMIN_PASSWORD_HASH: 'scrypt:32768:8:1$zOlfRPNfqJrkzdpu$94f1b0d718e1e0363f1fe709065c9d4b229819b03bb9e85c6bb61dc9f2737435e2dca08331f37a08fe2e9c70f68f0018a3a9ebb97e06d1e2f91363def8c535f6'
-  DEFAULT_USERHASH: 'scrypt:32768:8:1$RkmSaBoEJHHEOrob$a436468c6580b68f67c3fdd733a7c52c38da768ee6dd9414da8dbdafa78ae5f92e0793fc613a78a9cd6ea5312abd5d23faf868eb0e0d2e1f52a06d1164547718'
-  DEFAULT_PASSHASH: 'scrypt:32768:8:1$zOlfRPNfqJrkzdpu$94f1b0d718e1e0363f1fe709065c9d4b229819b03bb9e85c6bb61dc9f2737435e2dca08331f37a08fe2e9c70f68f0018a3a9ebb97e06d1e2f91363def8c535f6'
+  
+  # Investor Credentials (hashed values)
+  # Separate login for investors to access the investor portal
+  # Generate with: python -c "from werkzeug.security import generate_password_hash; print(generate_password_hash('your_value'))"
+  INVESTOR_USERNAME_HASH: 'REPLACE_WITH_INVESTOR_USERNAME_HASH'
+  INVESTOR_PASSWORD_HASH: 'REPLACE_WITH_INVESTOR_PASSWORD_HASH'
 
-# Scaling settings
+# ============================================================================
+# SCALING CONFIGURATION
+# ============================================================================
+# Automatic scaling adjusts instances based on traffic
+# min_instances: 1 keeps one instance warm to reduce cold starts
+# ============================================================================
+
 automatic_scaling:
   min_instances: 1
   max_instances: 10
   min_idle_instances: 1
   max_concurrent_requests: 50
+  target_cpu_utilization: 0.65
 
-# Request handlers
+# ============================================================================
+# REQUEST HANDLERS
+# ============================================================================
+# Static files are served directly by App Engine (faster)
+# All other requests go to the Flask app
+# ============================================================================
+
 handlers:
-  # Static files
+  # Static files (CSS, JS, images, fonts)
   - url: /static
     static_dir: xissite/static
     secure: always
+    http_headers:
+      Cache-Control: "public, max-age=3600"
 
-  # All other URLs
+  # Favicon
+  - url: /favicon.ico
+    static_files: xissite/static/icons/tullicon.ico
+    upload: xissite/static/icons/tullicon.ico
+    secure: always
+
+  # All other URLs handled by Flask
   - url: /.*
     script: auto
     secure: always
 
-# Network settings
+# ============================================================================
+# NETWORK & SECURITY
+# ============================================================================
+
 network:
   session_affinity: true
 
-# Security settings
 inbound_services:
-- warmup
+  - warmup
+
+# ============================================================================
+# INSTANCE CLASS
+# ============================================================================
+# F1 is the default (256MB RAM, 600MHz CPU)
+# Upgrade to F2 or F4 for more resources if needed
+# ============================================================================
+
+instance_class: F1
+
+# ============================================================================
+# DEPLOYMENT NOTES
+# ============================================================================
+#
+# 1. BEFORE FIRST DEPLOY:
+#    - Replace ALL placeholder values above
+#    - Set up Stripe account and create products
+#    - Set up Mailgun account and verify domain
+#    - Generate secure admin credentials
+#
+# 2. DATABASE:
+#    This config uses SQLite stored in /tmp (ephemeral storage)
+#    Data will be lost on instance restart!
+#    
+#    For production, consider:
+#    - Cloud SQL (PostgreSQL/MySQL) for persistent storage
+#    - Firestore for NoSQL storage
+#
+# 3. STRIPE WEBHOOKS:
+#    After deploying, set up webhook endpoint in Stripe:
+#    URL: https://YOUR_PROJECT_ID.appspot.com/webhook
+#    Events: checkout.session.completed, checkout.session.async_payment_succeeded
+#
+# 4. CUSTOM DOMAIN:
+#    - Go to App Engine > Settings > Custom Domains
+#    - Add your domain (e.g., tullhydro.com)
+#    - Update MAIN_DOMAIN env variable
+#
+# ============================================================================

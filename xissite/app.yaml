@@ -1,0 +1,114 @@
+# ============================================================================
+# TULL HYDROPONICS - Google App Engine Configuration
+# ============================================================================
+# 
+# AUTOMATIC ENVIRONMENT DETECTION:
+#   The app automatically detects cloud vs local and configures itself.
+#   Just set the environment variables below and deploy!
+#
+# Deploy: gcloud app deploy
+# Logs:   gcloud app logs tail -s default
+# Browse: gcloud app browse
+#
+# ============================================================================
+
+runtime: python312
+entrypoint: gunicorn -b :$PORT main:app
+service: default
+
+# ============================================================================
+# ENVIRONMENT VARIABLES
+# ============================================================================
+# Replace all placeholder values before deploying!
+#
+# Generate secure key:
+#   python -c "import secrets; print(secrets.token_hex(32))"
+#
+# Generate password hashes:
+#   python -c "from werkzeug.security import generate_password_hash; print(generate_password_hash('your_value'))"
+# ============================================================================
+
+env_variables:
+  # Flask Configuration
+  FLASK_SECRET_KEY: "b46e15fe4a486c600a81db5cbffcba4d3941fbcf9ec9cda1f5a31ea40ac1088c"
+  FLASK_ENV: "production"
+  
+  # Your production domain (IMPORTANT: Update this!)
+  MAIN_DOMAIN: "https://xissite-355821.ue.r.appspot.com"
+  
+  # Stripe API Keys (Use LIVE keys for production)
+  # Get from: https://dashboard.stripe.com/apikeys
+  STRIPE_SECRET_KEY: "sk_live_REPLACE_WITH_YOUR_KEY"
+  STRIPE_PUBLISHABLE_KEY: "pk_live_REPLACE_WITH_YOUR_KEY"
+  STRIPE_WEBHOOK_SECRET: "whsec_REPLACE_WITH_YOUR_KEY"
+  HP_PRICE_ID: "price_REPLACE_WITH_YOUR_PRICE_ID"
+  
+  # Mailgun API Key
+  # Get from: https://app.mailgun.com/app/account/security/api_keys
+  MAIL_KEY: "REPLACE_WITH_YOUR_MAILGUN_KEY"
+  
+# Admin login: admin / TullAdmin2024!
+  ADMIN_USERNAME_HASH: "scrypt:32768:8:1$eAkXDVca9nUgFEpl$b58c278250805e3e793c268915ae419476a6ee8fc04da3892111f7cc657e3d5659096c2955380f55ad5c275f1eb6403c321da4163ec72718c1e08096b21c5a1a"
+  ADMIN_PASSWORD_HASH: "scrypt:32768:8:1$vYD6PEAxtuk4ygsl$e22fab9e44be8847a804dd87d557c01929ab378474b58b2d18c991fa5df17384b617bc2ef63a8a80f5ffd63418821d36e1a2a0cb0aeee2d3f8cd8a3ce713a3d7"
+
+  # Investor login: investor / TullInvest2024!
+  INVESTOR_USERNAME_HASH: "scrypt:32768:8:1$TmAm5Nr4TzBquOHl$24f9f250185f23eed4de8ea0138eaf0ba6ca73e61f3731bdc0379789696d472f9ab55777d161d119ab76e635177f8fad78f552b9f47150b6544ba6a6a3fb63f8"
+  INVESTOR_PASSWORD_HASH: "scrypt:32768:8:1$K3zdI3DS5MiwKTt2$68b037c51149a146b701d611b6ded04010886050ba1c7eaba22647c825fb5cc034880c24ae0d58a2300a2672cbf52e030aa6e14ba0e43c000342709448c31b73"
+  
+  # -------------------------------------------------------------------------
+  # DATABASE (Optional - for Cloud SQL)
+  # -------------------------------------------------------------------------
+  # By default, uses SQLite in /tmp (ephemeral - resets on each deploy)
+  # For persistent storage, set up Cloud SQL and uncomment:
+  #
+  # DATABASE_URL: "mysql+pymysql://USER:PASS@/DBNAME?unix_socket=/cloudsql/PROJECT:REGION:INSTANCE"
+  # -------------------------------------------------------------------------
+
+# ============================================================================
+# CLOUD SQL (Optional - Uncomment for persistent database)
+# ============================================================================
+# beta_settings:
+#   cloud_sql_instances: "YOUR_PROJECT:us-central1:tull-db"
+
+# ============================================================================
+# SCALING
+# ============================================================================
+automatic_scaling:
+  min_instances: 1
+  max_instances: 10
+  min_idle_instances: 1
+  max_concurrent_requests: 50
+  target_cpu_utilization: 0.65
+
+# ============================================================================
+# REQUEST HANDLERS
+# ============================================================================
+handlers:
+  # Static files (served directly by App Engine - faster)
+  - url: /static
+    static_dir: xissite/static
+    secure: always
+    http_headers:
+      Cache-Control: "public, max-age=3600"
+
+  # Favicon
+  - url: /favicon.ico
+    static_files: xissite/static/icons/tullicon.ico
+    upload: xissite/static/icons/tullicon.ico
+    secure: always
+
+  # All other URLs handled by Flask
+  - url: /.*
+    script: auto
+    secure: always
+
+# ============================================================================
+# INSTANCE & NETWORK
+# ============================================================================
+instance_class: F1
+
+network:
+  session_affinity: true
+
+inbound_services:
+  - warmup

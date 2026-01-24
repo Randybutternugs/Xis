@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Investor Portal | Tull Hydroponics{% endblock %}
+
+{% block head %}{% endblock %}
+
+{% block sectionconfig %}<section class="investor-grid">{% endblock %}
+
+{% block titleconfig %}
+<div class="investor-header">
+{% endblock %}
+
+{% block titletext %}
+<a href="/" class="logo-link">
+{% endblock %}
+
+{% block pagetitle %}
+<img src="{{ url_for('static', filename='images/Tulllogo.svg') }}" alt="Tull" class="header-logo">
+{% endblock %}
+
+{% block titleicon %}
+<div class="investor-header-nav">
+    <span class="investor-header-title">INVESTOR PORTAL</span>
+    <a href="/logout" class="investor-logout">
+        <img src="{{ url_for('static', filename='icons/door.svg') }}" class="investor-icon" alt="Logout">
+        <span>Logout</span>
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<iframe src="https://id-preview--21a53dae-d527-4046-b3e0-5e293fa1e246.lovable.app" 
+        style="width:100vw;height:100vh;border:none;"></iframe>
+
+
+<div class="investor-footer">
+    <p>CONFIDENTIAL — For authorized investors only</p>
+    <p class="investor-footer-legal">The information contained in this portal is confidential and intended solely for the use of authorized investors. Unauthorized access, distribution, or reproduction is prohibited.</p>
+</div>
+
+{% endblock %}

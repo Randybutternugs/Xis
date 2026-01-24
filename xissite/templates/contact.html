@@ -1,110 +1,110 @@
-{% extends "base.html" %}  
-{% block title %} Contact Us {% endblock %}
-{% block head %}
-<style scoped>
+{% extends "base.html" %}
 
-      div::-webkit-scrollbar {
-        width: 0.25rem;
-      }
-      
-      div::-webkit-scrollbar-track {
-        background: black;
-      }
-      
-      div::-webkit-scrollbar-thumb {
-        background: #0BE12B;
-      }
+{% block title %}Contact Us | Tull Hydroponics{% endblock %}
 
+{% block head %}{% endblock %}
 
+{% block sectionconfig %}<section class="contact-grid">{% endblock %}
 
-    .emailinp {
-        z-index: 0;
-        height: 80%;
-        font-size: 135%;
-        background-color: #CFCFCF; 
-        border: none;
-        color: black;
-        padding: .25em .25em;
-        text-decoration: none;
-        margin-right: 85%;
-        font-family: 'pexico_microregular';
-        margin-left: 5%;
-        align-items: center;
-      }
-
-      .emailinp:focus {
-        z-index: 2;
-      }
-
-      .emailinp:focus-visible {
-        outline: 2px solid #0BE12B;
-        border-radius: 3px;
-      }
-
-      input::placeholder {
-        font-size: 65%;
-        text-align: center;
-      }
-
-      @media screen and (max-width: 600px) {
-
-        .emailinp {
-          z-index: 0;
-          height: 80%;
-          font-size: 135%;
-          background-color: #CFCFCF; 
-          border: none;
-          color: black;
-          padding: .25em .25em;
-          text-decoration: none;
-          font-family: 'pexico_microregular';
-          margin-left: 5%;
-          align-items: center;
-        }
-  
-      }
-
-
-</style>
+{% block titleconfig %}
+<div class="contact-header">
 {% endblock %}
-{% block sectionconfig %} <section class="main-grid" style="grid-template-rows: repeat(7, 1fr) ;"> {% endblock %}
-{% block titleconfig %} <div class="card-aux-title" style="background-color: #6DD87D;"> {% endblock %}
-{% block titletext %} <p class="titletext"><a href="/" style="font-family: pexico_microregular;"> {% endblock %}
-{% block pagetitle %} BACK {% endblock %}
-{% block titleicon %} <p style="color: white; font-family: 'pexico_microregular'; text-align: center; align-self: center; font-size: 200%; text-decoration: underline;">Contact Us</p> {% endblock %}
-{% block content %} 
 
-<div class="column-card" style="border: 5px solid black; grid-row: 3 / 8; overflow: auto; overflow-x: hidden;">
-    <p style="text-align: center; margin-top: 5%; font-size: 115%; font-family: 'pexico_microregular'; border: 3px solid black;">We Want to Hear Your Thoughts!</p>
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-        <ul class=flashes>
-        {% for message in messages %}
-            <li style="color: {{errcolo}}; margin-bottom: -5%;">{{ message }}</li>
-        {% endfor %}
-        </ul>
-        {% endif %}
-    {% endwith %}
-    <form style="margin: 5% 0 2% 5%; display: inline-block;" method="POST" action="">
-        {{ form.csrf_token }}
-        <p style="margin: 5% 0 1% 5%; font-size: 120%;"> Feedback Type </p>
-        {% for subfield in form.feedbacktype %}
-            <tr style="font-size: 120%;">
-                <td>{{ subfield(style="accent-color: #0BE12B; margin-left: 5%;") }}</td>
-                <td>{{ subfield.label }}</td>
-            </tr>
-        {% endfor %}
+{% block titletext %}
+<a href="/" class="logo-link">
+{% endblock %}
 
-        <p style="margin: 8% 0 2% 5%; font-size: 120%;"> Order ID:<span style="color:#0BE12B;">*</span> </p>
-        {{ form.orderno(class="emailinp", placeholder="Enter Relevant Order ID") }}
-        <p style="margin: 2% 0 2% 5%; font-size: 65%; color:#0BE12B;"> Optional, Only For Feedback About An Existing Order </p>
+{% block pagetitle %}
+<img src="{{ url_for('static', filename='images/Tulllogo.svg') }}" alt="Tull" class="header-logo">
+{% endblock %}
 
-        <p style="margin: 8% 0 2% 5%; font-size: 120%;"> Sender's Email </p>
-        {{ form.feedbackemail(class="emailinp", style="margin-bottom: 5%;", placeholder="Enter An Email we Can Respond To!") }}
-        {{ form.feedbackfield(class="emailinp", placeholder="Type Your Feedback Here.") }}
-        {{ form.submit(style="background-color: #0BE12B; border: none; align-self: center; color: white; background-color: #0BE12B; font-family: 'pexico_microregular'; font-size: 120%; text-align: center; height: 100%; width:85%; padding: 5% 5% 5% 5%; margin-left: 5%; margin-top: 5%;") }}
+{% block titleicon %}
+<span class="contact-header-title">CONTACT</span>
+{% endblock %}
 
-    </form>
+{% block content %}
+
+<div class="contact-hero">
+    <h1>GET IN <span>TOUCH</span></h1>
+    <p>We'd love to hear from you. Whether you have a question about our systems, need technical support, or want to provide feedback — we're here to help.</p>
+</div>
+
+<div class="contact-content">
+    <div class="contact-form-container">
+        <h2>// SEND US A MESSAGE</h2>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="contact-flash {% if category == 'success' %}flash-success{% else %}flash-error{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <form method="POST" action="{{ url_for('views.contact') }}" class="contact-form">
+            {{ form.csrf_token }}
+            
+            <div class="form-group">
+                <label class="contact-label">// Email Address</label>
+                {{ form.feedbackemail(class="contact-input", placeholder="your@email.com") }}
+            </div>
+            
+            <div class="form-group">
+                <label class="contact-label">// Feedback Type</label>
+                <div class="radio-group">
+                    {% for subfield in form.feedbacktype %}
+                    <label class="radio-item">
+                        {{ subfield() }}
+                        <span>{{ subfield.label.text }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="contact-label">// Order ID <span class="optional">(Optional)</span></label>
+                {{ form.orderno(class="contact-input", placeholder="Enter if feedback relates to an order") }}
+            </div>
+            
+            <div class="form-group">
+                <label class="contact-label">// Your Message</label>
+                {{ form.feedbackfield(class="contact-textarea", placeholder="Tell us what's on your mind...", rows="6") }}
+            </div>
+            
+            <button type="submit" class="contact-submit">
+                Submit Feedback <span class="arrow">→</span>
+            </button>
+        </form>
+    </div>
+    
+    <div class="contact-info">
+        <div class="contact-info-section">
+            <h3>// DIRECT CONTACT</h3>
+            <p class="contact-detail">
+                <span class="detail-label">Email</span>
+                <span class="detail-value">info@tullhydro.com</span>
+            </p>
+        </div>
+        
+        <div class="contact-info-section">
+            <h3>// FOLLOW US</h3>
+            <div class="contact-social">
+                <a href="https://instagram.com/tullhydroponics" target="_blank" class="social-link">Instagram →</a>
+                <a href="https://x.com/tullhydro" target="_blank" class="social-link">X (Twitter) →</a>
+            </div>
+        </div>
+        
+        <div class="contact-info-section">
+            <h3>// RESPONSE TIME</h3>
+            <p class="contact-note">We typically respond within 24-48 hours during business days.</p>
+        </div>
+    </div>
+</div>
+
+<div class="contact-footer">
+    <p>© 2025 Tull Hydroponics. All rights reserved.</p>
 </div>
 
 {% endblock %}

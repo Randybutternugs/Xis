@@ -1,1717 +1,4238 @@
 /* 
--------MOBILE DEVICES------ 
------TABLE OF CONTENTS-----
+============================================================================
+TULL HYDROPONICS - MAIN STYLESHEET
+============================================================================
+Design System: Brutalist yet sleek
+Primary: #000000 (Black)
+Accent: #6ABD45 (Green)  
+Text Primary: #FFFFFF (White)
+Text Secondary: #CFCFCF (Light Gray)
+Text Tertiary: #666666 (Dark Gray)
+Input Background: #111111
+Border: #333333
 
-
+Mobile First: max-width 600px
+Desktop: min-width 601px
+============================================================================
 */
 
-@media screen and (max-width: 600px) {
+/* ============================================================================
+   FONTS
+   ============================================================================ */
 
-  /* ----- TEXT SETTINGS ----- */
-  .titletext {
-    color: #f5f5f5;
-    font-family: 'pexico_microregular';
-    border-style: solid;
-    font-size: 100%;
-    margin-left: 8%;
-    margin-top: 8%;
-    padding: 5px 10px 5px 10px;
-    z-index: 1;
-  }
+@font-face {
+    font-family: 'pexicomicro-regular-webfont';
+    src: url('../fonts/pexicomicro-regular-webfont.woff2') format('woff2'),
+         url('../fonts/pexicomicro-regular-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
 
-  /* Logo styling for mobile */
-  .header-logo {
-    height: 6.5em;
-    width: auto;
-    z-index: 1;
-  }
-
-  .logo-link {
-    display: inline-block;
-    margin-left: 4%;
-    margin-top: 4%;
-  }
-
-  .subhead {
-    text-align: center;
-    justify-content: center;
-    color: white;
-    font-size: 115%;
-  }
-
-  .subhead > .title {
-    margin: 5% 0 -4% 0;
-  }
-
-  .subhead > .info {
-    font-size: 65%;
-    margin: 0 8% 10% 8%;
-  }
-
-  .subhead > .purchtext {
-    font-size: 75%;
-    margin: 0 0 0 0;
-  }
-
-  /* ----- ICON SETTINGS ----- */
-  .topicon {
-    filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(194deg) brightness(109%) contrast(101%);
-    margin-right: 8%;
-    margin-top: 10%;
-  }
-
-  .midicon  {
-    filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(194deg) brightness(109%) contrast(101%);
-    height: 15em;
-    margin: auto;
-  }
-
-  /* ----- BUTTON SETTINGS ----- */
-  .BuyButton {
-    background-color:#44c767;
-    border:1px solid #18ab29;
-    text-align: center;
-    cursor:pointer;
-    color:#ffffff;
-    font-family:'HelveticaNeueLT Pro 65 Md';
-    font-size:17px;
-    padding:16px 31px;
-    margin: 2% 5% 2% 5%;
-    text-decoration:none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .BuyButton:hover {
-    background-color:#5cbf2a;
-  }
-  
-  .BuyButton:active {
-    position:relative;
-    top:1px;
-  }
-
-  /* ----- GRID/BLOCK SETTINGS ----- */
-  .main-grid {
-    height: 100vh;
-    width: 100vw;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: repeat(6, 1fr) ;
-  }
-
-  .card {
-    grid-column: 1 / 4;
-    align-items: left;
-    justify-content: center;
-    display: flex;
-    flex-direction: column;
-    font-size: 1.25em;
-    background-color: black;
-    font-family:'HelveticaNeueLT Pro 65 Md';
-    color: #CFCFCF;
-  }
- 
-  .card > a {
-    margin: auto 0 auto 10%;
-  }
-
-  .card-footer {
-    grid-column: 1 / 4;
-    display: flex;
-    align-items: start;
-    justify-content: space-between;
-    background-color: black;
-    font-family:'HelveticaNeueLT Pro 65 Md';
-    color: #CFCFCF;
-  }
-
-  .card-footer > img {
-    margin: auto;
-    filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(194deg) brightness(109%) contrast(101%);
-    height: 25px;
-    width: auto;
-  }
-
-  .card-footer > p {
-    margin: auto;
-    font-size: 75%;
-  }
-
-  .buffer-card {
-    grid-column: 1 / 4;
-    background-color: black;
-  }
-
-  .card-title {
-    display: flex;
-    align-items: start;
-    justify-content: space-between;
-    color: black;
-    grid-column: 1 / 4;
-    grid-row: 1 / 3;
-    background-size: 100% 100%;
-    background-repeat: no-repeat;
-    /* NEW: iPhone safe area padding for Dynamic Island */
-    padding-top: env(safe-area-inset-top);
-  }
-  
-
-  /*-----SELL PAGE-----*/
-
-  .card-shop-title {
-    color: black;
-    grid-column: 1 / 4;
-    grid-row: 1 / 3;
-    min-height: 100%;
-  }
-
-  .card-shop-title > .titletext {
-    position: absolute; 
-    z-index: 1;
-    margin-left: 2%;
-    margin-top: 2%;
-    color: white;
-    background: rgba(0, 0, 0, .5);
-  }
-
-  .sellimg {
-    max-width:100%;
-    max-height:100%;
-  }
-
-  .column-card {
-    color: black;
-    grid-column: 1 / 4;
-    grid-row: 3 / 7;
-  }
-
-  .column-card > h1 {
-    text-align: center;
-  }
-
-  .column-card > h3 {
-    text-align: center;
-  }
-
-  .column-card > p {
-    font-size: 90%;
-    margin: 0 5% 0 5%;
-  }
-
-  .column-card > h4 {
-    text-align: left;
-    margin-left: 5%;
-    position: absolute;
-    left: 0;
-    bottom: 3em;
-  }
-
-  .checkout {
-    background-color: #3BC14A;
-    width: 100%;
-    height: 4em;
-    font-size: 1em;
-    border: none;
-    color: white;
-    padding: 1em 2em;
-    text-align: center;
-    text-decoration: none;
-    justify-content: center;
-    font-family:'HelveticaNeueLT Pro 65 Md';
-    position: absolute;
-    right: 0;
-    bottom: 0;
-  }
-    
-  .checkout:hover {
-    color: #4DA167;
-    cursor: pointer;
-  }
-
-
-  /* -----About Page----- */
-
-  .card-aux-title {
-    display: flex;
-    flex-direction: column;
-    align-items: start;
-    color: black;
-    grid-column: 1 / 4;
-    grid-row: 1 / 3;
-    background-size: 100% 100%;
-    background-repeat: no-repeat;
-  }
-
-  .card-aux-title > .titletext {
-    color: white;
-    background: rgba(0, 0, 0, .5);
-  }
-
-  /* NEW: Redesigned About Page */
-  .about-grid {
-    background-color: black;
-    min-height: 100vh;
-    width: 100vw;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .about-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 2% 4% 2% 4%;
-    padding-top: calc(2% + env(safe-area-inset-top));
-    background-color: black;
-  }
-
-  .about-header .header-logo {
-    height: 5em;
-  }
-
-  .about-header-title {
-    color: white;
-    font-family: 'pexico_microregular';
-    font-size: 1.5em;
-    border: 2px solid white;
-    padding: 8px 16px;
-  }
-
-  .about-hero {
-    padding: 8% 6%;
-    border-top: 3px solid #6ABD45;
-  }
-
-  .about-hero h1 {
-    color: white;
-    font-family: 'pexico_microregular';
-    font-size: 2em;
-    margin: 0 0 4% 0;
-    line-height: 1.1;
-  }
-
-  .about-hero h1 span {
-    color: #6ABD45;
-  }
-
-  .about-hero p {
-    color: #CFCFCF;
+@font-face {
     font-family: 'HelveticaNeueLT Pro 65 Md';
-    font-size: 0.95em;
-    line-height: 1.6;
+    src: url('../fonts/HelveticaNeueLTPro-Md.woff2') format('woff2'),
+         url('../fonts/HelveticaNeueLTPro-Md.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* ============================================================================
+   GLOBAL RESET & BASE
+   ============================================================================ */
+
+* {
     margin: 0;
-  }
-
-  .about-section {
-    padding: 6% 6%;
-    border-top: 1px solid #333;
-  }
-
-  .about-section h2 {
-    color: #6ABD45;
-    font-family: 'pexico_microregular';
-    font-size: 1.1em;
-    margin: 0 0 4% 0;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-  }
-
-  .about-section p {
-    color: #CFCFCF;
-    font-family: 'HelveticaNeueLT Pro 65 Md';
-    font-size: 0.9em;
-    line-height: 1.7;
-    margin: 0 0 4% 0;
-  }
-
-  .about-section p:last-child {
-    margin-bottom: 0;
-  }
-
-  .about-image {
-    width: 100%;
-    margin: 6% 0;
-    border: 2px solid #6ABD45;
-  }
-
-  .about-image img {
-    width: 100%;
-    height: auto;
-    display: block;
-  }
-
-  .about-image-caption {
-    color: #6ABD45;
-    font-family: 'pexico_microregular';
-    font-size: 0.7em;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    padding: 3% 4%;
-    border-top: 1px solid #6ABD45;
-    background-color: rgba(106, 189, 69, 0.1);
-  }
-
-  .about-footer {
-    padding: 6%;
-    border-top: 3px solid #6ABD45;
-    margin-top: auto;
-  }
-
-  .about-footer p {
-    color: #666;
-    font-family: 'HelveticaNeueLT Pro 65 Md';
-    font-size: 0.75em;
-    margin: 0;
-    text-align: center;
-  }
-
-  .stat-block {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4%;
-    margin: 6% 0;
-  }
-
-  .stat-item {
-    flex: 1 1 45%;
-    border-left: 2px solid #6ABD45;
-    padding-left: 4%;
-    margin-bottom: 4%;
-  }
-
-  .stat-item .number {
-    color: #6ABD45;
-    font-family: 'pexico_microregular';
-    font-size: 1.5em;
-    display: block;
-  }
-
-  .stat-item .label {
-    color: #CFCFCF;
-    font-family: 'HelveticaNeueLT Pro 65 Md';
-    font-size: 0.7em;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-
-
-  /* ----- HOME PAGE BRUTALIST REDESIGN ----- */
-
-  .home-grid {
-    background-color: black;
-    min-height: 100vh;
-    width: 100vw;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .home-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 2% 4% 2% 4%;
-    padding-top: calc(2% + env(safe-area-inset-top));
-    background-color: black;
-    position: relative;
-    z-index: 10;
-  }
-
-  .home-header .header-logo {
-    height: 5em;
-  }
-
-  .home-hero {
-    position: relative;
     padding: 0;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-height: 45vh;
-  }
+    box-sizing: border-box;
+}
 
-  .home-hero-bg {
-    position: absolute;
+html {
+    font-family: 'HelveticaNeueLT Pro 65 Md', Helvetica, Arial, sans-serif;
+    height: 100%;
+    width: 100%;
+    overflow-x: hidden;
+    background-color: #000;
+}
+
+body {
+    min-height: 100vh;
+    background-color: #000;
+    color: #CFCFCF;
+    padding-top: env(safe-area-inset-top);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #000;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #6ABD45;
+    border-radius: 3px;
+}
+
+/* ============================================================================
+   TRANSITION SCREEN
+   ============================================================================ */
+
+.transition-screen {
+    position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
-    background-size: cover;
-    background-position: center;
-    opacity: 0.4;
-  }
-
-  .home-hero-content {
-    position: relative;
-    z-index: 2;
-    padding: 8% 6%;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    flex: 1;
-  }
-
-  .home-hero h1 {
-    color: white;
-    font-family: 'pexico_microregular';
-    font-size: 1.8em;
-    margin: 0 0 4% 0;
-    line-height: 1.1;
-    text-transform: uppercase;
-  }
-
-  .home-hero h1 span {
-    color: #6ABD45;
-  }
-
-  .home-hero p {
-    color: #CFCFCF;
-    font-family: 'HelveticaNeueLT Pro 65 Md';
-    font-size: 0.85em;
-    line-height: 1.6;
-    margin: 0;
-  }
-
-  .home-cta {
-    padding: 6%;
-    border-top: 3px solid #6ABD45;
-    background-color: black;
-  }
-
-  .home-cta-button {
-    display: block;
-    width: 100%;
-    padding: 5% 0;
-    background-color: #6ABD45;
-    border: none;
-    color: black;
-    font-family: 'pexico_microregular';
-    font-size: 1.1em;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    text-align: center;
-    text-decoration: none;
-    cursor: pointer;
-    transition: background-color 0.2s, color 0.2s;
-  }
-
-  .home-cta-button:hover {
-    background-color: white;
-    color: black;
-  }
-
-  .home-cta-note {
-    color: #666;
-    font-family: 'HelveticaNeueLT Pro 65 Md';
-    font-size: 0.7em;
-    text-align: center;
-    margin-top: 4%;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-
-  .home-nav {
-    display: flex;
-    flex-direction: column;
-    border-top: 1px solid #333;
-  }
-
-  .home-nav-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 5% 6%;
-    border-bottom: 1px solid #333;
-    color: white;
-    font-family: 'HelveticaNeueLT Pro 65 Md';
-    font-size: 1em;
-    text-decoration: none;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    transition: background-color 0.2s;
-  }
-
-  .home-nav-item:hover {
-    background-color: #111;
-    color: white;
-  }
-
-  .home-nav-item span {
-    color: #6ABD45;
-  }
-
-  .home-nav-item::after {
-    content: '→';
-    color: #6ABD45;
-    font-size: 1.2em;
-  }
-
-  .home-footer {
-    padding: 5% 6%;
-    border-top: 3px solid #6ABD45;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background-color: black;
-  }
-
-  .home-footer p {
-    color: #666;
-    font-family: 'HelveticaNeueLT Pro 65 Md';
-    font-size: 0.7em;
-    margin: 0;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-
-  .home-footer-social {
-    display: flex;
-    gap: 15px;
-  }
-
-  .home-footer-social a {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .home-footer-social img {
-    height: 20px;
-    width: auto;
-    filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(194deg) brightness(109%) contrast(101%);
-    opacity: 0.6;
-    transition: opacity 0.2s;
-  }
-
-  .home-footer-social img:hover {
-    opacity: 1;
-  }
-
-  .card-login {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    grid-column: 1 / 4;
-    grid-row: 3 / 7;
-    background-color: #3BC14A;
-    font-size: 5em;
-  }
-
-  /* ----- LOGIN PAGE BRUTALIST REDESIGN ----- */
-
-  .login-grid {
-    background-color: black;
-    min-height: 100vh;
     width: 100vw;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .login-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 2% 4% 2% 4%;
-    padding-top: calc(2% + env(safe-area-inset-top));
-    background-color: black;
-  }
-
-  .login-header .header-logo {
-    height: 5em;
-  }
-
-  .login-header-title {
-    color: white;
-    font-family: 'pexico_microregular';
-    font-size: 1em;
-    border: 2px solid white;
-    padding: 8px 16px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-
-  .login-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 8% 6%;
-    border-top: 3px solid #6ABD45;
-  }
-
-  .login-form {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    max-width: 400px;
-  }
-
-  .login-form-title {
-    color: white;
-    font-family: 'pexico_microregular';
-    font-size: 1.8em;
-    margin: 0 0 8% 0;
-    text-transform: uppercase;
-  }
-
-  .login-form-title span {
-    color: #6ABD45;
-  }
-
-  .login-label {
-    color: #6ABD45;
-    font-family: 'pexico_microregular';
-    font-size: 0.75em;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-bottom: 2%;
-  }
-
-  .login-input {
-    background-color: #111;
-    border: 2px solid #333;
-    color: white;
-    font-family: 'HelveticaNeueLT Pro 65 Md';
-    font-size: 1em;
-    padding: 4% 4%;
-    margin-bottom: 6%;
-    transition: border-color 0.2s;
-  }
-
-  .login-input:focus {
-    outline: none;
-    border-color: #6ABD45;
-  }
-
-  .login-input::placeholder {
-    color: #555;
-  }
-
-  .login-submit {
-    background-color: #6ABD45;
-    border: none;
-    color: black;
-    font-family: 'pexico_microregular';
-    font-size: 1em;
-    padding: 5% 0;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    cursor: pointer;
-    transition: background-color 0.2s, color 0.2s;
-    margin-top: 4%;
-  }
-
-  .login-submit:hover {
-    background-color: white;
-    color: black;
-  }
-
-  .login-footer {
-    padding: 5% 6%;
-    border-top: 3px solid #6ABD45;
-  }
-
-  .login-footer p {
-    color: #666;
-    font-family: 'HelveticaNeueLT Pro 65 Md';
-    font-size: 0.7em;
-    margin: 0;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-
-
-  /* ----- VIEW DB ----- */
-
-  .db-grid {
-    background-color: #6DD87D;
     height: 100vh;
-    width: 100vw;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-auto-rows: auto;
-    grid-auto-flow: row;
-  }
-
-  .dbcard {
-    align-items: left;
+    background-color: #000;
+    display: flex;
+    align-items: center;
     justify-content: center;
-    grid-column: 1 / 4;
-    display: inline-block;
-    flex-direction: row;
-    background-color: black;
-  }
-
-  .dbcard > p {
-    font-family:'HelveticaNeueLT Pro 65 Md';
-    font-size: 1.5em;
-    color: #CFCFCF;
-  }
-
-  .dbcard > .minfo {
-    font-family:'HelveticaNeueLT Pro 65 Md';
-    font-size: 1.5em;
-    color: #CFCFCF;
-    margin: 0 10% 10% 10%;
-    padding: 1%;
-    background-color: #0BE12B;
-    justify-content: center;
-    text-align: center;
-  }
-
-}
-
-/* -----GLOBAL SETTINGS----- */
-
-/* LINK SETTINGS */
-a:link, a:visited {
-  text-decoration: none;
-  font-family:'HelveticaNeueLT Pro 65 Md';
-  color: white;
-}
-  
-a:hover, a:active {
-  text-decoration: none;
-  color: purple;
-}
-
-
-/* ----- TRANSITION SCREEN ----- */
-.transition-screen {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: black;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  opacity: 1;
-  transition: opacity 0.3s ease-out;
-  pointer-events: all;
+    z-index: 9999;
+    transition: opacity 0.3s ease;
 }
 
 .transition-screen.hidden {
-  opacity: 0;
-  pointer-events: none;
+    opacity: 0;
+    pointer-events: none;
 }
 
 .transition-logo {
-  width: 40%;
-  max-width: 200px;
-  height: auto;
-  animation: pulse 1.5s ease-in-out infinite;
+    width: 40%;
+    max-width: 200px;
+    animation: pulse 1.5s ease-in-out infinite;
 }
 
 @keyframes pulse {
-  0%, 100% {
-    opacity: 0.6;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.02);
-  }
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.02); }
 }
 
-/* Desktop transition logo size */
-@media screen and (min-width: 601px) {
-  .transition-logo {
-    width: 15%;
-    max-width: 180px;
-  }
-}
+/* ============================================================================
+   HEADER COMPONENTS
+   ============================================================================ */
 
-
-/* LOGIN BUTTON (shared between mobile/desktop) */
-.loginbutton {
-  width: 100%;
-  height: 1em;
-  position: relative;
-  font-size: .5em;
-  background-color: #CFCFCF; 
-  border: none;
-  color: black;
-  margin-top: 1em;
-  padding: 1em 2em;
-  text-align: center;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'pexico_microregular';
-}
-
-.loginbutton:hover, .loginbutton:active {
-  color:green;
-  background-color: black;
-}
-  
-/* LOGIN INPUT FIELDS (shared between mobile/desktop) */
-.pwinp, .usrinp {
-  height: 3em;
-  font-size: .25em;
-  background-color: #CFCFCF; 
-  border: none;
-  color: black;
-  padding: .25em .25em;
-  text-decoration: none;
-  font-family: 'pexico_microregular';
-}
-  
-.userlabel, .passlabel {
-  color: #f5f5f5;
-  font-size: 55%;
-  font-family: 'pexico_microregular';
-  margin-top: 1em;
-}
-
-/* DB hover state (shared) */
-.minfo:hover, .minfo:active {
-  color:green;
-  background-color: black;
-}
-
-
-/* ----- Site Fonts ----- */
-@font-face {
-  font-family: 'pexico_microregular';
-  src: url('../fonts/setup_-_pexicomicro-regular-webfont.woff2') format('woff2'),
-       url('../fonts/setup_-_pexicomicro-regular-webfont.woff') format('woff');
-  font-weight: normal;
-  font-style: normal;
-}
-
-@font-face {
-  font-family:'HelveticaNeueLT Pro 65 Md';
-  src: url('../fonts/HelveticaNeueLTPro-Md.eot');
-  src: url('../fonts/HelveticaNeueLTPro-Md.eot?#iefix') format('embedded-opentype'),
-  url('../fonts/HelveticaNeueLTPro-Md.woff2') format('woff2'),
-  url('../fonts/HelveticaNeueLTPro-Md.woff') format('woff'),
-  url('../fonts/HelveticaNeueLTPro-Md.ttf') format('truetype'),
-  url('../fonts/HelveticaNeueLTPro-Md.otf') format('opentype'),
-  url('../fonts/HelveticaNeueLTPro-Md.svg#HelveticaNeueLTPro-Md') format('svg');
-  font-weight: 500;
-  font-style: normal;
-  font-stretch: normal;
-  unicode-range: U+0020-02DC;
-}
-
-/* HTML and BODY */
-html {
-  font-family:'HelveticaNeueLT Pro 65 Md';
-  height: 100%;
-  width: 100%;
-  overflow-x: hidden;
-  margin:0;
-  /* NEW: Black background for iPhone safe areas */
-  background-color: black;
-}
-  
-body {
-  height: 100%;
-  width: 100%;
-  overflow-x: hidden;
-  margin:0;
-  /* NEW: iPhone safe area padding */
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-}
-  
-@keyframes fadeInAnimation {
-  0% {
-      opacity: 0;
-      background-color: transparent;
-  }
-  50% {
-      opacity: 1;
-      background-color: #4D5057;
-   }
-}
-
-/* 
-------- DESKTOP ------ 
------TABLE OF CONTENTS-----
-
-
-*/
-@media screen and (min-width: 601px) {
-
-  /* ----- TEXT SETTINGS ----- */
-  .titletext {
-    color: #f5f5f5;
-    font-family: 'pexico_microregular';
-    border-style: solid;
-    font-size: 150%;
-    margin-left: 5%;
-    margin-top: 5%;
-    padding: 5px 10px 5px 10px;
-    z-index: 1;
-  }
-
-  /* Logo styling for desktop */
-  .header-logo {
-    height: 7em;
+.header-logo {
+    height: 5em;
     width: auto;
-    z-index: 1;
-  }
+}
 
-  .logo-link {
+.logo-link {
     display: inline-block;
-    margin-left: 3%;
-    margin-top: 3%;
-  }
+}
 
-  .subhead {
-    text-align: center;
-    justify-content: center;
-    color: white;
-    font-size: 115%;
-  }
+/* ============================================================================
+   MOBILE STYLES (max-width: 600px)
+   ============================================================================ */
 
-  .subhead > .title {
-    margin: 3% 0 0 0;
-    font-size: 150%;
-  }
+@media screen and (max-width: 600px) {
 
-  .subhead > .info {
-    font-size: 75%;
-    margin: 0 0 3% 0;
-  }
+    /* --- Header Logo --- */
+    .header-logo {
+        height: 5em;
+    }
 
-  .subhead > .purchtext {
-    font-size: 75%;
-    margin: 0 0 0 0;
-  }
-
-  /* ----- ICON SETTINGS ----- */
-  .topicon {
-    filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(194deg) brightness(109%) contrast(101%);
-    margin-right: 5%;
-    margin-top: 5%;
-  }
-
-  .midicon  {
-    filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(194deg) brightness(109%) contrast(101%);
-    height: 15em;
-    margin: auto;
-  }
-
-  /* ----- BUTTON SETTINGS ----- */
-  .BuyButton {
-    background-color:#44c767;
-    border:1px solid #18ab29;
-    text-align: center;
-    cursor:pointer;
-    color:#ffffff;
-    font-family:'HelveticaNeueLT Pro 65 Md';
-    font-size:17px;
-    padding:16px 31px;
-    margin: .5% 5% 2% 5%;
-    text-decoration:none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .BuyButton:hover {
-    background-color:#5cbf2a;
-  }
-  
-  .BuyButton:active {
-    position:relative;
-    top:1px;
-  }
-
-  /* ----- GRID/BLOCK SETTINGS ----- */
-  .main-grid {
-    height: 100vh;
-    width: 100vw;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: repeat(6, 1fr) ;
-  }
-
-  .card {
-    grid-column: 1 / 4;
-    align-items: left;
-    justify-content: center;
-    display: flex;
-    flex-direction: column;
-    font-size: 1.25em;
-    background-color: black;
-    font-family:'HelveticaNeueLT Pro 65 Md';
-    color: #CFCFCF;
-  }
- 
-  .card > a {
-    margin: auto 0 auto 10%;
-  }
-
-  .card-footer {
-    grid-column: 1 / 4;
-    display: flex;
-    align-items: start;
-    justify-content: space-between;
-    background-color: black;
-    font-family:'HelveticaNeueLT Pro 65 Md';
-    color: #CFCFCF;
-  }
-
-  .card-footer > img {
-    margin: auto;
-    filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(194deg) brightness(109%) contrast(101%);
-    height: 25px;
-    width: auto;
-  }
-
-  .card-footer > p {
-    margin: auto;
-    font-size: 75%;
-  }
-
-  .buffer-card {
-    grid-column: 1 / 4;
-    background-color: black;
-  }
-
-  .card-title {
-    display: flex;
-    align-items: start;
-    justify-content: space-between;
-    color: black;
-    grid-column: 1 / 4;
-    grid-row: 1 / 3;
-    background-repeat: no-repeat;
-  }
-  
-
-  /*-----SELL PAGE-----*/
-
-  .card-shop-title {
-    color: black;
-    grid-column: 1 / 4;
-    grid-row: 1 / 3;
-  }
-
-  .card-shop-title > .titletext {
-    position: absolute; 
-    z-index: 1;
-    margin-left: 2%;
-    margin-top: 2%;
-    color: white;
-    background: rgba(0, 0, 0, .5);
-  }
-
-  .sellimg {
-    max-width:100%;
-    max-height:100%;
-  }
-
-  .column-card {
-    color: black;
-    grid-column: 1 / 4;
-    grid-row: 3 / 7;
-  }
-
-  .column-card > h1 {
-    text-align: center;
-    font-size: 200%;
-  }
-
-  .column-card > h3 {
-    text-align: center;
-    font-size: 150%;
-  }
-
-  .column-card > p {
-    font-size: 125%;
-    margin: 0 5% 0 5%;
-  }
-
-  .column-card > h4 {
-    text-align: left;
-    margin-left: 5%;
-    position: absolute;
-    left: 0;
-    bottom: .55em;
-    font-size: 200%;
-  }
-
-  .checkout {
-    background-color: #3BC14A;
-    width: 100%;
-    height: 4em;
-    font-size: 1em;
-    border: none;
-    color: white;
-    padding: 1em 2em;
-    text-align: center;
-    text-decoration: none;
-    justify-content: center;
-    font-family:'HelveticaNeueLT Pro 65 Md';
-    position: absolute;
-    right: 0;
-    bottom: 0;
-  }
+    /* ========================================================================
+       HOME PAGE
+       ======================================================================== */
     
-  .checkout:hover {
-    color: #4DA167;
-    cursor: pointer;
-  }
-
-
-  /* -----About Page----- */
-
-  .card-aux-title {
-    display: flex;
-    flex-direction: column;
-    align-items: start;
-    color: black;
-    grid-column: 1 / 4;
-    grid-row: 1 / 2;
-    background-size: 100% 100%;
-    background-repeat: no-repeat;
-  }
-
-  .card-aux-title > .titletext {
-    color: white;
-    background: rgba(0, 0, 0, .5);
-  }
-
-  /* NEW: Redesigned About Page - Desktop */
-  .about-grid {
-    background-color: black;
-    min-height: 100vh;
-    width: 100vw;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .about-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1.5% 4%;
-    background-color: black;
-  }
-
-  .about-header .header-logo {
-    height: 6em;
-  }
-
-  .about-header-title {
-    color: white;
-    font-family: 'pexico_microregular';
-    font-size: 2em;
-    border: 2px solid white;
-    padding: 10px 24px;
-  }
-
-  .about-hero {
-    padding: 4% 10%;
-    border-top: 3px solid #6ABD45;
-  }
-
-  .about-hero h1 {
-    color: white;
-    font-family: 'pexico_microregular';
-    font-size: 3.5em;
-    margin: 0 0 2% 0;
-    line-height: 1.1;
-  }
-
-  .about-hero h1 span {
-    color: #6ABD45;
-  }
-
-  .about-hero p {
-    color: #CFCFCF;
-    font-family: 'HelveticaNeueLT Pro 65 Md';
-    font-size: 1.2em;
-    line-height: 1.6;
-    margin: 0;
-    max-width: 70%;
-  }
-
-  .about-section {
-    padding: 3% 10%;
-    border-top: 1px solid #333;
-  }
-
-  .about-section h2 {
-    color: #6ABD45;
-    font-family: 'pexico_microregular';
-    font-size: 1.3em;
-    margin: 0 0 2% 0;
-    text-transform: uppercase;
-    letter-spacing: 3px;
-  }
-
-  .about-section p {
-    color: #CFCFCF;
-    font-family: 'HelveticaNeueLT Pro 65 Md';
-    font-size: 1.1em;
-    line-height: 1.8;
-    margin: 0 0 2% 0;
-    max-width: 80%;
-  }
-
-  .about-section p:last-child {
-    margin-bottom: 0;
-  }
-
-  .about-image {
-    width: 60%;
-    margin: 3% 0;
-    border: 2px solid #6ABD45;
-  }
-
-  .about-image img {
-    width: 100%;
-    height: auto;
-    display: block;
-  }
-
-  .about-image-caption {
-    color: #6ABD45;
-    font-family: 'pexico_microregular';
-    font-size: 0.8em;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    padding: 2% 3%;
-    border-top: 1px solid #6ABD45;
-    background-color: rgba(106, 189, 69, 0.1);
-  }
-
-  .about-footer {
-    padding: 3% 10%;
-    border-top: 3px solid #6ABD45;
-    margin-top: auto;
-  }
-
-  .about-footer p {
-    color: #666;
-    font-family: 'HelveticaNeueLT Pro 65 Md';
-    font-size: 0.9em;
-    margin: 0;
-  }
-
-  .stat-block {
-    display: flex;
-    gap: 5%;
-    margin: 3% 0;
-  }
-
-  .stat-item {
-    border-left: 2px solid #6ABD45;
-    padding-left: 2%;
-  }
-
-  .stat-item .number {
-    color: #6ABD45;
-    font-family: 'pexico_microregular';
-    font-size: 2.5em;
-    display: block;
-  }
-
-  .stat-item .label {
-    color: #CFCFCF;
-    font-family: 'HelveticaNeueLT Pro 65 Md';
-    font-size: 0.8em;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-  }
-
-
-  /* ----- HOME PAGE BRUTALIST REDESIGN - DESKTOP ----- */
-
-  .home-grid {
-    background-color: black;
-    min-height: 100vh;
-    width: 100vw;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .home-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1.5% 4%;
-    background-color: black;
-    position: relative;
-    z-index: 10;
-  }
-
-  .home-header .header-logo {
-    height: 6em;
-  }
-
-  .home-hero {
-    position: relative;
-    padding: 0;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-height: 50vh;
-  }
-
-  .home-hero-bg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-size: cover;
-    background-position: center;
-    opacity: 0.3;
-  }
-
-  .home-hero-content {
-    position: relative;
-    z-index: 2;
-    padding: 4% 10%;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    flex: 1;
-  }
-
-  .home-hero h1 {
-    color: white;
-    font-family: 'pexico_microregular';
-    font-size: 3.5em;
-    margin: 0 0 2% 0;
-    line-height: 1.1;
-    text-transform: uppercase;
-    max-width: 70%;
-  }
-
-  .home-hero h1 span {
-    color: #6ABD45;
-  }
-
-  .home-hero p {
-    color: #CFCFCF;
-    font-family: 'HelveticaNeueLT Pro 65 Md';
-    font-size: 1.1em;
-    line-height: 1.6;
-    margin: 0;
-    max-width: 50%;
-  }
-
-  .home-cta {
-    padding: 3% 10%;
-    border-top: 3px solid #6ABD45;
-    background-color: black;
-    display: flex;
-    align-items: center;
-    gap: 4%;
-  }
-
-  .home-cta-button {
-    display: inline-block;
-    padding: 1.2em 3em;
-    background-color: #6ABD45;
-    border: none;
-    color: black;
-    font-family: 'pexico_microregular';
-    font-size: 1.1em;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    text-align: center;
-    text-decoration: none;
-    cursor: pointer;
-    transition: background-color 0.2s, color 0.2s;
-  }
-
-  .home-cta-button:hover {
-    background-color: white;
-    color: black;
-  }
-
-  .home-cta-note {
-    color: #666;
-    font-family: 'HelveticaNeueLT Pro 65 Md';
-    font-size: 0.85em;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin: 0;
-  }
-
-  .home-nav {
-    display: flex;
-    border-top: 1px solid #333;
-  }
-
-  .home-nav-item {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 2.5% 4%;
-    border-right: 1px solid #333;
-    color: white;
-    font-family: 'HelveticaNeueLT Pro 65 Md';
-    font-size: 1.2em;
-    text-decoration: none;
-    text-transform: uppercase;
-    letter-spacing: 3px;
-    transition: background-color 0.2s;
-  }
-
-  .home-nav-item:last-child {
-    border-right: none;
-  }
-
-  .home-nav-item:hover {
-    background-color: #111;
-    color: white;
-  }
-
-  .home-nav-item span {
-    color: #6ABD45;
-  }
-
-  .home-nav-item::after {
-    content: '→';
-    color: #6ABD45;
-    font-size: 1.3em;
-  }
-
-  .home-footer {
-    padding: 2% 4%;
-    border-top: 3px solid #6ABD45;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background-color: black;
-  }
-
-  .home-footer p {
-    color: #666;
-    font-family: 'HelveticaNeueLT Pro 65 Md';
-    font-size: 0.85em;
-    margin: 0;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-
-  .home-footer-social {
-    display: flex;
-    gap: 20px;
-  }
-
-  .home-footer-social a {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .home-footer-social img {
-    height: 22px;
-    width: auto;
-    filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(194deg) brightness(109%) contrast(101%);
-    opacity: 0.6;
-    transition: opacity 0.2s;
-  }
-
-  .home-footer-social img:hover {
-    opacity: 1;
-  }
-
-
-  /* ----- Login Page ----- */
-
-  .card-login {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    grid-column: 1 / 4;
-    grid-row: 2 / 7;
-    background-color: #3BC14A;
-    font-size: 3.5em;
-    height: 100%;
-    width: 100%;
-  }
-
-  /* Desktop-specific login input adjustments */
-  .pwinp, .usrinp {
-    width: 55%;
-    margin-right: 90%;
-    margin-left: 1%;
-  }
-    
-  .userlabel, .passlabel {
-    margin-right: 90%;
-    margin-left: 1%;
-  }
-
-  /* ----- LOGIN PAGE BRUTALIST REDESIGN - DESKTOP ----- */
-
-  .login-grid {
-    background-color: black;
-    min-height: 100vh;
-    width: 100vw;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .login-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1.5% 4%;
-    background-color: black;
-  }
-
-  .login-header .header-logo {
-    height: 6em;
-  }
-
-  .login-header-title {
-    color: white;
-    font-family: 'pexico_microregular';
-    font-size: 1.5em;
-    border: 2px solid white;
-    padding: 10px 24px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-  }
-
-  .login-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 4% 10%;
-    border-top: 3px solid #6ABD45;
-  }
-
-  .login-form {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    max-width: 450px;
-  }
-
-  .login-form-title {
-    color: white;
-    font-family: 'pexico_microregular';
-    font-size: 2.5em;
-    margin: 0 0 6% 0;
-    text-transform: uppercase;
-  }
-
-  .login-form-title span {
-    color: #6ABD45;
-  }
-
-  .login-label {
-    color: #6ABD45;
-    font-family: 'pexico_microregular';
-    font-size: 0.85em;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-bottom: 1.5%;
-  }
-
-  .login-input {
-    background-color: #111;
-    border: 2px solid #333;
-    color: white;
-    font-family: 'HelveticaNeueLT Pro 65 Md';
-    font-size: 1.1em;
-    padding: 3% 3%;
-    margin-bottom: 5%;
-    transition: border-color 0.2s;
-  }
-
-  .login-input:focus {
-    outline: none;
-    border-color: #6ABD45;
-  }
-
-  .login-input::placeholder {
-    color: #555;
-  }
-
-  .login-submit {
-    background-color: #6ABD45;
-    border: none;
-    color: black;
-    font-family: 'pexico_microregular';
-    font-size: 1.1em;
-    padding: 3% 0;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    cursor: pointer;
-    transition: background-color 0.2s, color 0.2s;
-    margin-top: 3%;
-  }
-
-  .login-submit:hover {
-    background-color: white;
-    color: black;
-  }
-
-  .login-footer {
-    padding: 2% 4%;
-    border-top: 3px solid #6ABD45;
-  }
-
-  .login-footer p {
-    color: #666;
-    font-family: 'HelveticaNeueLT Pro 65 Md';
-    font-size: 0.85em;
-    margin: 0;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-
-
-  /* ----- VIEW DB ----- */
-
-  .db-grid {
-    background-color: #6DD87D;
-    height: 100vh;
-    width: 100vw;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-auto-rows: auto;
-    grid-auto-flow: row;
-  }
-
-  .dbcard {
-    align-items: left;
-    justify-content: center;
-    grid-column: 1 / 4;
-    display: inline-block;
-    flex-direction: row;
-    background-color: black;
-  }
-
-  .dbcard > p {
-    font-family:'HelveticaNeueLT Pro 65 Md';
-    font-size: 1.5em;
-    color: #CFCFCF;
-  }
-
-  .dbcard > .minfo {
-    font-family:'HelveticaNeueLT Pro 65 Md';
-    font-size: 1.5em;
-    color: #CFCFCF;
-    margin: 0 10% 10% 10%;
-    padding: 1%;
-    background-color: #0BE12B;
-    justify-content: center;
-    text-align: center;
-  }
+    .home-grid {
+        background-color: #000;
+        min-height: 100vh;
+        width: 100vw;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .home-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 2% 4%;
+        padding-top: calc(2% + env(safe-area-inset-top));
+    }
+
+    .home-header .header-logo {
+        height: 5em;
+    }
+
+    .home-header-icon {
+        width: 2em;
+        height: auto;
+        filter: invert(1);
+        opacity: 0.6;
+    }
+
+    .home-hero {
+        position: relative;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 8% 6%;
+        border-top: 3px solid #6ABD45;
+        min-height: 50vh;
+    }
+
+    .home-hero-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+        background-position: center;
+        opacity: 0.4;
+        z-index: 0;
+    }
+
+    .home-hero-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .home-hero h1 {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 2em;
+        margin: 0 0 4% 0;
+        line-height: 1.1;
+    }
+
+    .home-hero h1 span {
+        color: #6ABD45;
+    }
+
+    .home-hero p {
+        color: #CFCFCF;
+        font-size: 0.9em;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .home-cta {
+        padding: 6%;
+        border-top: 3px solid #6ABD45;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    /* Large Green Buy Button */
+    .BuyButton {
+        display: block;
+        width: 88%;
+        padding: 5% 0;
+        background-color: #6ABD45;
+        color: #000;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1.4em;
+        text-align: center;
+        text-decoration: none;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.2s, transform 0.1s;
+    }
+
+    .BuyButton:hover {
+        background-color: #5aa93d;
+    }
+
+    .BuyButton:active {
+        transform: scale(0.98);
+    }
+
+    .home-cta-button {
+        display: block;
+        width: 100%;
+        padding: 5% 0;
+        background-color: #6ABD45;
+        color: #000;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1.2em;
+        text-align: center;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .home-cta-button:hover {
+        background-color: #5aa93d;
+    }
+
+    .home-cta-note {
+        color: #666;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.75em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 4%;
+    }
+
+    .home-nav {
+        padding: 0 6% 6% 6%;
+        display: flex;
+        flex-direction: column;
+        gap: 3%;
+    }
+
+    .home-nav-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 4% 0;
+        border-top: 1px solid #333;
+        color: #CFCFCF;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1em;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    .home-nav-item .arrow {
+        color: #6ABD45;
+    }
+
+    .home-footer {
+        padding: 6%;
+        border-top: 1px solid #333;
+        display: flex;
+        justify-content: center;
+        gap: 6%;
+    }
+
+    .home-footer-social a {
+        opacity: 0.6;
+        transition: opacity 0.2s;
+    }
+
+    .home-footer-social a:hover {
+        opacity: 1;
+    }
+
+    .home-footer-social img {
+        height: 1.5em;
+        filter: invert(1);
+    }
+
+    /* ========================================================================
+       ABOUT PAGE
+       ======================================================================== */
+
+    .about-grid {
+        background-color: #000;
+        min-height: 100vh;
+        width: 100vw;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .about-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 4% 4% 2% 4%;
+        padding-top: calc(4% + env(safe-area-inset-top));
+    }
+
+    .about-header .header-logo {
+        height: 5em;
+    }
+
+    .about-header-title {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1.2em;
+        border: 2px solid #fff;
+        padding: 8px 16px;
+    }
+
+    .about-hero {
+        padding: 8% 6%;
+        border-top: 3px solid #6ABD45;
+    }
+
+    .about-hero h1 {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 2em;
+        margin: 0 0 4% 0;
+        line-height: 1.1;
+    }
+
+    .about-hero h1 span {
+        color: #6ABD45;
+    }
+
+    .about-hero p {
+        color: #CFCFCF;
+        font-size: 0.95em;
+        line-height: 1.6;
+    }
+
+    .about-section {
+        padding: 6%;
+        border-top: 1px solid #333;
+    }
+
+    .about-section h2 {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1em;
+        margin: 0 0 4% 0;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    .about-section p {
+        color: #CFCFCF;
+        font-size: 0.9em;
+        line-height: 1.7;
+        margin-bottom: 4%;
+    }
+
+    .about-section p:last-of-type {
+        margin-bottom: 0;
+    }
+
+    .stat-block {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4%;
+        margin: 6% 0;
+    }
+
+    .stat-item {
+        flex: 1 1 45%;
+        border-left: 2px solid #6ABD45;
+        padding-left: 4%;
+        margin-bottom: 4%;
+    }
+
+    .stat-item .number {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1.5em;
+        display: block;
+    }
+
+    .stat-item .label {
+        color: #CFCFCF;
+        font-size: 0.7em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .about-image {
+        width: 100%;
+        margin: 6% 0;
+        border: 2px solid #6ABD45;
+    }
+
+    .about-image img {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+
+    .about-image-caption {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.7em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 3% 4%;
+        border-top: 1px solid #6ABD45;
+        background-color: rgba(106, 189, 69, 0.1);
+    }
+
+    .about-footer {
+        padding: 6%;
+        border-top: 3px solid #6ABD45;
+        margin-top: auto;
+    }
+
+    .about-footer p {
+        color: #666;
+        font-size: 0.75em;
+        text-align: center;
+    }
+
+    /* ========================================================================
+       LOGIN PAGE
+       ======================================================================== */
+
+    .login-grid {
+        background-color: #000;
+        min-height: 100vh;
+        width: 100vw;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .login-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 4% 4% 2% 4%;
+        padding-top: calc(4% + env(safe-area-inset-top));
+    }
+
+    .login-header .header-logo {
+        height: 5em;
+    }
+
+    .login-header-title {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1.2em;
+        border: 2px solid #fff;
+        padding: 8px 16px;
+    }
+
+    .login-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 8% 6%;
+        border-top: 3px solid #6ABD45;
+    }
+
+    .login-form-container {
+        max-width: 400px;
+        width: 100%;
+    }
+
+    .login-form-title {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 2em;
+        margin-bottom: 8%;
+    }
+
+    .login-form-title span {
+        color: #6ABD45;
+    }
+
+    .login-flash {
+        padding: 4%;
+        margin-bottom: 6%;
+        border-left: 3px solid #6ABD45;
+        background-color: rgba(106, 189, 69, 0.1);
+        color: #CFCFCF;
+        font-size: 0.9em;
+    }
+
+    .login-flash.flash-error {
+        border-left-color: #ff4444;
+        background-color: rgba(255, 68, 68, 0.1);
+    }
+
+    .login-form {
+        display: flex;
+        flex-direction: column;
+        gap: 6%;
+    }
+
+    .login-field {
+        display: flex;
+        flex-direction: column;
+        gap: 2%;
+        margin-bottom: 5%;
+    }
+
+    .login-label {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.85em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .login-input {
+        background-color: #111;
+        border: 1px solid #333;
+        color: #fff;
+        padding: 4%;
+        font-family: 'HelveticaNeueLT Pro 65 Md';
+        font-size: 1em;
+        transition: border-color 0.2s;
+    }
+
+    .login-input:focus {
+        outline: none;
+        border-color: #6ABD45;
+    }
+
+    .login-input::placeholder {
+        color: #666;
+    }
+
+    .login-submit {
+        background-color: #6ABD45;
+        color: #000;
+        border: none;
+        padding: 5%;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1.1em;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        margin-top: 4%;
+    }
+
+    .login-submit:hover {
+        background-color: #5aa93d;
+    }
+
+    .login-submit .arrow {
+        margin-left: 8px;
+    }
+
+    .login-footer {
+        padding: 6%;
+        border-top: 1px solid #333;
+        text-align: center;
+    }
+
+    .login-footer p {
+        color: #666;
+        font-size: 0.8em;
+        margin-bottom: 2%;
+    }
+
+    .login-footer-note {
+        color: #444;
+        font-size: 0.7em;
+    }
+
+    /* ========================================================================
+       CONTACT PAGE
+       ======================================================================== */
+
+    .contact-grid {
+        background-color: #000;
+        min-height: 100vh;
+        width: 100vw;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .contact-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 4% 4% 2% 4%;
+        padding-top: calc(4% + env(safe-area-inset-top));
+    }
+
+    .contact-header .header-logo {
+        height: 5em;
+    }
+
+    .contact-header-title {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1.2em;
+        border: 2px solid #fff;
+        padding: 8px 16px;
+    }
+
+    .contact-hero {
+        padding: 8% 6%;
+        border-top: 3px solid #6ABD45;
+    }
+
+    .contact-hero h1 {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 2em;
+        margin: 0 0 4% 0;
+        line-height: 1.1;
+    }
+
+    .contact-hero h1 span {
+        color: #6ABD45;
+    }
+
+    .contact-hero p {
+        color: #CFCFCF;
+        font-size: 0.9em;
+        line-height: 1.6;
+    }
+
+    .contact-content {
+        padding: 6%;
+        display: flex;
+        flex-direction: column;
+        gap: 8%;
+    }
+
+    .contact-form-container h2 {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1em;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 6%;
+    }
+
+    .contact-flash {
+        padding: 4%;
+        margin-bottom: 6%;
+        border-left: 3px solid #6ABD45;
+        background-color: rgba(106, 189, 69, 0.1);
+        color: #CFCFCF;
+        font-size: 0.9em;
+    }
+
+    .contact-flash.flash-success {
+        border-left-color: #6ABD45;
+    }
+
+    .contact-flash.flash-error {
+        border-left-color: #ff4444;
+        background-color: rgba(255, 68, 68, 0.1);
+    }
+
+    .contact-form {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group {
+        margin-bottom: 6%;
+    }
+
+    .contact-label {
+        display: block;
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.85em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 2%;
+    }
+
+    .contact-label .optional {
+        color: #666;
+        font-size: 0.8em;
+    }
+
+    .contact-input,
+    .contact-textarea {
+        width: 100%;
+        background-color: #111;
+        border: 1px solid #333;
+        color: #fff;
+        padding: 4%;
+        font-family: 'HelveticaNeueLT Pro 65 Md';
+        font-size: 1em;
+        transition: border-color 0.2s;
+    }
+
+    .contact-input:focus,
+    .contact-textarea:focus {
+        outline: none;
+        border-color: #6ABD45;
+    }
+
+    .contact-input::placeholder,
+    .contact-textarea::placeholder {
+        color: #666;
+    }
+
+    .contact-textarea {
+        resize: vertical;
+        min-height: 120px;
+    }
+
+    .radio-group {
+        display: flex;
+        flex-direction: column;
+        gap: 3%;
+    }
+
+    .radio-item {
+        display: flex;
+        align-items: center;
+        gap: 3%;
+        color: #CFCFCF;
+        font-size: 0.95em;
+        cursor: pointer;
+        padding: 2% 0;
+    }
+
+    .radio-item input[type="radio"] {
+        accent-color: #6ABD45;
+        width: 1.2em;
+        height: 1.2em;
+    }
+
+    .contact-submit {
+        background-color: #6ABD45;
+        color: #000;
+        border: none;
+        padding: 5%;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1.1em;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        margin-top: 4%;
+    }
+
+    .contact-submit:hover {
+        background-color: #5aa93d;
+    }
+
+    .contact-submit .arrow {
+        margin-left: 8px;
+    }
+
+    .contact-info {
+        border-top: 1px solid #333;
+        padding-top: 6%;
+    }
+
+    .contact-info-section {
+        margin-bottom: 6%;
+    }
+
+    .contact-info-section h3 {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.85em;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 3%;
+    }
+
+    .contact-detail {
+        display: flex;
+        flex-direction: column;
+        gap: 1%;
+    }
+
+    .detail-label {
+        color: #666;
+        font-size: 0.8em;
+    }
+
+    .detail-value {
+        color: #CFCFCF;
+        font-size: 0.95em;
+    }
+
+    .contact-social {
+        display: flex;
+        flex-direction: column;
+        gap: 2%;
+    }
+
+    .social-link {
+        color: #CFCFCF;
+        font-size: 0.95em;
+        padding: 2% 0;
+        transition: color 0.2s;
+    }
+
+    .social-link:hover {
+        color: #6ABD45;
+    }
+
+    .contact-note {
+        color: #666;
+        font-size: 0.85em;
+        line-height: 1.5;
+    }
+
+    .contact-footer {
+        padding: 6%;
+        border-top: 3px solid #6ABD45;
+        margin-top: auto;
+    }
+
+    .contact-footer p {
+        color: #666;
+        font-size: 0.75em;
+        text-align: center;
+    }
+
+    /* ========================================================================
+       DATABASE PAGES (Show, Showmore, Feedback)
+       ======================================================================== */
+
+    .db-grid {
+        background-color: #000;
+        min-height: 100vh;
+        width: 100vw;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .db-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 4% 4% 2% 4%;
+        padding-top: calc(4% + env(safe-area-inset-top));
+        flex-wrap: wrap;
+        gap: 3%;
+    }
+
+    .db-header .header-logo {
+        height: 4em;
+    }
+
+    .db-header-nav {
+        display: flex;
+        align-items: center;
+        gap: 4%;
+    }
+
+    .db-header-title {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1em;
+        border: 2px solid #fff;
+        padding: 6px 12px;
+    }
+
+    .db-header-icons {
+        display: flex;
+        gap: 3%;
+    }
+
+    .db-icon-link {
+        padding: 8px;
+        opacity: 0.6;
+        transition: opacity 0.2s;
+    }
+
+    .db-icon-link:hover,
+    .db-icon-link.active {
+        opacity: 1;
+    }
+
+    .db-icon {
+        height: 1.5em;
+        filter: invert(1);
+    }
+
+    .db-back-link {
+        display: flex;
+        align-items: center;
+        gap: 2%;
+        color: #CFCFCF;
+        font-size: 0.9em;
+        opacity: 0.8;
+        transition: opacity 0.2s;
+    }
+
+    .db-back-link:hover {
+        opacity: 1;
+    }
+
+    .db-back-link .db-icon {
+        height: 1.2em;
+    }
+
+    .db-search-section {
+        padding: 4% 4%;
+        border-top: 3px solid #6ABD45;
+    }
+
+    .db-search-form {
+        width: 100%;
+    }
+
+    .db-search-wrapper {
+        display: flex;
+        gap: 2%;
+    }
+
+    .db-search-input {
+        flex: 1;
+        background-color: #111;
+        border: 1px solid #333;
+        color: #fff;
+        padding: 4%;
+        font-family: 'HelveticaNeueLT Pro 65 Md';
+        font-size: 0.95em;
+    }
+
+    .db-search-input:focus {
+        outline: none;
+        border-color: #6ABD45;
+    }
+
+    .db-search-input::placeholder {
+        color: #666;
+    }
+
+    .db-search-button {
+        background-color: #6ABD45;
+        border: none;
+        padding: 0 5%;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .db-search-button:hover {
+        background-color: #5aa93d;
+    }
+
+    .search-icon {
+        height: 1.2em;
+        filter: invert(1);
+    }
+
+    .db-flash {
+        margin-top: 3%;
+        padding: 3%;
+        background-color: rgba(255, 255, 255, 0.05);
+        border-left: 3px solid #6ABD45;
+    }
+
+    .db-flash p {
+        color: #CFCFCF;
+        font-size: 0.9em;
+    }
+
+    .db-stats-bar {
+        padding: 3% 4%;
+        border-bottom: 1px solid #333;
+    }
+
+    .db-stat {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.8em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .db-customer-list {
+        padding: 4%;
+        display: flex;
+        flex-direction: column;
+        gap: 3%;
+    }
+
+    .db-customer-card {
+        background-color: #111;
+        border: 1px solid #333;
+        padding: 4%;
+    }
+
+    .db-customer-info {
+        margin-bottom: 4%;
+    }
+
+    .db-customer-name {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1.1em;
+        margin-bottom: 1%;
+    }
+
+    .db-customer-email {
+        color: #CFCFCF;
+        font-size: 0.9em;
+        margin-bottom: 1%;
+    }
+
+    .db-customer-date {
+        color: #666;
+        font-size: 0.8em;
+    }
+
+    .db-customer-action {
+        display: inline-block;
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.85em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 3% 0;
+        transition: color 0.2s;
+    }
+
+    .db-customer-action:hover {
+        color: #fff;
+    }
+
+    .db-customer-action .arrow {
+        margin-left: 8px;
+    }
+
+    .db-empty-state {
+        text-align: center;
+        padding: 10% 4%;
+        color: #666;
+    }
+
+    .db-footer {
+        padding: 4%;
+        border-top: 1px solid #333;
+        margin-top: auto;
+        text-align: center;
+    }
+
+    .db-footer p {
+        color: #666;
+        font-size: 0.75em;
+    }
+
+    /* --- Customer Detail (showmore) --- */
+
+    .customer-hero {
+        padding: 6% 4%;
+        border-top: 3px solid #6ABD45;
+        display: flex;
+        flex-direction: column;
+        gap: 4%;
+    }
+
+    .customer-label {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.8em;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    .customer-hero h1 {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1.8em;
+        margin: 2% 0;
+    }
+
+    .customer-email {
+        color: #CFCFCF;
+        font-size: 0.95em;
+    }
+
+    .customer-stats {
+        display: flex;
+        gap: 6%;
+    }
+
+    .customer-stat {
+        border-left: 2px solid #6ABD45;
+        padding-left: 4%;
+    }
+
+    .customer-stat .stat-number {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 2em;
+        display: block;
+    }
+
+    .customer-stat .stat-label {
+        color: #CFCFCF;
+        font-size: 0.75em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .customer-divider {
+        height: 1px;
+        background-color: #333;
+    }
+
+    .purchases-section {
+        padding: 4%;
+    }
+
+    .purchases-section h2 {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.9em;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 2%;
+    }
+
+    .purchases-note {
+        color: #666;
+        font-size: 0.8em;
+        margin-bottom: 4%;
+    }
+
+    .purchases-list {
+        display: flex;
+        flex-direction: column;
+        gap: 4%;
+    }
+
+    .purchase-card {
+        background-color: #111;
+        border: 1px solid #333;
+        padding: 4%;
+    }
+
+    .purchase-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 4%;
+        flex-wrap: wrap;
+        gap: 2%;
+    }
+
+    .purchase-product {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1em;
+    }
+
+    .purchase-date {
+        color: #666;
+        font-size: 0.8em;
+    }
+
+    .purchase-details {
+        display: flex;
+        flex-direction: column;
+        gap: 4%;
+        margin-bottom: 4%;
+    }
+
+    .purchase-detail-group {
+        display: flex;
+        flex-direction: column;
+        gap: 1%;
+    }
+
+    .purchase-detail-group .detail-label {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.75em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .purchase-detail-group .detail-value {
+        color: #CFCFCF;
+        font-size: 0.9em;
+        line-height: 1.4;
+    }
+
+    .purchase-detail-group .order-id {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+    }
+
+    .purchase-status {
+        display: flex;
+        align-items: center;
+        gap: 2%;
+        padding: 3%;
+        background-color: rgba(106, 189, 69, 0.1);
+        border-left: 3px solid #6ABD45;
+    }
+
+    .purchase-status.status-paid {
+        border-left-color: #6ABD45;
+        background-color: rgba(106, 189, 69, 0.1);
+    }
+
+    .purchase-status.status-pending {
+        border-left-color: #f0ad4e;
+        background-color: rgba(240, 173, 78, 0.1);
+    }
+
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #6ABD45;
+    }
+
+    .status-pending .status-dot {
+        background-color: #f0ad4e;
+    }
+
+    .status-text {
+        color: #CFCFCF;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.8em;
+        letter-spacing: 1px;
+    }
+
+    .purchases-empty {
+        text-align: center;
+        padding: 8% 4%;
+        color: #666;
+    }
+
+    /* --- Feedback View --- */
+
+    .feedback-list {
+        padding: 4%;
+        display: flex;
+        flex-direction: column;
+        gap: 4%;
+    }
+
+    .feedback-card {
+        background-color: #111;
+        border: 1px solid #333;
+        padding: 4%;
+    }
+
+    .feedback-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 4%;
+        flex-wrap: wrap;
+        gap: 2%;
+    }
+
+    .feedback-meta {
+        display: flex;
+        align-items: center;
+        gap: 3%;
+    }
+
+    .feedback-id {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.9em;
+    }
+
+    .feedback-type {
+        color: #000;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.7em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 4px 8px;
+        background-color: #6ABD45;
+    }
+
+    .feedback-type.type-order {
+        background-color: #5bc0de;
+    }
+
+    .feedback-date {
+        color: #666;
+        font-size: 0.75em;
+    }
+
+    .feedback-details {
+        margin-bottom: 4%;
+    }
+
+    .feedback-detail-row {
+        display: flex;
+        flex-direction: column;
+        gap: 1%;
+        margin-bottom: 3%;
+    }
+
+    .feedback-label {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.75em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .feedback-value {
+        color: #CFCFCF;
+        font-size: 0.9em;
+    }
+
+    .feedback-value.order-ref {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+    }
+
+    .feedback-content {
+        padding-top: 4%;
+        border-top: 1px solid #333;
+    }
+
+    .feedback-message {
+        color: #CFCFCF;
+        font-size: 0.9em;
+        line-height: 1.6;
+        margin-top: 2%;
+    }
+
+    .feedback-empty {
+        text-align: center;
+        padding: 10% 4%;
+    }
+
+    .feedback-empty p {
+        color: #666;
+        margin-bottom: 2%;
+    }
+
+    .feedback-empty-note {
+        color: #444;
+        font-size: 0.85em;
+    }
+
+    /* ========================================================================
+       SELL PAGE
+       ======================================================================== */
+
+    .sell-grid {
+        background-color: #000;
+        min-height: 100vh;
+        width: 100vw;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .sell-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 4% 4% 2% 4%;
+        padding-top: calc(4% + env(safe-area-inset-top));
+    }
+
+    .sell-header .header-logo {
+        height: 4em;
+    }
+
+    .sell-back-link {
+        color: #CFCFCF;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.9em;
+        opacity: 0.8;
+        transition: opacity 0.2s;
+    }
+
+    .sell-back-link:hover {
+        opacity: 1;
+    }
+
+    .sell-gallery {
+        border-top: 3px solid #6ABD45;
+        background-color: #111;
+    }
+
+    .gallery {
+        width: 100%;
+        height: 300px;
+    }
+
+    .gallery-cell {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #111;
+    }
+
+    .sell-img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+
+    /* Flickity customization */
+    .flickity-page-dots {
+        bottom: 15px;
+    }
+
+    .flickity-page-dots .dot {
+        width: 30px;
+        height: 3px;
+        margin: 0 4px;
+        border-radius: 0;
+        background: #333;
+        opacity: 1;
+    }
+
+    .flickity-page-dots .dot.is-selected {
+        background: #6ABD45;
+    }
+
+    .sell-content {
+        padding: 6% 4%;
+    }
+
+    .sell-product-header {
+        margin-bottom: 6%;
+    }
+
+    .sell-badge {
+        display: inline-block;
+        color: #000;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.7em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 4px 10px;
+        background-color: #6ABD45;
+        margin-bottom: 3%;
+    }
+
+    .sell-product-header h1 {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 2em;
+        margin-bottom: 2%;
+    }
+
+    .sell-product-header h1 span {
+        color: #6ABD45;
+    }
+
+    .sell-tagline {
+        color: #666;
+        font-size: 0.95em;
+    }
+
+    .sell-description {
+        margin-bottom: 6%;
+    }
+
+    .sell-description h2 {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.9em;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin: 6% 0 3% 0;
+    }
+
+    .sell-description p {
+        color: #CFCFCF;
+        font-size: 0.9em;
+        line-height: 1.7;
+    }
+
+    .sell-features {
+        list-style: none;
+        padding: 0;
+    }
+
+    .sell-features li {
+        color: #CFCFCF;
+        font-size: 0.9em;
+        line-height: 1.8;
+        padding-left: 4%;
+        position: relative;
+    }
+
+    .sell-features li::before {
+        content: "—";
+        position: absolute;
+        left: 0;
+        color: #6ABD45;
+    }
+
+    .feature-highlight {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+    }
+
+    .sell-purchase {
+        padding: 6% 0;
+        border-top: 3px solid #6ABD45;
+    }
+
+    .sell-price-block {
+        margin-bottom: 5%;
+    }
+
+    .sell-price-label {
+        display: block;
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.8em;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 2%;
+    }
+
+    .sell-price {
+        display: block;
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 2.5em;
+        margin-bottom: 2%;
+    }
+
+    .sell-shipping {
+        color: #666;
+        font-size: 0.85em;
+    }
+
+    .sell-checkout-btn {
+        display: block;
+        width: 100%;
+        padding: 5%;
+        background-color: #6ABD45;
+        color: #000;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1.1em;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .sell-checkout-btn:hover {
+        background-color: #5aa93d;
+    }
+
+    .sell-checkout-btn .arrow {
+        margin-left: 8px;
+    }
+
+    .sell-note {
+        color: #666;
+        font-size: 0.8em;
+        text-align: center;
+        margin-top: 4%;
+    }
+
+    .sell-footer {
+        padding: 6% 4%;
+        border-top: 1px solid #333;
+        margin-top: auto;
+        text-align: center;
+    }
+
+    .sell-footer-links {
+        display: flex;
+        justify-content: center;
+        gap: 6%;
+        margin-bottom: 3%;
+    }
+
+    .sell-footer-links a {
+        color: #CFCFCF;
+        font-size: 0.85em;
+        transition: color 0.2s;
+    }
+
+    .sell-footer-links a:hover {
+        color: #6ABD45;
+    }
+
+    .sell-footer p {
+        color: #666;
+        font-size: 0.75em;
+    }
+
+    /* ========================================================================
+       STATUS PAGES (Success/Cancel)
+       ======================================================================== */
+
+    .status-grid {
+        background-color: #000;
+        min-height: 100vh;
+        width: 100vw;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .status-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4%;
+        padding-top: calc(4% + env(safe-area-inset-top));
+    }
+
+    .status-header .header-logo {
+        height: 4em;
+    }
+
+    .status-hero {
+        padding: 8% 6%;
+        border-top: 3px solid #6ABD45;
+        text-align: center;
+    }
+
+    .status-hero.status-success {
+        border-top-color: #6ABD45;
+    }
+
+    .status-hero.status-cancel {
+        border-top-color: #ff4444;
+    }
+
+    .status-icon-wrapper {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background-color: #6ABD45;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 5%;
+    }
+
+    .status-cancel .status-icon-wrapper {
+        background-color: #ff4444;
+    }
+
+    .status-icon {
+        width: 40px;
+        height: 40px;
+        color: #000;
+    }
+
+    .status-hero h1 {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 2em;
+        margin-bottom: 2%;
+    }
+
+    .status-subtitle {
+        color: #CFCFCF;
+        font-size: 1em;
+    }
+
+    .status-content {
+        padding: 6%;
+    }
+
+    .status-message {
+        margin-bottom: 6%;
+    }
+
+    .status-message h2 {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.9em;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 3%;
+    }
+
+    .status-message p {
+        color: #CFCFCF;
+        font-size: 0.9em;
+        line-height: 1.6;
+    }
+
+    .status-details {
+        margin-bottom: 6%;
+    }
+
+    .status-detail-item {
+        display: flex;
+        align-items: center;
+        gap: 4%;
+        padding: 4% 0;
+        border-bottom: 1px solid #333;
+    }
+
+    .detail-icon {
+        font-size: 1.2em;
+    }
+
+    .detail-text {
+        color: #CFCFCF;
+        font-size: 0.9em;
+    }
+
+    .status-contact {
+        text-align: center;
+        padding: 6% 0;
+        border-top: 1px solid #333;
+    }
+
+    .status-contact p {
+        color: #666;
+        font-size: 0.85em;
+        margin-bottom: 2%;
+    }
+
+    .status-contact-link {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.9em;
+        transition: color 0.2s;
+    }
+
+    .status-contact-link:hover {
+        color: #fff;
+    }
+
+    .status-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 3%;
+        margin-bottom: 6%;
+    }
+
+    .status-action-btn {
+        display: block;
+        padding: 5%;
+        text-align: center;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1em;
+        transition: background-color 0.2s, color 0.2s;
+    }
+
+    .status-action-btn.primary {
+        background-color: #6ABD45;
+        color: #000;
+    }
+
+    .status-action-btn.primary:hover {
+        background-color: #5aa93d;
+    }
+
+    .status-action-btn.secondary {
+        background-color: transparent;
+        color: #CFCFCF;
+        border: 1px solid #333;
+    }
+
+    .status-action-btn.secondary:hover {
+        border-color: #6ABD45;
+        color: #6ABD45;
+    }
+
+    .status-action-btn .arrow {
+        margin-left: 8px;
+    }
+
+    .status-help {
+        padding: 6% 0;
+        border-top: 1px solid #333;
+    }
+
+    .status-help h3 {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.85em;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 3%;
+    }
+
+    .status-help p {
+        color: #CFCFCF;
+        font-size: 0.9em;
+        line-height: 1.6;
+        margin-bottom: 3%;
+    }
+
+    .status-help-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .status-help-list li {
+        color: #666;
+        font-size: 0.85em;
+        padding: 2% 0 2% 4%;
+        position: relative;
+    }
+
+    .status-help-list li::before {
+        content: "•";
+        position: absolute;
+        left: 0;
+        color: #6ABD45;
+    }
+
+    .status-redirect {
+        padding: 6%;
+        border-top: 1px solid #333;
+        text-align: center;
+    }
+
+    .status-redirect p {
+        color: #666;
+        font-size: 0.8em;
+        margin-bottom: 2%;
+    }
+
+    .status-home-link {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.85em;
+        transition: color 0.2s;
+    }
+
+    .status-home-link:hover {
+        color: #fff;
+    }
+
+    .status-footer {
+        padding: 4%;
+        border-top: 1px solid #333;
+        margin-top: auto;
+        text-align: center;
+    }
+
+    .status-footer p {
+        color: #666;
+        font-size: 0.75em;
+    }
+
+    /* --- Data Viz --- */
+
+    .dataviz-hero {
+        padding: 6% 4%;
+        border-top: 3px solid #6ABD45;
+    }
+
+    .dataviz-label {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.8em;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    .dataviz-hero h1 {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1.8em;
+        margin: 2% 0;
+    }
+
+    .dataviz-email {
+        color: #CFCFCF;
+        font-size: 0.95em;
+    }
+
+    .dataviz-content {
+        padding: 4%;
+    }
+
+    .dataviz-note {
+        color: #666;
+        font-size: 0.9em;
+    }
+
+    /* ========================================================================
+       INVESTOR PORTAL - MOBILE
+       ======================================================================== */
+
+    .investor-grid {
+        background-color: #000;
+        min-height: 100vh;
+        width: 100vw;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .investor-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 4% 4% 2% 4%;
+        padding-top: calc(4% + env(safe-area-inset-top));
+        flex-wrap: wrap;
+        gap: 3%;
+    }
+
+    .investor-header .header-logo {
+        height: 4em;
+    }
+
+    .investor-header-nav {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 2%;
+    }
+
+    .investor-header-title {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.9em;
+        border: 2px solid #6ABD45;
+        padding: 6px 12px;
+    }
+
+    .investor-logout {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: #CFCFCF;
+        font-size: 0.8em;
+        opacity: 0.8;
+    }
+
+    .investor-icon {
+        height: 1em;
+        filter: invert(1);
+    }
+
+    .investor-hero {
+        padding: 6% 4%;
+        border-top: 3px solid #6ABD45;
+    }
+
+    .investor-hero h1 {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1.8em;
+        margin: 0 0 4% 0;
+    }
+
+    .investor-hero h1 span {
+        color: #6ABD45;
+    }
+
+    .investor-hero p {
+        color: #CFCFCF;
+        font-size: 0.9em;
+        line-height: 1.6;
+    }
+
+    .investor-content {
+        padding: 4%;
+    }
+
+    .investor-section {
+        margin-bottom: 6%;
+        padding-bottom: 6%;
+        border-bottom: 1px solid #333;
+    }
+
+    .investor-section:last-child {
+        border-bottom: none;
+    }
+
+    .investor-section h2 {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.9em;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 4%;
+    }
+
+    .investor-section p {
+        color: #CFCFCF;
+        font-size: 0.9em;
+        line-height: 1.7;
+        margin-bottom: 3%;
+    }
+
+    .investor-stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4%;
+        margin: 5% 0;
+    }
+
+    .investor-stat {
+        flex: 1 1 45%;
+        border-left: 2px solid #6ABD45;
+        padding-left: 4%;
+        margin-bottom: 4%;
+    }
+
+    .investor-stat .stat-number {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1.8em;
+        display: block;
+    }
+
+    .investor-stat .stat-label {
+        color: #CFCFCF;
+        font-size: 0.75em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .investor-revenue-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 4%;
+        margin-top: 4%;
+    }
+
+    .revenue-item {
+        background-color: #111;
+        border: 1px solid #333;
+        padding: 4%;
+    }
+
+    .revenue-icon {
+        font-size: 1.5em;
+        display: block;
+        margin-bottom: 2%;
+    }
+
+    .revenue-item h3 {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1em;
+        margin-bottom: 2%;
+    }
+
+    .revenue-item p {
+        color: #CFCFCF;
+        font-size: 0.85em;
+        line-height: 1.5;
+    }
+
+    .investor-docs-note {
+        color: #666;
+        font-size: 0.9em;
+    }
+
+    .investor-docs-placeholder {
+        display: flex;
+        flex-direction: column;
+        gap: 3%;
+        margin-top: 4%;
+    }
+
+    .doc-item {
+        background-color: #111;
+        border: 1px solid #333;
+        padding: 4%;
+        display: flex;
+        align-items: center;
+        gap: 4%;
+    }
+
+    .doc-icon {
+        font-size: 1.5em;
+    }
+
+    .doc-name {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.9em;
+        flex: 1;
+    }
+
+    .doc-status {
+        color: #666;
+        font-size: 0.75em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .doc-coming-soon {
+        opacity: 0.6;
+    }
+
+    .investor-contact-info {
+        margin-top: 3%;
+    }
+
+    .investor-contact-info p {
+        color: #CFCFCF;
+        font-size: 0.9em;
+    }
+
+    .investor-contact-info strong {
+        color: #6ABD45;
+    }
+
+    .investor-footer {
+        padding: 4%;
+        border-top: 3px solid #6ABD45;
+        margin-top: auto;
+        text-align: center;
+    }
+
+    .investor-footer p {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.85em;
+        margin-bottom: 2%;
+    }
+
+    .investor-footer-legal {
+        color: #666;
+        font-size: 0.7em;
+        line-height: 1.4;
+    }
+
+}
+
+/* ============================================================================
+   DESKTOP STYLES (min-width: 601px)
+   ============================================================================ */
+
+@media screen and (min-width: 601px) {
+
+    /* --- Header Logo --- */
+    .header-logo {
+        height: 6em;
+    }
+
+    /* --- Transition --- */
+    .transition-logo {
+        width: 15%;
+        max-width: 180px;
+    }
+
+    /* ========================================================================
+       HOME PAGE - DESKTOP
+       ======================================================================== */
+
+    .home-grid {
+        background-color: #000;
+        min-height: 100vh;
+        width: 100vw;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .home-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.5% 4%;
+    }
+
+    .home-header .header-logo {
+        height: 6em;
+    }
+
+    .home-header-icon {
+        width: 2em;
+        height: auto;
+        filter: invert(1);
+        opacity: 0.6;
+    }
+
+    .home-hero {
+        position: relative;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 4% 10%;
+        border-top: 3px solid #6ABD45;
+        min-height: 50vh;
+    }
+
+    .home-hero-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+        background-position: center;
+        opacity: 0.3;
+        z-index: 0;
+    }
+
+    .home-hero-content {
+        position: relative;
+        z-index: 1;
+        max-width: 60%;
+    }
+
+    .home-hero h1 {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 3.5em;
+        margin: 0 0 2% 0;
+        line-height: 1.1;
+    }
+
+    .home-hero h1 span {
+        color: #6ABD45;
+    }
+
+    .home-hero p {
+        color: #CFCFCF;
+        font-size: 1.2em;
+        line-height: 1.6;
+        margin: 0;
+        max-width: 70%;
+    }
+
+    .home-cta {
+        padding: 3% 10%;
+        border-top: 3px solid #6ABD45;
+        display: flex;
+        align-items: center;
+        gap: 4%;
+    }
+
+    /* Large Green Buy Button - Desktop */
+    .BuyButton {
+        display: inline-block;
+        padding: 1.2% 4%;
+        background-color: #6ABD45;
+        color: #000;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1.4em;
+        text-align: center;
+        text-decoration: none;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.2s, transform 0.1s;
+    }
+
+    .BuyButton:hover {
+        background-color: #5aa93d;
+    }
+
+    .BuyButton:active {
+        transform: scale(0.98);
+    }
+
+    .home-cta-button {
+        display: inline-block;
+        padding: 1.5% 4%;
+        background-color: #6ABD45;
+        color: #000;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1.2em;
+        text-align: center;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .home-cta-button:hover {
+        background-color: #5aa93d;
+    }
+
+    .home-cta-note {
+        color: #666;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.85em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .home-nav {
+        padding: 0 10% 3% 10%;
+        display: flex;
+        gap: 3%;
+    }
+
+    .home-nav-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5% 2%;
+        border: 1px solid #333;
+        color: #CFCFCF;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1em;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        transition: border-color 0.2s, color 0.2s;
+    }
+
+    .home-nav-item:hover {
+        border-color: #6ABD45;
+        color: #fff;
+    }
+
+    .home-nav-item .arrow {
+        color: #6ABD45;
+        margin-left: 15px;
+    }
+
+    .home-footer {
+        padding: 2% 10%;
+        border-top: 1px solid #333;
+        display: flex;
+        justify-content: flex-end;
+        gap: 3%;
+    }
+
+    .home-footer-social a {
+        opacity: 0.6;
+        transition: opacity 0.2s;
+    }
+
+    .home-footer-social a:hover {
+        opacity: 1;
+    }
+
+    .home-footer-social img {
+        height: 1.5em;
+        filter: invert(1);
+    }
+
+    /* ========================================================================
+       ABOUT PAGE - DESKTOP
+       ======================================================================== */
+
+    .about-grid {
+        background-color: #000;
+        min-height: 100vh;
+        width: 100vw;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .about-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.5% 4%;
+    }
+
+    .about-header .header-logo {
+        height: 6em;
+    }
+
+    .about-header-title {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1.5em;
+        border: 2px solid #fff;
+        padding: 10px 24px;
+    }
+
+    .about-hero {
+        padding: 4% 10%;
+        border-top: 3px solid #6ABD45;
+    }
+
+    .about-hero h1 {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 3.5em;
+        margin: 0 0 2% 0;
+        line-height: 1.1;
+    }
+
+    .about-hero h1 span {
+        color: #6ABD45;
+    }
+
+    .about-hero p {
+        color: #CFCFCF;
+        font-size: 1.2em;
+        line-height: 1.6;
+        max-width: 70%;
+    }
+
+    .about-section {
+        padding: 3% 10%;
+        border-top: 1px solid #333;
+    }
+
+    .about-section h2 {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1.2em;
+        margin: 0 0 2% 0;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+    }
+
+    .about-section p {
+        color: #CFCFCF;
+        font-size: 1.1em;
+        line-height: 1.8;
+        max-width: 80%;
+        margin-bottom: 2%;
+    }
+
+    .about-section p:last-of-type {
+        margin-bottom: 0;
+    }
+
+    .stat-block {
+        display: flex;
+        gap: 5%;
+        margin: 3% 0;
+    }
+
+    .stat-item {
+        border-left: 2px solid #6ABD45;
+        padding-left: 2%;
+    }
+
+    .stat-item .number {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 2.5em;
+        display: block;
+    }
+
+    .stat-item .label {
+        color: #CFCFCF;
+        font-size: 0.8em;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    .about-image {
+        width: 60%;
+        margin: 3% 0;
+        border: 2px solid #6ABD45;
+    }
+
+    .about-image img {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+
+    .about-image-caption {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.8em;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        padding: 2% 3%;
+        border-top: 1px solid #6ABD45;
+        background-color: rgba(106, 189, 69, 0.1);
+    }
+
+    .about-footer {
+        padding: 3% 10%;
+        border-top: 3px solid #6ABD45;
+        margin-top: auto;
+    }
+
+    .about-footer p {
+        color: #666;
+        font-size: 0.9em;
+    }
+
+    /* ========================================================================
+       LOGIN PAGE - DESKTOP
+       ======================================================================== */
+
+    .login-grid {
+        background-color: #000;
+        min-height: 100vh;
+        width: 100vw;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .login-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.5% 4%;
+    }
+
+    .login-header .header-logo {
+        height: 6em;
+    }
+
+    .login-header-title {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1.5em;
+        border: 2px solid #fff;
+        padding: 10px 24px;
+    }
+
+    .login-content {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4% 10%;
+        border-top: 3px solid #6ABD45;
+    }
+
+    .login-form-container {
+        max-width: 450px;
+        width: 100%;
+    }
+
+    .login-form-title {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 2.5em;
+        margin-bottom: 6%;
+    }
+
+    .login-form-title span {
+        color: #6ABD45;
+    }
+
+    .login-flash {
+        padding: 3%;
+        margin-bottom: 5%;
+        border-left: 3px solid #6ABD45;
+        background-color: rgba(106, 189, 69, 0.1);
+        color: #CFCFCF;
+        font-size: 0.95em;
+    }
+
+    .login-flash.flash-error {
+        border-left-color: #ff4444;
+        background-color: rgba(255, 68, 68, 0.1);
+    }
+
+    .login-field {
+        margin-bottom: 4%;
+    }
+
+    .login-label {
+        display: block;
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.9em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 2%;
+    }
+
+    .login-input {
+        width: 100%;
+        background-color: #111;
+        border: 1px solid #333;
+        color: #fff;
+        padding: 3%;
+        font-family: 'HelveticaNeueLT Pro 65 Md';
+        font-size: 1em;
+        transition: border-color 0.2s;
+    }
+
+    .login-input:focus {
+        outline: none;
+        border-color: #6ABD45;
+    }
+
+    .login-input::placeholder {
+        color: #666;
+    }
+
+    .login-submit {
+        width: 100%;
+        background-color: #6ABD45;
+        color: #000;
+        border: none;
+        padding: 3%;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1.1em;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        margin-top: 3%;
+    }
+
+    .login-submit:hover {
+        background-color: #5aa93d;
+    }
+
+    .login-submit .arrow {
+        margin-left: 10px;
+    }
+
+    .login-footer {
+        padding: 2% 10%;
+        border-top: 1px solid #333;
+        text-align: center;
+    }
+
+    .login-footer p {
+        color: #666;
+        font-size: 0.85em;
+        margin-bottom: 1%;
+    }
+
+    .login-footer-note {
+        color: #444;
+        font-size: 0.75em;
+    }
+
+    /* ========================================================================
+       CONTACT PAGE - DESKTOP
+       ======================================================================== */
+
+    .contact-grid {
+        background-color: #000;
+        min-height: 100vh;
+        width: 100vw;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .contact-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.5% 4%;
+    }
+
+    .contact-header .header-logo {
+        height: 6em;
+    }
+
+    .contact-header-title {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1.5em;
+        border: 2px solid #fff;
+        padding: 10px 24px;
+    }
+
+    .contact-hero {
+        padding: 4% 10%;
+        border-top: 3px solid #6ABD45;
+    }
+
+    .contact-hero h1 {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 3em;
+        margin: 0 0 2% 0;
+        line-height: 1.1;
+    }
+
+    .contact-hero h1 span {
+        color: #6ABD45;
+    }
+
+    .contact-hero p {
+        color: #CFCFCF;
+        font-size: 1.1em;
+        line-height: 1.6;
+        max-width: 60%;
+    }
+
+    .contact-content {
+        padding: 3% 10%;
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 8%;
+    }
+
+    .contact-form-container h2 {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1.1em;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 4%;
+    }
+
+    .contact-flash {
+        padding: 2%;
+        margin-bottom: 4%;
+        border-left: 3px solid #6ABD45;
+        background-color: rgba(106, 189, 69, 0.1);
+        color: #CFCFCF;
+        font-size: 0.95em;
+    }
+
+    .contact-flash.flash-success {
+        border-left-color: #6ABD45;
+    }
+
+    .contact-flash.flash-error {
+        border-left-color: #ff4444;
+        background-color: rgba(255, 68, 68, 0.1);
+    }
+
+    .form-group {
+        margin-bottom: 4%;
+    }
+
+    .contact-label {
+        display: block;
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.9em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 1.5%;
+    }
+
+    .contact-label .optional {
+        color: #666;
+        font-size: 0.85em;
+    }
+
+    .contact-input,
+    .contact-textarea {
+        width: 100%;
+        background-color: #111;
+        border: 1px solid #333;
+        color: #fff;
+        padding: 2.5%;
+        font-family: 'HelveticaNeueLT Pro 65 Md';
+        font-size: 1em;
+        transition: border-color 0.2s;
+    }
+
+    .contact-input:focus,
+    .contact-textarea:focus {
+        outline: none;
+        border-color: #6ABD45;
+    }
+
+    .contact-input::placeholder,
+    .contact-textarea::placeholder {
+        color: #666;
+    }
+
+    .contact-textarea {
+        resize: vertical;
+        min-height: 150px;
+    }
+
+    .radio-group {
+        display: flex;
+        gap: 4%;
+    }
+
+    .radio-item {
+        display: flex;
+        align-items: center;
+        gap: 2%;
+        color: #CFCFCF;
+        font-size: 0.95em;
+        cursor: pointer;
+        padding: 1% 0;
+    }
+
+    .radio-item input[type="radio"] {
+        accent-color: #6ABD45;
+        width: 1.2em;
+        height: 1.2em;
+    }
+
+    .contact-submit {
+        background-color: #6ABD45;
+        color: #000;
+        border: none;
+        padding: 2.5% 5%;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1.1em;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        margin-top: 2%;
+    }
+
+    .contact-submit:hover {
+        background-color: #5aa93d;
+    }
+
+    .contact-submit .arrow {
+        margin-left: 10px;
+    }
+
+    .contact-info {
+        padding-top: 0;
+        border-top: none;
+        border-left: 1px solid #333;
+        padding-left: 5%;
+    }
+
+    .contact-info-section {
+        margin-bottom: 8%;
+    }
+
+    .contact-info-section h3 {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.9em;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 3%;
+    }
+
+    .contact-detail {
+        display: flex;
+        flex-direction: column;
+        gap: 1%;
+    }
+
+    .detail-label {
+        color: #666;
+        font-size: 0.85em;
+    }
+
+    .detail-value {
+        color: #CFCFCF;
+        font-size: 1em;
+    }
+
+    .contact-social {
+        display: flex;
+        flex-direction: column;
+        gap: 2%;
+    }
+
+    .social-link {
+        color: #CFCFCF;
+        font-size: 0.95em;
+        padding: 1% 0;
+        transition: color 0.2s;
+    }
+
+    .social-link:hover {
+        color: #6ABD45;
+    }
+
+    .contact-note {
+        color: #666;
+        font-size: 0.9em;
+        line-height: 1.5;
+    }
+
+    .contact-footer {
+        padding: 2% 10%;
+        border-top: 3px solid #6ABD45;
+        margin-top: auto;
+    }
+
+    .contact-footer p {
+        color: #666;
+        font-size: 0.85em;
+    }
+
+    /* ========================================================================
+       DATABASE PAGES - DESKTOP
+       ======================================================================== */
+
+    .db-grid {
+        background-color: #000;
+        min-height: 100vh;
+        width: 100vw;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .db-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.5% 4%;
+    }
+
+    .db-header .header-logo {
+        height: 5em;
+    }
+
+    .db-header-nav {
+        display: flex;
+        align-items: center;
+        gap: 3%;
+    }
+
+    .db-header-title {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1.2em;
+        border: 2px solid #fff;
+        padding: 8px 18px;
+    }
+
+    .db-header-icons {
+        display: flex;
+        gap: 1%;
+    }
+
+    .db-icon-link {
+        padding: 10px;
+        opacity: 0.6;
+        transition: opacity 0.2s;
+    }
+
+    .db-icon-link:hover,
+    .db-icon-link.active {
+        opacity: 1;
+    }
+
+    .db-icon {
+        height: 1.5em;
+        filter: invert(1);
+    }
+
+    .db-back-link {
+        display: flex;
+        align-items: center;
+        gap: 1%;
+        color: #CFCFCF;
+        font-size: 0.95em;
+        opacity: 0.8;
+        transition: opacity 0.2s;
+    }
+
+    .db-back-link:hover {
+        opacity: 1;
+    }
+
+    .db-back-link .db-icon {
+        height: 1.2em;
+    }
+
+    .db-search-section {
+        padding: 2% 10%;
+        border-top: 3px solid #6ABD45;
+    }
+
+    .db-search-form {
+        max-width: 500px;
+    }
+
+    .db-search-wrapper {
+        display: flex;
+        gap: 1%;
+    }
+
+    .db-search-input {
+        flex: 1;
+        background-color: #111;
+        border: 1px solid #333;
+        color: #fff;
+        padding: 2.5%;
+        font-family: 'HelveticaNeueLT Pro 65 Md';
+        font-size: 1em;
+    }
+
+    .db-search-input:focus {
+        outline: none;
+        border-color: #6ABD45;
+    }
+
+    .db-search-input::placeholder {
+        color: #666;
+    }
+
+    .db-search-button {
+        background-color: #6ABD45;
+        border: none;
+        padding: 0 3%;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .db-search-button:hover {
+        background-color: #5aa93d;
+    }
+
+    .search-icon {
+        height: 1.2em;
+        filter: invert(1);
+    }
+
+    .db-flash {
+        margin-top: 2%;
+        padding: 2%;
+        background-color: rgba(255, 255, 255, 0.05);
+        border-left: 3px solid #6ABD45;
+        max-width: 500px;
+    }
+
+    .db-flash p {
+        color: #CFCFCF;
+        font-size: 0.95em;
+    }
+
+    .db-stats-bar {
+        padding: 1.5% 10%;
+        border-bottom: 1px solid #333;
+    }
+
+    .db-stat {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.85em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .db-customer-list {
+        padding: 2% 10%;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 2%;
+    }
+
+    .db-customer-card {
+        background-color: #111;
+        border: 1px solid #333;
+        padding: 3%;
+        transition: border-color 0.2s;
+    }
+
+    .db-customer-card:hover {
+        border-color: #6ABD45;
+    }
+
+    .db-customer-info {
+        margin-bottom: 3%;
+    }
+
+    .db-customer-name {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1.1em;
+        margin-bottom: 1%;
+    }
+
+    .db-customer-email {
+        color: #CFCFCF;
+        font-size: 0.95em;
+        margin-bottom: 1%;
+    }
+
+    .db-customer-date {
+        color: #666;
+        font-size: 0.85em;
+    }
+
+    .db-customer-action {
+        display: inline-block;
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.9em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 2% 0;
+        transition: color 0.2s;
+    }
+
+    .db-customer-action:hover {
+        color: #fff;
+    }
+
+    .db-customer-action .arrow {
+        margin-left: 8px;
+    }
+
+    .db-empty-state {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 5%;
+        color: #666;
+    }
+
+    .db-footer {
+        padding: 2% 10%;
+        border-top: 1px solid #333;
+        margin-top: auto;
+    }
+
+    .db-footer p {
+        color: #666;
+        font-size: 0.8em;
+    }
+
+    /* --- Customer Detail Desktop --- */
+
+    .customer-hero {
+        padding: 3% 10%;
+        border-top: 3px solid #6ABD45;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
+    .customer-label {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.85em;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    .customer-hero h1 {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 2.5em;
+        margin: 1% 0;
+    }
+
+    .customer-email {
+        color: #CFCFCF;
+        font-size: 1em;
+    }
+
+    .customer-stats {
+        display: flex;
+        gap: 5%;
+    }
+
+    .customer-stat {
+        border-left: 2px solid #6ABD45;
+        padding-left: 2%;
+    }
+
+    .customer-stat .stat-number {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 3em;
+        display: block;
+    }
+
+    .customer-stat .stat-label {
+        color: #CFCFCF;
+        font-size: 0.85em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .customer-divider {
+        height: 1px;
+        background-color: #333;
+    }
+
+    .purchases-section {
+        padding: 2% 10%;
+    }
+
+    .purchases-section h2 {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1em;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 1%;
+    }
+
+    .purchases-note {
+        color: #666;
+        font-size: 0.85em;
+        margin-bottom: 2%;
+    }
+
+    .purchases-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+        gap: 2%;
+    }
+
+    .purchase-card {
+        background-color: #111;
+        border: 1px solid #333;
+        padding: 3%;
+    }
+
+    .purchase-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 3%;
+    }
+
+    .purchase-product {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1.1em;
+    }
+
+    .purchase-date {
+        color: #666;
+        font-size: 0.85em;
+    }
+
+    .purchase-details {
+        display: flex;
+        gap: 5%;
+        margin-bottom: 3%;
+    }
+
+    .purchase-detail-group {
+        flex: 1;
+    }
+
+    .purchase-detail-group .detail-label {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.8em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 1%;
+    }
+
+    .purchase-detail-group .detail-value {
+        color: #CFCFCF;
+        font-size: 0.95em;
+        line-height: 1.4;
+    }
+
+    .purchase-detail-group .order-id {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+    }
+
+    .purchase-status {
+        display: flex;
+        align-items: center;
+        gap: 2%;
+        padding: 2%;
+        background-color: rgba(106, 189, 69, 0.1);
+        border-left: 3px solid #6ABD45;
+    }
+
+    .purchase-status.status-paid {
+        border-left-color: #6ABD45;
+        background-color: rgba(106, 189, 69, 0.1);
+    }
+
+    .purchase-status.status-pending {
+        border-left-color: #f0ad4e;
+        background-color: rgba(240, 173, 78, 0.1);
+    }
+
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #6ABD45;
+    }
+
+    .status-pending .status-dot {
+        background-color: #f0ad4e;
+    }
+
+    .status-text {
+        color: #CFCFCF;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.85em;
+        letter-spacing: 1px;
+    }
+
+    .purchases-empty {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 5%;
+        color: #666;
+    }
+
+    /* --- Feedback View Desktop --- */
+
+    .feedback-list {
+        padding: 2% 10%;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+        gap: 2%;
+    }
+
+    .feedback-card {
+        background-color: #111;
+        border: 1px solid #333;
+        padding: 3%;
+    }
+
+    .feedback-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 3%;
+    }
+
+    .feedback-meta {
+        display: flex;
+        align-items: center;
+        gap: 2%;
+    }
+
+    .feedback-id {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1em;
+    }
+
+    .feedback-type {
+        color: #000;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.75em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 4px 10px;
+        background-color: #6ABD45;
+    }
+
+    .feedback-type.type-order {
+        background-color: #5bc0de;
+    }
+
+    .feedback-date {
+        color: #666;
+        font-size: 0.8em;
+    }
+
+    .feedback-details {
+        margin-bottom: 3%;
+    }
+
+    .feedback-detail-row {
+        display: flex;
+        align-items: baseline;
+        gap: 2%;
+        margin-bottom: 2%;
+    }
+
+    .feedback-label {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.8em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        min-width: 80px;
+    }
+
+    .feedback-value {
+        color: #CFCFCF;
+        font-size: 0.95em;
+    }
+
+    .feedback-value.order-ref {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+    }
+
+    .feedback-content {
+        padding-top: 3%;
+        border-top: 1px solid #333;
+    }
+
+    .feedback-message {
+        color: #CFCFCF;
+        font-size: 0.95em;
+        line-height: 1.6;
+        margin-top: 2%;
+    }
+
+    .feedback-empty {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 5%;
+    }
+
+    .feedback-empty p {
+        color: #666;
+        margin-bottom: 1%;
+    }
+
+    .feedback-empty-note {
+        color: #444;
+        font-size: 0.9em;
+    }
+
+    /* ========================================================================
+       SELL PAGE - DESKTOP
+       ======================================================================== */
+
+    .sell-grid {
+        background-color: #000;
+        min-height: 100vh;
+        width: 100vw;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .sell-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.5% 4%;
+    }
+
+    .sell-header .header-logo {
+        height: 5em;
+    }
+
+    .sell-back-link {
+        color: #CFCFCF;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1em;
+        opacity: 0.8;
+        transition: opacity 0.2s;
+    }
+
+    .sell-back-link:hover {
+        opacity: 1;
+    }
+
+    .sell-gallery {
+        border-top: 3px solid #6ABD45;
+        background-color: #111;
+    }
+
+    .gallery {
+        width: 100%;
+        height: 450px;
+    }
+
+    .gallery-cell {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #111;
+    }
+
+    .sell-img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+
+    .flickity-page-dots {
+        bottom: 20px;
+    }
+
+    .flickity-page-dots .dot {
+        width: 40px;
+        height: 4px;
+        margin: 0 5px;
+        border-radius: 0;
+        background: #333;
+        opacity: 1;
+    }
+
+    .flickity-page-dots .dot.is-selected {
+        background: #6ABD45;
+    }
+
+    .sell-content {
+        padding: 3% 10%;
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 5%;
+    }
+
+    .sell-product-header {
+        margin-bottom: 4%;
+    }
+
+    .sell-badge {
+        display: inline-block;
+        color: #000;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.75em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 5px 12px;
+        background-color: #6ABD45;
+        margin-bottom: 2%;
+    }
+
+    .sell-product-header h1 {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 2.5em;
+        margin-bottom: 1%;
+    }
+
+    .sell-product-header h1 span {
+        color: #6ABD45;
+    }
+
+    .sell-tagline {
+        color: #666;
+        font-size: 1.1em;
+    }
+
+    .sell-description {
+        grid-column: 1;
+    }
+
+    .sell-description h2 {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1em;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin: 4% 0 2% 0;
+    }
+
+    .sell-description h2:first-child {
+        margin-top: 0;
+    }
+
+    .sell-description p {
+        color: #CFCFCF;
+        font-size: 1em;
+        line-height: 1.7;
+    }
+
+    .sell-features {
+        list-style: none;
+        padding: 0;
+    }
+
+    .sell-features li {
+        color: #CFCFCF;
+        font-size: 1em;
+        line-height: 1.8;
+        padding-left: 3%;
+        position: relative;
+    }
+
+    .sell-features li::before {
+        content: "—";
+        position: absolute;
+        left: 0;
+        color: #6ABD45;
+    }
+
+    .feature-highlight {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+    }
+
+    .sell-purchase {
+        grid-column: 2;
+        grid-row: 1 / 3;
+        padding: 5%;
+        background-color: #111;
+        border: 1px solid #333;
+        align-self: start;
+        position: sticky;
+        top: 20px;
+    }
+
+    .sell-price-block {
+        margin-bottom: 4%;
+    }
+
+    .sell-price-label {
+        display: block;
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.85em;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 2%;
+    }
+
+    .sell-price {
+        display: block;
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 3em;
+        margin-bottom: 2%;
+    }
+
+    .sell-shipping {
+        color: #666;
+        font-size: 0.9em;
+    }
+
+    .sell-checkout-btn {
+        display: block;
+        width: 100%;
+        padding: 4%;
+        background-color: #6ABD45;
+        color: #000;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1.1em;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .sell-checkout-btn:hover {
+        background-color: #5aa93d;
+    }
+
+    .sell-checkout-btn .arrow {
+        margin-left: 10px;
+    }
+
+    .sell-note {
+        color: #666;
+        font-size: 0.85em;
+        text-align: center;
+        margin-top: 3%;
+    }
+
+    .sell-footer {
+        padding: 2% 10%;
+        border-top: 1px solid #333;
+        margin-top: auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .sell-footer-links {
+        display: flex;
+        gap: 4%;
+    }
+
+    .sell-footer-links a {
+        color: #CFCFCF;
+        font-size: 0.9em;
+        transition: color 0.2s;
+    }
+
+    .sell-footer-links a:hover {
+        color: #6ABD45;
+    }
+
+    .sell-footer p {
+        color: #666;
+        font-size: 0.85em;
+    }
+
+    /* ========================================================================
+       STATUS PAGES - DESKTOP
+       ======================================================================== */
+
+    .status-grid {
+        background-color: #000;
+        min-height: 100vh;
+        width: 100vw;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .status-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2%;
+    }
+
+    .status-header .header-logo {
+        height: 5em;
+    }
+
+    .status-hero {
+        padding: 4% 10%;
+        border-top: 3px solid #6ABD45;
+        text-align: center;
+    }
+
+    .status-hero.status-success {
+        border-top-color: #6ABD45;
+    }
+
+    .status-hero.status-cancel {
+        border-top-color: #ff4444;
+    }
+
+    .status-icon-wrapper {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background-color: #6ABD45;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 3%;
+    }
+
+    .status-cancel .status-icon-wrapper {
+        background-color: #ff4444;
+    }
+
+    .status-icon {
+        width: 50px;
+        height: 50px;
+        color: #000;
+    }
+
+    .status-hero h1 {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 3em;
+        margin-bottom: 1%;
+    }
+
+    .status-subtitle {
+        color: #CFCFCF;
+        font-size: 1.2em;
+    }
+
+    .status-content {
+        padding: 3% 10%;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .status-message {
+        margin-bottom: 4%;
+    }
+
+    .status-message h2 {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1em;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 2%;
+    }
+
+    .status-message p {
+        color: #CFCFCF;
+        font-size: 1em;
+        line-height: 1.6;
+    }
+
+    .status-details {
+        display: flex;
+        gap: 3%;
+        margin-bottom: 4%;
+    }
+
+    .status-detail-item {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 3%;
+        padding: 2%;
+        border: 1px solid #333;
+    }
+
+    .detail-icon {
+        font-size: 1.5em;
+    }
+
+    .detail-text {
+        color: #CFCFCF;
+        font-size: 0.95em;
+    }
+
+    .status-contact {
+        text-align: center;
+        padding: 3% 0;
+        border-top: 1px solid #333;
+    }
+
+    .status-contact p {
+        color: #666;
+        font-size: 0.9em;
+        margin-bottom: 1%;
+    }
+
+    .status-contact-link {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1em;
+        transition: color 0.2s;
+    }
+
+    .status-contact-link:hover {
+        color: #fff;
+    }
+
+    .status-actions {
+        display: flex;
+        gap: 2%;
+        margin-bottom: 4%;
+    }
+
+    .status-action-btn {
+        flex: 1;
+        display: block;
+        padding: 3%;
+        text-align: center;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1em;
+        transition: background-color 0.2s, color 0.2s;
+    }
+
+    .status-action-btn.primary {
+        background-color: #6ABD45;
+        color: #000;
+    }
+
+    .status-action-btn.primary:hover {
+        background-color: #5aa93d;
+    }
+
+    .status-action-btn.secondary {
+        background-color: transparent;
+        color: #CFCFCF;
+        border: 1px solid #333;
+    }
+
+    .status-action-btn.secondary:hover {
+        border-color: #6ABD45;
+        color: #6ABD45;
+    }
+
+    .status-action-btn .arrow {
+        margin-left: 10px;
+    }
+
+    .status-help {
+        padding: 3% 0;
+        border-top: 1px solid #333;
+    }
+
+    .status-help h3 {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.9em;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 2%;
+    }
+
+    .status-help p {
+        color: #CFCFCF;
+        font-size: 0.95em;
+        line-height: 1.6;
+        margin-bottom: 2%;
+    }
+
+    .status-help-list {
+        list-style: none;
+        padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2%;
+    }
+
+    .status-help-list li {
+        color: #666;
+        font-size: 0.9em;
+        padding: 1% 2%;
+        background-color: #111;
+        border: 1px solid #333;
+    }
+
+    .status-help-list li::before {
+        content: none;
+    }
+
+    .status-redirect {
+        padding: 2%;
+        border-top: 1px solid #333;
+        text-align: center;
+    }
+
+    .status-redirect p {
+        color: #666;
+        font-size: 0.85em;
+        margin-bottom: 1%;
+    }
+
+    .status-home-link {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.9em;
+        transition: color 0.2s;
+    }
+
+    .status-home-link:hover {
+        color: #fff;
+    }
+
+    .status-footer {
+        padding: 2%;
+        border-top: 1px solid #333;
+        margin-top: auto;
+        text-align: center;
+    }
+
+    .status-footer p {
+        color: #666;
+        font-size: 0.8em;
+    }
+
+    /* --- Data Viz Desktop --- */
+
+    .dataviz-hero {
+        padding: 3% 10%;
+        border-top: 3px solid #6ABD45;
+    }
+
+    .dataviz-label {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.9em;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    .dataviz-hero h1 {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 2.5em;
+        margin: 1% 0;
+    }
+
+    .dataviz-email {
+        color: #CFCFCF;
+        font-size: 1em;
+    }
+
+    .dataviz-content {
+        padding: 2% 10%;
+    }
+
+    .dataviz-note {
+        color: #666;
+        font-size: 1em;
+    }
+
+    /* ========================================================================
+       INVESTOR PORTAL - DESKTOP
+       ======================================================================== */
+
+    .investor-grid {
+        background-color: #000;
+        min-height: 100vh;
+        width: 100vw;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .investor-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.5% 4%;
+    }
+
+    .investor-header .header-logo {
+        height: 5em;
+    }
+
+    .investor-header-nav {
+        display: flex;
+        align-items: center;
+        gap: 3%;
+    }
+
+    .investor-header-title {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1.2em;
+        border: 2px solid #6ABD45;
+        padding: 8px 18px;
+    }
+
+    .investor-logout {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #CFCFCF;
+        font-size: 0.9em;
+        opacity: 0.8;
+        transition: opacity 0.2s;
+    }
+
+    .investor-logout:hover {
+        opacity: 1;
+    }
+
+    .investor-icon {
+        height: 1.2em;
+        filter: invert(1);
+    }
+
+    .investor-hero {
+        padding: 4% 10%;
+        border-top: 3px solid #6ABD45;
+    }
+
+    .investor-hero h1 {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 3em;
+        margin: 0 0 2% 0;
+    }
+
+    .investor-hero h1 span {
+        color: #6ABD45;
+    }
+
+    .investor-hero p {
+        color: #CFCFCF;
+        font-size: 1.1em;
+        line-height: 1.6;
+        max-width: 70%;
+    }
+
+    .investor-content {
+        padding: 2% 10%;
+    }
+
+    .investor-section {
+        margin-bottom: 4%;
+        padding-bottom: 4%;
+        border-bottom: 1px solid #333;
+    }
+
+    .investor-section:last-child {
+        border-bottom: none;
+    }
+
+    .investor-section h2 {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1.1em;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 2%;
+    }
+
+    .investor-section p {
+        color: #CFCFCF;
+        font-size: 1em;
+        line-height: 1.7;
+        max-width: 80%;
+        margin-bottom: 2%;
+    }
+
+    .investor-stats {
+        display: flex;
+        gap: 4%;
+        margin: 3% 0;
+    }
+
+    .investor-stat {
+        border-left: 2px solid #6ABD45;
+        padding-left: 2%;
+    }
+
+    .investor-stat .stat-number {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 2.5em;
+        display: block;
+    }
+
+    .investor-stat .stat-label {
+        color: #CFCFCF;
+        font-size: 0.85em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .investor-revenue-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 3%;
+        margin-top: 3%;
+    }
+
+    .revenue-item {
+        background-color: #111;
+        border: 1px solid #333;
+        padding: 3%;
+        transition: border-color 0.2s;
+    }
+
+    .revenue-item:hover {
+        border-color: #6ABD45;
+    }
+
+    .revenue-icon {
+        font-size: 2em;
+        display: block;
+        margin-bottom: 2%;
+    }
+
+    .revenue-item h3 {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1.1em;
+        margin-bottom: 2%;
+    }
+
+    .revenue-item p {
+        color: #CFCFCF;
+        font-size: 0.9em;
+        line-height: 1.5;
+        max-width: 100%;
+    }
+
+    .investor-docs-note {
+        color: #666;
+        font-size: 0.95em;
+    }
+
+    .investor-docs-placeholder {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2%;
+        margin-top: 2%;
+    }
+
+    .doc-item {
+        background-color: #111;
+        border: 1px solid #333;
+        padding: 3%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .doc-icon {
+        font-size: 2em;
+        margin-bottom: 2%;
+    }
+
+    .doc-name {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.95em;
+        margin-bottom: 2%;
+    }
+
+    .doc-status {
+        color: #666;
+        font-size: 0.8em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .doc-coming-soon {
+        opacity: 0.6;
+    }
+
+    .investor-contact-info {
+        margin-top: 2%;
+    }
+
+    .investor-contact-info p {
+        color: #CFCFCF;
+        font-size: 1em;
+    }
+
+    .investor-contact-info strong {
+        color: #6ABD45;
+    }
+
+    .investor-footer {
+        padding: 2% 10%;
+        border-top: 3px solid #6ABD45;
+        margin-top: auto;
+        text-align: center;
+    }
+
+    .investor-footer p {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.9em;
+        margin-bottom: 1%;
+    }
+
+    .investor-footer-legal {
+        color: #666;
+        font-size: 0.75em;
+        max-width: 600px;
+        margin: 0 auto;
+        line-height: 1.4;
+    }
 
 }

@@ -1,79 +1,94 @@
-{% extends "base.html" %} 
-{% block title %} Database Viewer {% endblock %}
-{% block head %} 
-<style scoped>
-    html {
-        font-family:'HelveticaNeueLT Pro 65 Md';
-        height: 100%;
-        width: 100%;
-        overflow-x: scroll;
-        overflow-y: scroll;
-        margin:0;
-      }
+{% extends "base.html" %}
 
-      body::-webkit-scrollbar {
-        width: 0.25rem;
-      }
-      
-      body::-webkit-scrollbar-track {
-        background: black;
-      }
-      
-      body::-webkit-scrollbar-thumb {
-        background: #0BE12B;
-      }
-</style>
-{% endblock %}
+{% block title %}{{ customer_info.name }} | Tull Admin{% endblock %}
+
+{% block head %}{% endblock %}
+
 {% block sectionconfig %}<section class="db-grid">{% endblock %}
-{% block titleconfig %} <div class="card-title" style="padding: 5%;" onclick = "window.top.location.href='/viewdb';"> {% endblock %}
-{% block titletext %}<p class="titletext" style="margin: auto; padding: 1%; text-align: center;"><a href="/viewdb" style="font-family: pexico_microregular;">{% endblock %}
-{% block pagetitle %} <span class = "titlehighlight">Info For:&nbsp</span> {{customer_info.name}} {% endblock %}
-{% block titleicon %}<img src="../static/icons/backarrow.svg" class="topicon" style="margin: auto; padding-top: 2%;" onclick="window.top.location.href='/viewdb';">  {% endblock %}
 
-{% block content %} 
-
-<div class="dbcard">
-  <p style="text-align: center; font-size: 150%;">{{customer_info.email}} </p> 
-    <p style="text-align: center; font-size: 100%;">Total Number of Purchases:&nbsp{{customer_purchasesno}} </p> 
-    <p style="text-align: center; font-size: 75%;">Most Recent Purchase Is on The Bottom</p>
-</div>
-<div class="dbcard" style="background-color: #CFCFCF; min-height: 20px; height: auto;"> </div>
-
-
-{% for i in customer_purchase_info %}
-
-    <div class="card">
-        <p style="margin: auto; padding-top: 5%;">{{i.product_name}}</br>
-        {{i.purchase_date}}</p></br>
-
-        <p style="font-size: 100%; margin: 2% 0 5% 5%;">Purchase ID:</br><span style="color: #CFCFCF; font-size: 75%;"> {{i.id}}  </span></p>
-
-        <p style="margin: 0 0 5% 5%;"> SHIPPING ADDRESS: </br><span style="font-size: 75%;">
-        {{i.line1}}</br>
-
-        {% if i.line2 is not none %}
-        {{i.line2}}
-
-        {% else %}
-
-        {% endif %}
-
-        {{i.city}} {{i.state}} {{i.postal_code}}</br></span></p>
-    </div>
-
-    {%if i.pay_status == "paid" %}
-    <div class="card" style="color: white; border-bottom: 4px solid #CFCFCF; grid-column: 1 / 4; background-color: #6DD87D;">
-        <p style="margin-left: 5%;"> PAID </p>
-    </div>
-    {% else %}
-    <div class="card" style="color: white; border-bottom: 4px solid #CFCFCF; grid-column: 1 / 4; background-color: #6DD87D;">
-        <p> {{i.pay_status}} </p>
-    </div>
-    {% endif %}
-    
-{% endfor %}
-
-
+{% block titleconfig %}
+<div class="db-header">
 {% endblock %}
 
+{% block titletext %}
+<a href="/viewdb" class="logo-link">
+{% endblock %}
 
+{% block pagetitle %}
+<img src="{{ url_for('static', filename='images/Tulllogo.svg') }}" alt="Tull" class="header-logo">
+{% endblock %}
+
+{% block titleicon %}
+<div class="db-header-nav">
+    <a href="/viewdb" class="db-back-link">
+        <img src="{{ url_for('static', filename='icons/backarrow.svg') }}" class="db-icon" alt="Back">
+        <span>Back to List</span>
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<div class="customer-hero">
+    <div class="customer-hero-content">
+        <span class="customer-label">// CUSTOMER PROFILE</span>
+        <h1>{{ customer_info.name }}</h1>
+        <p class="customer-email">{{ customer_info.email }}</p>
+    </div>
+    <div class="customer-stats">
+        <div class="customer-stat">
+            <span class="stat-number">{{ customer_purchasesno }}</span>
+            <span class="stat-label">Total Orders</span>
+        </div>
+    </div>
+</div>
+
+<div class="customer-divider"></div>
+
+<div class="purchases-section">
+    <h2>// PURCHASE HISTORY</h2>
+    <p class="purchases-note">Most recent purchase appears at the bottom</p>
+    
+    <div class="purchases-list">
+        {% for purchase in customer_purchase_info %}
+        <div class="purchase-card">
+            <div class="purchase-header">
+                <span class="purchase-product">{{ purchase.product_name }}</span>
+                <span class="purchase-date">{{ purchase.purchase_date.strftime('%B %d, %Y') if purchase.purchase_date else 'N/A' }}</span>
+            </div>
+            
+            <div class="purchase-details">
+                <div class="purchase-detail-group">
+                    <span class="detail-label">Order ID</span>
+                    <span class="detail-value order-id">#{{ purchase.id }}</span>
+                </div>
+                
+                <div class="purchase-detail-group">
+                    <span class="detail-label">Shipping Address</span>
+                    <span class="detail-value">
+                        {{ purchase.line1 }}<br>
+                        {% if purchase.line2 %}{{ purchase.line2 }}<br>{% endif %}
+                        {{ purchase.city }}, {{ purchase.state }} {{ purchase.postal_code }}<br>
+                        {{ purchase.country }}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="purchase-status {% if purchase.pay_status == 'paid' %}status-paid{% else %}status-pending{% endif %}">
+                <span class="status-dot"></span>
+                <span class="status-text">{{ purchase.pay_status|upper }}</span>
+            </div>
+        </div>
+        {% else %}
+        <div class="purchases-empty">
+            <p>No purchases found for this customer.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="db-footer">
+    <p>Tull Hydroponics Admin Panel</p>
+</div>
+
+{% endblock %}

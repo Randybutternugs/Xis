@@ -1,40 +1,66 @@
 {% extends "base.html" %}
-{% block title %} Employee Login {% endblock %}
+
+{% block title %}System Login | Tull Admin{% endblock %}
+
+{% block head %}{% endblock %}
 
 {% block sectionconfig %}<section class="login-grid">{% endblock %}
-{% block titleconfig %}{% endblock %}
-{% block titletext %}{% endblock %}
-{% block pagetitle %}{% endblock %}
-{% block titleicon %}{% endblock %}
+
+{% block titleconfig %}
+<div class="login-header">
+{% endblock %}
+
+{% block titletext %}
+<a href="/" class="logo-link">
+{% endblock %}
+
+{% block pagetitle %}
+<img src="{{ url_for('static', filename='images/Tulllogo.svg') }}" alt="Tull" class="header-logo">
+{% endblock %}
+
+{% block titleicon %}
+<span class="login-header-title">EMPLOYEE</span>
+{% endblock %}
 
 {% block content %}
 
-<!-- Header with Logo -->
-<div class="login-header">
-    <a href="/" class="logo-link"><img src="../static/images/white.svg" alt="TULL" class="header-logo"></a>
-    <span class="login-header-title">Employee</span>
-</div>
-
-<!-- Login Form -->
 <div class="login-content">
-    <form method="POST" class="login-form">
+    <div class="login-form-container">
         <h1 class="login-form-title">SYSTEM <span>LOGIN</span></h1>
         
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="login-flash {% if category == 'error' %}flash-error{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
         
-        <label for="username" class="login-label">// Username</label>
-        <input type="text" id="username" name="username" class="login-input" placeholder="Enter username" autocomplete="username"/>
-
-        <label for="password" class="login-label">// Password</label>
-        <input type="password" id="password" name="password" class="login-input" placeholder="Enter password" autocomplete="current-password"/>
-
-        <button type="submit" class="login-submit">Authenticate →</button>
-    </form>
+        <form method="POST" action="{{ url_for('auth.login') }}" class="login-form">
+            {{ form.csrf_token }}
+            
+            <div class="login-field">
+                <label class="login-label">// Username</label>
+                {{ form.username(class="login-input", placeholder="Enter username", autocomplete="username") }}
+            </div>
+            
+            <div class="login-field">
+                <label class="login-label">// Password</label>
+                {{ form.password(class="login-input", placeholder="Enter password", autocomplete="current-password") }}
+            </div>
+            
+            <button type="submit" class="login-submit">
+                Authenticate <span class="arrow">→</span>
+            </button>
+        </form>
+    </div>
 </div>
 
-<!-- Footer -->
 <div class="login-footer">
-    <p>TULL LLC. 2022 // Authorized Personnel Only</p>
+    <p>Authorized Personnel Only</p>
+    <p class="login-footer-note">Unauthorized access attempts are logged and monitored.</p>
 </div>
 
 {% endblock %}

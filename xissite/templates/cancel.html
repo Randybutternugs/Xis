@@ -1,14 +1,73 @@
-{% extends "base.html" %} 
-{% block title %} Order Cancelled {% endblock %}
-{% block titleconfig %} <div class="card-title" style="background-color: red; flex-direction: column;"> {% endblock %}
-{% block pagetitle %} Aww Man... {% endblock %}
-{%block titleicon %}<img src="../static/icons/cancel.svg" class="midicon"> {% endblock %}
+{% extends "base.html" %}
+
+{% block title %}Order Cancelled | Tull Hydroponics{% endblock %}
+
 {% block head %}
-<meta http-equiv="refresh" content="10; url={{url_for('views.home')}}" />
+<meta http-equiv="refresh" content="10; url={{ url_for('views.home') }}">
 {% endblock %}
-{% block content %} 
-<div class="card"><p style="text-align: center; color: white;">ORDER CANCELLED!</p></div>
-<div class="card"><p style="text-align: center; color: white; font-size: 75%;">We'd love to hear your feedback! </br> Navigate to the Contact page to get in touch!</p></div>
-<div class="card"></div>
-<div class="card"><p style="text-align: center; font-size: 75%;">You Will Be Redirected To The Home Page Shortly.</p></div>
+
+{% block sectionconfig %}<section class="status-grid">{% endblock %}
+
+{% block titleconfig %}
+<div class="status-header">
+{% endblock %}
+
+{% block titletext %}
+<a href="/" class="logo-link">
+{% endblock %}
+
+{% block pagetitle %}
+<img src="{{ url_for('static', filename='images/Tulllogo.svg') }}" alt="Tull" class="header-logo">
+{% endblock %}
+
+{% block titleicon %}{% endblock %}
+
+{% block content %}
+
+<div class="status-hero status-cancel">
+    <div class="status-icon-wrapper">
+        <svg class="status-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+    </div>
+    <h1>ORDER CANCELLED</h1>
+    <p class="status-subtitle">Your checkout was not completed</p>
+</div>
+
+<div class="status-content">
+    <div class="status-message">
+        <h2>// NO WORRIES</h2>
+        <p>Your order has been cancelled and no charges have been made to your account. If you experienced any issues during checkout, we'd love to hear about it.</p>
+    </div>
+    
+    <div class="status-actions">
+        <a href="/sell" class="status-action-btn primary">
+            Try Again <span class="arrow">→</span>
+        </a>
+        <a href="/contact" class="status-action-btn secondary">
+            Report an Issue <span class="arrow">→</span>
+        </a>
+    </div>
+    
+    <div class="status-help">
+        <h3>// NEED HELP?</h3>
+        <p>If you're having trouble with checkout or have questions about our products, our team is here to help.</p>
+        <ul class="status-help-list">
+            <li>Make sure your payment method is valid</li>
+            <li>Check that your billing address matches your card</li>
+            <li>Try a different browser or device</li>
+        </ul>
+    </div>
+</div>
+
+<div class="status-redirect">
+    <p>Redirecting to home page in 10 seconds...</p>
+    <a href="/" class="status-home-link">Go to Home Now →</a>
+</div>
+
+<div class="status-footer">
+    <p>© 2025 Tull Hydroponics</p>
+</div>
+
 {% endblock %}

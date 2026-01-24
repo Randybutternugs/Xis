@@ -1,0 +1,34 @@
+# Tull Hydroponics Website Dependencies
+# =======================================
+# Install with: pip install -r requirements.txt
+
+# Core Flask
+Flask==3.0.0
+Werkzeug==3.0.1
+
+# Database
+Flask-SQLAlchemy==3.1.1
+SQLAlchemy==2.0.23
+
+# Authentication
+Flask-Login==0.6.3
+
+# Forms & CSRF Protection
+Flask-WTF==1.2.1
+WTForms==3.1.1
+email-validator==2.1.0
+
+# Payment Processing
+stripe==7.8.0
+
+# HTTP Requests (for Mailgun)
+requests==2.31.0
+
+# Environment Variables (local development only)
+python-dotenv==1.0.0
+
+# Production WSGI Server (for Google Cloud)
+gunicorn==21.2.0
+
+# Cloud SQL Support (optional - for MySQL/PostgreSQL)
+PyMySQL==1.1.0

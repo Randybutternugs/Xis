@@ -1,47 +1,63 @@
 {% extends "base.html" %}
-{% block title %} TULL Hydroponics {% endblock %}
+
+{% block title %}Tull Hydroponics | Data-Driven Growing Systems{% endblock %}
+
+{% block head %}{% endblock %}
 
 {% block sectionconfig %}<section class="home-grid">{% endblock %}
-{% block titleconfig %}{% endblock %}
-{% block titletext %}{% endblock %}
-{% block pagetitle %}{% endblock %}
-{% block titleicon %}{% endblock %}
+
+{% block titleconfig %}
+<div class="home-header">
+{% endblock %}
+
+{% block titletext %}
+<a href="/" class="logo-link">
+{% endblock %}
+
+{% block pagetitle %}
+<img src="{{ url_for('static', filename='images/Tulllogo.svg') }}" alt="Tull" class="header-logo">
+{% endblock %}
+
+{% block titleicon %}
+<a href="/login">
+    <img src="{{ url_for('static', filename='icons/database.svg') }}" alt="Database" class="home-header-icon">
+</a>
+{% endblock %}
 
 {% block content %}
 
-<!-- Header with Logo -->
-<div class="home-header">
-    <a href="/" class="logo-link"><img src="../static/images/white.svg" alt="TULL" class="header-logo"></a>
-    <img src="../static/icons/databaseicon.svg" class="topicon" onclick="window.top.location.href='/viewdb';" style="cursor: pointer;">
-</div>
-
-<!-- Hero Section with Background -->
 <div class="home-hero">
-    <div class="home-hero-bg" style="background-image: url('../static/images/splashdemo.png');"></div>
+    <div class="home-hero-bg" style="background-image: url('{{ url_for('static', filename='images/splashdemo.png') }}');"></div>
     <div class="home-hero-content">
-        <h1>GROWERS ARE ABOUT TO GET A <span>HUGE UPGRADE</span></h1>
-        <p>"Modern" hydroponic companies have milked our wallets. Offering nothing more than a glorified plastic water tower and pump. We've developed the next generation of hydroponics. No continuous overhead. No guesswork. No headaches.</p>
+        <h1>THE <span>FUTURE</span> OF FARMING</h1>
+        <p>Modern hydroponics systems are overpriced and underwhelming. We're building data-driven aeroponic towers that give you complete visibility into your grow — without the premium price tag.</p>
     </div>
 </div>
 
-<!-- Call to Action -->
 <div class="home-cta">
-    <a href="/sell" class="home-cta-button">Buy a Tull Tower</a>
-    <p class="home-cta-note">// Pre-orders opening soon</p>
+    <a href="/sell" class="BuyButton">Buy a Tull Tower</a>
+    <span class="home-cta-note">// Pre-orders opening soon</span>
 </div>
 
-<!-- Navigation -->
-<nav class="home-nav">
-    <a href="/contact" class="home-nav-item">Contact <span>TULL</span></a>
-    <a href="/about" class="home-nav-item">About <span>TULL</span></a>
-</nav>
+<div class="home-nav">
+    <a href="/about" class="home-nav-item">
+        About Us
+        <span class="arrow">→</span>
+    </a>
+    <a href="/contact" class="home-nav-item">
+        Contact
+        <span class="arrow">→</span>
+    </a>
+</div>
 
-<!-- Footer -->
 <div class="home-footer">
-    <p>TULL LLC. 2022</p>
     <div class="home-footer-social">
-        <a href="https://www.instagram.com/tull_llc/" target="_blank"><img src="../static/icons/instagram.svg" alt="Instagram"></a>
-        <a href="https://x.com/tull_llc/" target="_blank"><img src="../static/icons/x-icon.svg" alt="X"></a>
+        <a href="https://instagram.com/tullhydroponics" target="_blank">
+            <img src="{{ url_for('static', filename='icons/instagram.svg') }}" alt="Instagram">
+        </a>
+        <a href="https://x.com/tullhydro" target="_blank">
+            <img src="{{ url_for('static', filename='icons/x-icon.svg') }}" alt="X">
+        </a>
     </div>
 </div>
 
