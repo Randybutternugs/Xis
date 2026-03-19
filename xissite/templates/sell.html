@@ -1,10 +1,119 @@
 {% extends "base.html" %}
 
-{% block title %}Tull Tower V1 | Buy Now{% endblock %}
+{% block title %}Tull Tower | Coming Soon{% endblock %}
 
 {% block head %}
-<!-- Flickity CSS for image carousel -->
-<link rel="stylesheet" href="{{ url_for('static', filename='scripts/flickity.min.css') }}">
+<style>
+    .sell-coming-soon {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        flex: 1;
+        padding: 8% 6%;
+        text-align: center;
+    }
+
+    .sell-coming-soon .sell-badge {
+        display: inline-block;
+        color: #000;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.7em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 4px 10px;
+        background-color: #6ABD45;
+        margin-bottom: 5%;
+    }
+
+    .sell-coming-soon h1 {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 2.2em;
+        margin-bottom: 3%;
+    }
+
+    .sell-coming-soon h1 span {
+        color: #6ABD45;
+    }
+
+    .sell-coming-soon .sell-divider {
+        width: 60px;
+        height: 3px;
+        background-color: #6ABD45;
+        margin: 5% auto;
+    }
+
+    .sell-coming-soon .sell-message {
+        color: #CFCFCF;
+        font-size: 0.95em;
+        line-height: 1.7;
+        max-width: 420px;
+        margin-bottom: 6%;
+    }
+
+    .sell-coming-soon .sell-section-label {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.8em;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 4%;
+    }
+
+    .sell-coming-soon .sell-features-preview {
+        list-style: none;
+        padding: 0;
+        margin-bottom: 8%;
+        text-align: left;
+        width: 100%;
+        max-width: 380px;
+    }
+
+    .sell-coming-soon .sell-features-preview li {
+        color: #CFCFCF;
+        font-size: 0.9em;
+        line-height: 2;
+        padding-left: 20px;
+        position: relative;
+    }
+
+    .sell-coming-soon .sell-features-preview li::before {
+        content: "—";
+        position: absolute;
+        left: 0;
+        color: #6ABD45;
+    }
+
+    .sell-coming-soon .sell-features-preview li span {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+    }
+
+    .sell-coming-soon .sell-notify-link {
+        display: inline-block;
+        padding: 4% 10%;
+        border: 2px solid #6ABD45;
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.95em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: background-color 0.2s, color 0.2s;
+    }
+
+    .sell-coming-soon .sell-notify-link:hover {
+        background-color: #6ABD45;
+        color: #000;
+    }
+
+    .sell-coming-soon .sell-status {
+        color: #666;
+        font-size: 0.8em;
+        margin-top: 5%;
+        letter-spacing: 1px;
+    }
+</style>
 {% endblock %}
 
 {% block sectionconfig %}<section class="sell-grid">{% endblock %}
@@ -29,58 +138,24 @@
 
 {% block content %}
 
-<div class="sell-gallery">
-    <div class="gallery js-flickity" data-flickity='{"setGallerySize": false, "wrapAround": true, "adaptiveHeight": true, "imagesLoaded": true, "pageDots": true, "prevNextButtons": false}'>
-        <div class="gallery-cell">
-            <img src="{{ url_for('static', filename='images/fill SS.png') }}" class="sell-img" alt="Tull Tower Front View">
-        </div>
-        <div class="gallery-cell">
-            <img src="{{ url_for('static', filename='images/No fill SS.png') }}" class="sell-img" alt="Tull Tower Components">
-        </div>
-        <div class="gallery-cell">
-            <img src="{{ url_for('static', filename='images/Schematic.png') }}" class="sell-img" alt="Tull Tower Schematic">
-        </div>
-        <div class="gallery-cell">
-            <img src="{{ url_for('static', filename='images/splashdemo.png') }}" class="sell-img" alt="Tull Tower Demo">
-        </div>
-    </div>
-</div>
+<div class="sell-coming-soon">
+    <span class="sell-badge">COMING SOON</span>
+    <h1>TULL TOWER <span>V1</span></h1>
 
-<div class="sell-content">
-    <div class="sell-product-header">
-        <span class="sell-badge">NOW AVAILABLE</span>
-        <h1>TULL TOWER <span>V1</span></h1>
-        <p class="sell-tagline">The future of home hydroponics</p>
-    </div>
-    
-    <div class="sell-description">
-        <h2>// OVERVIEW</h2>
-        <p>The Tull Tower V1 is our flagship aeroponic growing system, designed for growers who demand data-driven precision. With integrated sensors monitoring every aspect of your grow, you'll have complete visibility into your plant's environment.</p>
-        
-        <h2>// KEY FEATURES</h2>
-        <ul class="sell-features">
-            <li><span class="feature-highlight">10+ Sensors</span> — Temperature, humidity, pH, EC, light, and more</li>
-            <li><span class="feature-highlight">Biodegradable Net Cups</span> — PHA biomaterial, copper-nanocomposite infused</li>
-            <li><span class="feature-highlight">7 Growing Modules</span> — 35 plant capacity per tower</li>
-            <li><span class="feature-highlight">Smart Monitoring</span> — 24/7 data logging with app integration</li>
-        </ul>
-    </div>
-    
-    <div class="sell-purchase">
-        <div class="sell-price-block">
-            <span class="sell-price-label">// PRICE</span>
-            <span class="sell-price">$200</span>
-            <span class="sell-shipping">Free shipping to US & Canada</span>
-        </div>
-        
-        <form action="/create-checkout-session" method="POST">
-            <button type="submit" class="sell-checkout-btn" id="checkout-button">
-                Proceed to Checkout <span class="arrow">→</span>
-            </button>
-        </form>
-        
-        <p class="sell-note">Secure payment powered by Stripe</p>
-    </div>
+    <div class="sell-divider"></div>
+
+    <p class="sell-message">We're still dialing in. The Tull Tower is being refined to meet the standard we set for ourselves — no shortcuts, no compromises. Sales open when it's ready.</p>
+
+    <span class="sell-section-label">// What's in the works</span>
+    <ul class="sell-features-preview">
+        <li><span>10+ Integrated Sensors</span> — full-spectrum grow monitoring</li>
+        <li><span>Aeroponic Precision</span> — data-driven, not guesswork</li>
+        <li><span>Biodegradable Net Cups</span> — PHA biomaterial build</li>
+        <li><span>35 Plant Capacity</span> — 7 modular grow levels</li>
+    </ul>
+
+    <a href="/contact" class="sell-notify-link">Get in Touch <span>→</span></a>
+    <p class="sell-status">// STATUS: IN DEVELOPMENT</p>
 </div>
 
 <div class="sell-footer">
@@ -90,8 +165,5 @@
     </div>
     <p>© 2025 Tull Hydroponics</p>
 </div>
-
-<!-- Flickity JS -->
-<script src="{{ url_for('static', filename='scripts/flickity.pkgd.min.js') }}"></script>
 
 {% endblock %}
