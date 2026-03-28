@@ -35,6 +35,7 @@ venv/
 ENV/
 env/
 .venv/
+xisenv/
 
 # Database files
 *.db
@@ -83,3 +84,8 @@ logs/
 
 # Stripe CLI
 .stripe/
+
+# Development tooling artifacts
+.playwright-mcp/
+.superpowers/
+.claude/
