@@ -153,7 +153,21 @@ def create_app():
     
     # CSRF
     app.config['WTF_CSRF_CHECK_DEFAULT'] = False
-    
+
+    # Session security
+    from datetime import timedelta
+    app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=8)
+    app.config['REMEMBER_COOKIE_DURATION'] = timedelta(days=7)
+    app.config['REMEMBER_COOKIE_HTTPONLY'] = True
+    app.config['REMEMBER_COOKIE_SAMESITE'] = 'Lax'
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+
+    # Secure cookies only in production (HTTPS)
+    if not is_development():
+        app.config['REMEMBER_COOKIE_SECURE'] = True
+        app.config['SESSION_COOKIE_SECURE'] = True
+
     # Debug mode (auto-detected)
     app.config['DEBUG'] = is_development()
     
