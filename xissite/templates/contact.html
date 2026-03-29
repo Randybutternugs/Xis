@@ -45,7 +45,14 @@
         
         <form method="POST" action="{{ url_for('views.contact') }}" class="contact-form">
             {{ form.csrf_token }}
-            
+            {{ form.form_loaded_at() }}
+
+            {# Anti-spam: honeypot field - hidden from real users via CSS #}
+            <div aria-hidden="true" style="position:absolute;left:-9999px;top:-9999px;height:0;width:0;overflow:hidden;">
+                <label for="website">Website</label>
+                {{ form.website(tabindex="-1", autocomplete="off") }}
+            </div>
+
             <div class="form-group">
                 <label class="contact-label">// Email Address</label>
                 {{ form.feedbackemail(class="contact-input", placeholder="your@email.com") }}
