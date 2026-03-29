@@ -3,8 +3,9 @@
 import os
 from werkzeug.security import generate_password_hash
 
-
-API_KEY = os.environ.get('ADMIN_API_KEY', '')
+# Set a known test API key so Bearer token tests actually run
+TEST_API_KEY = 'test-api-key-for-dual-auth'
+os.environ['ADMIN_API_KEY'] = TEST_API_KEY
 
 
 def _create_admin(db):
@@ -48,14 +49,19 @@ def _login(client, username, password):
 
 def test_bearer_token_auth(client, db):
     """Valid Bearer token grants access to admin API."""
-    if not API_KEY:
-        # No API key configured in test env; skip gracefully
-        return
     _create_admin(db)
     resp = client.get('/api/admin/stats', headers={
-        'Authorization': f'Bearer {API_KEY}',
+        'Authorization': f'Bearer {TEST_API_KEY}',
     })
     assert resp.status_code == 200
+
+
+def test_invalid_bearer_rejected(client, db):
+    """Invalid Bearer token is rejected."""
+    resp = client.get('/api/admin/stats', headers={
+        'Authorization': 'Bearer wrong-key',
+    })
+    assert resp.status_code == 401
 
 
 def test_no_auth_rejected(client, db):

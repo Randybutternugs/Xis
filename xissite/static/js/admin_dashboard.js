@@ -113,7 +113,7 @@ function renderUsers(users){
       '<td><span class="badge '+typeBadge+'">'+esc(u.user_type)+'</span></td>'+
       '<td><span class="badge '+statusBadge+'">'+esc(u.status||'active')+'</span></td>'+
       '<td title="'+esc(fullDate(u.last_login))+'">'+relTime(u.last_login)+'</td>'+
-      '<td>'+(u.login_count||0)+'</td>'+
+      '<td>'+(u.failed_attempts||0)+'</td>'+
       '<td style="font-size:.85em;color:var(--mut)">'+esc(u.notes||'--')+'</td>'+
       '<td style="white-space:nowrap">'+
         (u.status==='suspended'?'<button class="btn btn-primary btn-sm" onclick="activateUser('+u.id+')">Activate</button> ':'<button class="btn btn-sm btn-outline" style="color:var(--warn);border-color:var(--warn)" onclick="suspendUser('+u.id+')">Suspend</button> ')+
@@ -202,7 +202,7 @@ function renderLogins(attempts){
       '<div class="ld-row"><span class="ld-label">Matched Type</span><span class="ld-val">'+esc(a.user_type_matched||'none')+'</span></div>'+
       '<div class="ld-row"><span class="ld-label">Browser</span><span class="ld-val">'+esc(ua.browser)+' on '+esc(ua.os)+' ('+esc(ua.device)+')</span></div>'+
       '<div class="ld-row"><span class="ld-label">User Agent</span><span class="ld-val" style="font-size:.8em;color:var(--mut)">'+esc(a.user_agent||'--')+'</span></div>'+
-      (a.ip_address?'<div style="margin-top:8px"><button class="btn btn-sm btn-danger" onclick="event.stopPropagation();banIPQuick(\''+esc(a.ip_address)+'\')">Ban This IP</button></div>':'')+
+      (a.ip_address?'<div style="margin-top:8px"><button class="btn btn-sm btn-danger ban-ip-btn" data-ip="'+esc(a.ip_address)+'">Ban This IP</button></div>':'')+
     '</div></td></tr>';
   });
   tb.innerHTML=html;
@@ -214,6 +214,14 @@ window.toggleLoginDetail=function(id){
   if(expandedLoginId){var prev=document.getElementById('ld-'+expandedLoginId);if(prev)prev.style.display='none'}
   document.getElementById('ld-'+id).style.display='table-row';expandedLoginId=id;
 };
+
+// Delegated handler for ban-ip buttons (avoids inline onclick XSS)
+document.addEventListener('click',function(e){
+  var btn=e.target.closest('.ban-ip-btn');
+  if(!btn)return;
+  e.stopPropagation();
+  banIPQuick(btn.getAttribute('data-ip'));
+});
 
 // ---- Login Heatmap ---------------------------------------------------------
 function fetchLoginHeatmap(){
@@ -448,14 +456,14 @@ function renderSecurity(d){
   var html='';
   if(bf.length>0){
     html+='<div style="margin-bottom:12px"><div style="font-size:.65em;color:var(--crit);text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;font-weight:700">Brute Force</div>';
-    bf.forEach(function(b){html+='<div class="alert-item"><div><span class="alert-ip" data-ip="'+esc(b.ip)+'">'+esc(b.ip)+'</span><span class="geo-tag" data-geo-ip="'+esc(b.ip)+'"></span><span class="alert-count"> - '+b.attempts+' attempts - '+relTime(b.latest)+'</span></div><div style="display:flex;gap:6px;align-items:center"><button class="btn btn-sm btn-danger" onclick="banIPQuick(\''+esc(b.ip)+'\')">Ban</button><span class="badge badge-crit">Critical</span></div></div>'});
+    bf.forEach(function(b){html+='<div class="alert-item"><div><span class="alert-ip" data-ip="'+esc(b.ip)+'">'+esc(b.ip)+'</span><span class="geo-tag" data-geo-ip="'+esc(b.ip)+'"></span><span class="alert-count"> - '+b.attempts+' attempts - '+relTime(b.latest)+'</span></div><div style="display:flex;gap:6px;align-items:center"><button class="btn btn-sm btn-danger ban-ip-btn" data-ip="'+esc(b.ip)+'">Ban</button><span class="badge badge-crit">Critical</span></div></div>'});
     html+='</div>';
   }
   if(sus.length>0){
     html+='<div style="margin-bottom:12px"><div style="font-size:.65em;color:var(--warn);text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;font-weight:700">Suspicious IPs</div>';
     sus.forEach(function(s){
       var sev=s.attempts>=5?'badge-crit':'badge-warn';
-      html+='<div class="alert-item"><div><span class="alert-ip" data-ip="'+esc(s.ip)+'">'+esc(s.ip)+'</span><span class="geo-tag" data-geo-ip="'+esc(s.ip)+'"></span><span class="alert-count"> - '+s.attempts+' failures</span></div><div style="display:flex;gap:6px;align-items:center"><button class="btn btn-sm btn-danger" onclick="banIPQuick(\''+esc(s.ip)+'\')">Ban</button><span class="badge '+sev+'">'+esc(s.severity||'warning')+'</span></div></div>';
+      html+='<div class="alert-item"><div><span class="alert-ip" data-ip="'+esc(s.ip)+'">'+esc(s.ip)+'</span><span class="geo-tag" data-geo-ip="'+esc(s.ip)+'"></span><span class="alert-count"> - '+s.attempts+' failures</span></div><div style="display:flex;gap:6px;align-items:center"><button class="btn btn-sm btn-danger ban-ip-btn" data-ip="'+esc(s.ip)+'">Ban</button><span class="badge '+sev+'">'+esc(s.severity||'warning')+'</span></div></div>';
     });
     html+='</div>';
   }

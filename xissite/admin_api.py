@@ -190,11 +190,13 @@ def create_user():
     if existing:
         return jsonify(error='A user with that email already exists'), 409
 
+    display_name = data.get('display_name', '').strip()
     user = User(
         email=email,
         password=generate_password_hash(password),
         user_type=user_type,
         status='active',
+        display_name=display_name or None,
         notes=notes or None,
     )
     db.session.add(user)
@@ -1112,23 +1114,6 @@ def customer_stats():
     )
 
 
-@admin_api.route('/customers/<int:cid>', methods=['PUT'])
-@require_api_key
-def update_customer(cid):
-    """Update customer tags and admin notes."""
-    customer = Customer.query.get_or_404(cid)
-    data = request.get_json() or {}
-
-    if 'tags' in data:
-        customer.tags = data['tags'] or None
-    if 'admin_notes' in data:
-        customer.admin_notes = data['admin_notes'] or None
-
-    db.session.commit()
-    _audit('customer.update', 'customer', cid, data)
-    return jsonify(customer.to_dict())
-
-
 @admin_api.route('/customers/geo')
 @require_api_key
 def customer_geo():
@@ -1151,7 +1136,7 @@ def customer_geo():
 @admin_api.route('/purchases/stats')
 @require_api_key
 def purchase_stats():
-    """Purchase analytics: orders over time, revenue, status breakdown."""
+    """Purchase analytics: orders over time and status breakdown."""
     days = int(request.args.get('days', 30))
     since = datetime.now(timezone.utc) - timedelta(days=days)
 
@@ -1162,15 +1147,6 @@ def purchase_stats():
     ).filter(Purchase_info.purchase_date >= since).group_by(
         func.date(Purchase_info.purchase_date)
     ).order_by(func.date(Purchase_info.purchase_date)).all()
-
-    rev = db.session.query(
-        func.sum(Purchase_info.amount_cents),
-        func.avg(Purchase_info.amount_cents),
-        func.count(Purchase_info.id),
-    ).filter(Purchase_info.amount_cents != None).first()
-    total_cents = int(rev[0] or 0)
-    avg_cents = int(rev[1] or 0) if rev[1] else 0
-    orders_with_amount = rev[2] or 0
 
     status_rows = db.session.query(
         Purchase_info.pay_status, func.count(Purchase_info.id)
@@ -1185,12 +1161,6 @@ def purchase_stats():
             'paid': int(d.paid or 0),
             'pending': d.count - int(d.paid or 0),
         } for d in daily],
-        revenue={
-            'total_cents': total_cents,
-            'currency': 'usd',
-            'avg_order_cents': avg_cents,
-            'orders_with_amount': orders_with_amount,
-        },
         status_breakdown=[{'status': s or 'unknown', 'count': c} for s, c in status_rows],
         period_total=period_total,
     )
