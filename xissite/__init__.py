@@ -22,9 +22,6 @@ Environment Variables Required:
 - HP_PRICE_ID: Stripe Price ID for the product
 - MAIL_KEY: Mailgun API key for order confirmations
 
-Optional (for investor portal):
-- INVESTOR_USERNAME_HASH: Hashed investor username
-- INVESTOR_PASSWORD_HASH: Hashed investor password
 """
 
 from flask import Flask
