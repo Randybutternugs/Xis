@@ -11,7 +11,9 @@ This module handles:
 All routes except /login require authentication via Flask-Login.
 """
 
-from flask import Blueprint, redirect, url_for, render_template, request, flash, session
+from datetime import datetime, timedelta, timezone
+
+from flask import Blueprint, redirect, url_for, render_template, request, flash
 from sqlalchemy.sql import func
 import os
 from werkzeug.security import check_password_hash
@@ -19,14 +21,10 @@ from flask_login import login_user, login_required, logout_user, current_user
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, PasswordField
 from wtforms.validators import DataRequired, Length
-from flask_wtf.csrf import CSRFProtect
 from functools import wraps
 
 from . import db
 from .models import Customer, FeedBack, Purchase_info, User
-
-# Initialize CSRF protection
-csrf = CSRFProtect()
 
 # Create Blueprint
 auth = Blueprint('auth', __name__)
@@ -54,13 +52,26 @@ class SearchForm(FlaskForm):
 # ============================================================================
 
 def admin_required(f):
-    """Decorator to require admin access (not investor)."""
+    """Decorator to require admin access."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated:
             return redirect(url_for('auth.login'))
-        if session.get('user_type') != 'admin':
+        if current_user.user_type != 'admin':
             flash('Admin access required.', 'error')
+            return redirect(url_for('auth.login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+def employee_required(f):
+    """Decorator to require at least employee access (admin also passes)."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return redirect(url_for('auth.login'))
+        if current_user.user_type not in ('admin', 'employee'):
+            flash('Access denied.', 'error')
             return redirect(url_for('auth.login'))
         return f(*args, **kwargs)
     return decorated_function
@@ -71,67 +82,76 @@ def admin_required(f):
 # AUTHENTICATION ROUTES
 # ============================================================================
 
-@auth.route('/login', methods=['GET', 'POST'])       
+@auth.route('/login', methods=['GET', 'POST'])
 def login():
     """
-    Login page for admin users.
-
-    GET: Displays login form, creates admin user if none exists
-    POST: Validates credentials against hashed values in environment variables
-          Redirects to admin database viewer on success
-
-    Environment Variables Required:
-        ADMIN_USERNAME_HASH: Werkzeug-hashed admin username
-        ADMIN_PASSWORD_HASH: Werkzeug-hashed admin password
+    Login page for Admin and Employee users.
+    POST: Validates credentials against User table in database.
     """
-    csrf.protect()
     form = LoginForm()
-    
-    # Get hashed credentials from environment
-    admin_username_hash = os.environ.get('ADMIN_USERNAME_HASH')
-    admin_password_hash = os.environ.get('ADMIN_PASSWORD_HASH')
 
-    # Validate environment configuration
-    if not admin_username_hash or not admin_password_hash:
-        print("[ERROR] Admin credentials not configured in environment variables")
-        flash('System configuration error. Please contact administrator.', 'error')
-        return render_template('loginpage.html', form=form)
-    
-    # On first visit, ensure admin user exists in database
-    if request.method == 'GET':
-        admin_check = db.session.query(User).first()
-        if admin_check is None:
-            new_admin = User(email=admin_username_hash, password=admin_password_hash, user_type='admin')
-            db.session.add(new_admin)
-            db.session.commit()
-            print("[SETUP] Admin user created in database")
-    
-    # Handle login attempt
     if request.method == 'POST':
-        username = request.form.get('username', '')
+        username = request.form.get('username', '').strip()
         password = request.form.get('password', '')
-        
-        # Check ADMIN credentials first
-        admin_username_valid = check_password_hash(admin_username_hash, username)
-        admin_password_valid = check_password_hash(admin_password_hash, password)
-        
-        if admin_username_valid and admin_password_valid:
-            user = User.query.filter_by(user_type='admin').first()
-            if not user:
-                user = User.query.get(1)
-            if user:
-                login_user(user, remember=True)
-                session['user_type'] = 'admin'
-                print(f"[AUTH] Successful ADMIN login")
+        client_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+        if client_ip and ',' in client_ip:
+            client_ip = client_ip.split(',')[0].strip()
+
+        user = User.query.filter_by(email=username).first()
+
+        success = False
+        failure_reason = None
+
+        if user is None:
+            failure_reason = 'unknown_user'
+        elif user.status == 'suspended':
+            failure_reason = 'account_suspended'
+            flash('Account suspended. Contact your administrator.', 'error')
+        elif user.status == 'deleted':
+            failure_reason = 'unknown_user'
+        elif user.locked_until and user.locked_until > datetime.now(timezone.utc):
+            remaining = int((user.locked_until - datetime.now(timezone.utc)).total_seconds() / 60) + 1
+            failure_reason = 'account_locked'
+            flash(f'Account temporarily locked. Try again in {remaining} minutes.', 'error')
+        elif not check_password_hash(user.password, password):
+            failure_reason = 'invalid_password'
+        else:
+            success = True
+
+        # Log the attempt
+        from .models import LoginAttempt
+        attempt = LoginAttempt(
+            ip_address=client_ip,
+            user_agent=request.headers.get('User-Agent', '')[:500],
+            username_attempted=username,
+            success=success,
+            failure_reason=failure_reason,
+            user_type_matched=user.user_type if user and success else None,
+        )
+        db.session.add(attempt)
+
+        if success:
+            user.failed_attempts = 0
+            user.locked_until = None
+            user.last_login = datetime.now(timezone.utc)
+            db.session.commit()
+            login_user(user, remember=True)
+            print(f"[AUTH] Successful {user.user_type.upper()} login: {username}")
+            if user.user_type == 'admin':
                 return redirect(url_for('auth.viewdatabase'))
             else:
-                print("[ERROR] Admin user record not found in database")
-                flash('Authentication error. Please try again.', 'error')
-                return render_template('loginpage.html', form=form)
-        
-        # Admin credentials did not match
-        print("[AUTH] Invalid login attempt")
-        flash('Invalid credentials', 'error')
+                return redirect(url_for('views.home'))
+        else:
+            if user and failure_reason == 'invalid_password':
+                user.failed_attempts = (user.failed_attempts or 0) + 1
+                if user.failed_attempts >= 10:
+                    user.locked_until = datetime.now(timezone.utc) + timedelta(hours=1)
+                elif user.failed_attempts >= 5:
+                    user.locked_until = datetime.now(timezone.utc) + timedelta(minutes=15)
+            db.session.commit()
+            if not failure_reason or failure_reason in ('unknown_user', 'invalid_password'):
+                flash('Invalid credentials', 'error')
+            print(f"[AUTH] Failed login attempt: {username} ({failure_reason})")
 
     return render_template('loginpage.html', form=form)
 
@@ -140,10 +160,8 @@ def login():
 @login_required
 def logout():
     """Log out the current user and redirect to login page."""
-    user_type = session.get('user_type', 'unknown')
-    session.pop('user_type', None)
+    print(f"[AUTH] {current_user.user_type.upper()} user logged out")
     logout_user()
-    print(f"[AUTH] {user_type.upper()} user logged out")
     return redirect(url_for('auth.login'))
 
 

@@ -14,8 +14,8 @@ AUTOMATIC ENVIRONMENT DETECTION:
 
 Environment Variables Required:
 - FLASK_SECRET_KEY: Secret key for session management
-- ADMIN_USERNAME_HASH: Hashed admin username
-- ADMIN_PASSWORD_HASH: Hashed admin password
+- ADMIN_BOOTSTRAP_EMAIL: Bootstrap admin username (default: 'admin')
+- ADMIN_BOOTSTRAP_PASSWORD: Bootstrap admin password (first-run only)
 - STRIPE_SECRET_KEY: Stripe API secret key
 - STRIPE_PUBLISHABLE_KEY: Stripe publishable key
 - STRIPE_WEBHOOK_SECRET: Stripe webhook signing secret
@@ -233,9 +233,40 @@ def create_database(app):
         # Create all tables
         db.create_all()
         print('[DATABASE] Tables created/verified')
-        
+
         # Run migrations for existing databases
         run_migrations()
+
+        from .models import User
+
+        # Clean up old-style users (env-var hash artifacts)
+        old_users = User.query.filter(
+            User.email.like('scrypt:%') | User.email.like('pbkdf2:%')
+        ).all()
+        for old_user in old_users:
+            db.session.delete(old_user)
+        if old_users:
+            db.session.commit()
+            print(f'[MIGRATION] Removed {len(old_users)} old-style user(s) with hash artifacts')
+
+        # Bootstrap admin account on first run
+        if User.query.count() == 0:
+            bootstrap_email = os.environ.get('ADMIN_BOOTSTRAP_EMAIL', 'admin')
+            bootstrap_password = os.environ.get('ADMIN_BOOTSTRAP_PASSWORD')
+            if bootstrap_password:
+                from werkzeug.security import generate_password_hash
+                admin = User(
+                    email=bootstrap_email,
+                    password=generate_password_hash(bootstrap_password),
+                    user_type='admin',
+                    status='active',
+                    display_name='Admin',
+                )
+                db.session.add(admin)
+                db.session.commit()
+                print(f'[SETUP] Bootstrap admin created (username: {bootstrap_email}). Change password via TullOps.')
+            else:
+                print('[WARNING] No users exist and ADMIN_BOOTSTRAP_PASSWORD not set. Create users via admin API.')
 
 
 def run_migrations():
