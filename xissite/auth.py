@@ -91,11 +91,52 @@ def login():
     form = LoginForm()
 
     if request.method == 'POST':
-        username = request.form.get('username', '').strip()
-        password = request.form.get('password', '')
+        # Check if IP is banned
+        from .models import BannedIP, LoginAttempt as LA
         client_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
         if client_ip and ',' in client_ip:
             client_ip = client_ip.split(',')[0].strip()
+
+        active_ban = BannedIP.query.filter_by(
+            ip_address=client_ip, active=True
+        ).first()
+        if active_ban:
+            if active_ban.expires_at and active_ban.expires_at < datetime.now(timezone.utc):
+                active_ban.active = False
+                db.session.commit()
+            else:
+                flash('Access blocked. Contact your administrator.', 'error')
+                return render_template('loginpage.html', form=form)
+
+        # Per-IP rate limiting: reject after 10 failed attempts in 1 hour
+        hour_ago = datetime.now(timezone.utc) - timedelta(hours=1)
+        ip_failures = LA.query.filter(
+            LA.ip_address == client_ip,
+            LA.success == False,
+            LA.timestamp >= hour_ago,
+        ).count()
+
+        auto_ban_threshold = int(os.environ.get('AUTO_BAN_THRESHOLD', '20'))
+        if ip_failures >= auto_ban_threshold:
+            ban_hours = int(os.environ.get('AUTO_BAN_WINDOW_HOURS', '1'))
+            auto_ban = BannedIP(
+                ip_address=client_ip,
+                reason=f'Auto-banned: {ip_failures} failed attempts in 1 hour',
+                banned_by='auto',
+                active=True,
+                expires_at=datetime.now(timezone.utc) + timedelta(hours=ban_hours),
+            )
+            db.session.add(auto_ban)
+            db.session.commit()
+            flash('Access blocked. Contact your administrator.', 'error')
+            return render_template('loginpage.html', form=form)
+
+        if ip_failures >= 10:
+            flash('Too many failed attempts. Try again later.', 'error')
+            return render_template('loginpage.html', form=form)
+
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '')
 
         user = User.query.filter_by(email=username).first()
 
