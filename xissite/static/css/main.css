@@ -311,6 +311,12 @@ a {
         gap: 6%;
     }
 
+    .home-footer-social {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
     .home-footer-social a {
         opacity: 0.6;
         transition: opacity 0.2s;
@@ -1327,6 +1333,18 @@ a {
 
     .feedback-type.type-order {
         background-color: #5bc0de;
+    }
+
+    .feedback-type.type-general {
+        background-color: #8B8B8B;
+    }
+
+    .feedback-type.type-technical {
+        background-color: #F97316;
+    }
+
+    .feedback-type.type-feature {
+        background-color: #6ABD45;
     }
 
     .feedback-date {
@@ -2364,6 +2382,12 @@ a {
         gap: 3%;
     }
 
+    .home-footer-social {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+    }
+
     .home-footer-social a {
         opacity: 0.6;
         transition: opacity 0.2s;
@@ -3364,6 +3388,18 @@ a {
 
     .feedback-type.type-order {
         background-color: #5bc0de;
+    }
+
+    .feedback-type.type-general {
+        background-color: #8B8B8B;
+    }
+
+    .feedback-type.type-technical {
+        background-color: #F97316;
+    }
+
+    .feedback-type.type-feature {
+        background-color: #6ABD45;
     }
 
     .feedback-date {
