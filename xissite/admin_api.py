@@ -16,6 +16,8 @@ import functools
 from datetime import datetime, timedelta, timezone
 
 from flask import Blueprint, request, jsonify, Response
+from flask_login import current_user
+from flask_wtf.csrf import validate_csrf
 from sqlalchemy.sql import func
 from sqlalchemy import desc
 from werkzeug.security import generate_password_hash
@@ -37,9 +39,7 @@ def _audit(action, target_type=None, target_id=None, details=None):
     """Record an admin API action in the audit log."""
     try:
         import json as _json
-        client_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
-        if client_ip and ',' in client_ip:
-            client_ip = client_ip.split(',')[0].strip()
+        client_ip = request.remote_addr or '0.0.0.0'
         entry = AdminAuditLog(
             action=action,
             target_type=target_type,
@@ -58,16 +58,33 @@ def _audit(action, target_type=None, target_id=None, details=None):
 # ============================================================================
 
 def require_api_key(f):
-    """Verify Bearer token matches ADMIN_API_KEY env var."""
+    """Allow access via Bearer token (TullOps) OR valid admin session (browser dashboard)."""
     @functools.wraps(f)
     def decorated(*args, **kwargs):
         api_key = os.environ.get('ADMIN_API_KEY')
         if not api_key:
             return jsonify(error='Admin API not configured'), 503
+
         auth_header = request.headers.get('Authorization', '')
-        if not auth_header.startswith('Bearer ') or auth_header[7:] != api_key:
-            return jsonify(error='Unauthorized'), 401
-        return f(*args, **kwargs)
+
+        # --- Bearer token path (TullOps remote calls) ---
+        if auth_header.startswith('Bearer '):
+            if auth_header[7:] != api_key:
+                return jsonify(error='Unauthorized'), 401
+            return f(*args, **kwargs)
+
+        # --- Session path (browser-based dashboard) ---
+        if current_user.is_authenticated and getattr(current_user, 'user_type', None) == 'admin':
+            # CSRF check for mutating requests
+            if request.method != 'GET':
+                csrf_token = request.headers.get('X-CSRFToken', '')
+                try:
+                    validate_csrf(csrf_token)
+                except Exception:
+                    return jsonify(error='CSRF validation failed'), 403
+            return f(*args, **kwargs)
+
+        return jsonify(error='Unauthorized'), 401
     return decorated
 
 
