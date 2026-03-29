@@ -90,8 +90,9 @@ handlers:
 
   # Favicon
   - url: /favicon.ico
-    static_files: xissite/static/icons/tullicon.ico
-    upload: xissite/static/icons/tullicon.ico
+    static_files: xissite/static/icons/favicon.svg
+    upload: xissite/static/icons/favicon.svg
+    mime_type: image/svg+xml
     secure: always
 
   # All other URLs handled by Flask
