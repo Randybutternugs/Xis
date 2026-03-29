@@ -175,7 +175,8 @@ def contact():
                     flash(spam_result['rejection_message'], 'error')
                     message_type = 'error'
 
-                return render_template("contact.html", form=form, message_type=message_type)
+                return render_template("contact.html", form=form, message_type=message_type,
+                                       submitted=False, ref_number=None)
 
             # Passed all checks: record rate limit and save
             contact_rate_limiter.record(client_ip)
@@ -199,11 +200,8 @@ def contact():
                 ref_number = f"TULL-{new_feedback.id:05d}"
                 _send_feedback_emails(new_feedback, ref_number)
 
-                flash('Thank you! Your feedback has been submitted successfully.', 'success')
-                message_type = 'success'
-
-                # Clear form after successful submission
-                form = ContactForm(formdata=None)
+                return render_template("contact.html", form=ContactForm(formdata=None),
+                                       submitted=True, ref_number=ref_number)
 
             except Exception as e:
                 db.session.rollback()
@@ -215,7 +213,8 @@ def contact():
             flash('Please check your information and try again.', 'error')
             message_type = 'error'
 
-    return render_template("contact.html", form=form, message_type=message_type)
+    return render_template("contact.html", form=form, message_type=message_type,
+                           submitted=False, ref_number=None)
 
 
 # ============================================================================

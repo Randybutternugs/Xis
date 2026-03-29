@@ -2,7 +2,26 @@
 
 {% block title %}Contact Us | Tull Hydroponics{% endblock %}
 
-{% block head %}{% endblock %}
+{% block head %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var btns = document.querySelectorAll('.category-btn');
+    var conditionals = document.querySelectorAll('.conditional-field');
+
+    btns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            btns.forEach(function(b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+
+            var selected = btn.querySelector('input[type="radio"]').value;
+            conditionals.forEach(function(field) {
+                field.style.display = field.dataset.category === selected ? 'block' : 'none';
+            });
+        });
+    });
+});
+</script>
+{% endblock %}
 
 {% block sectionconfig %}<section class="contact-grid">{% endblock %}
 
@@ -29,10 +48,21 @@
     <p>We'd love to hear from you. Whether you have a question about our systems, need technical support, or want to provide feedback, we're here to help.</p>
 </div>
 
+{% if submitted %}
+<div class="contact-content">
+    <div class="contact-confirmation">
+        <div class="confirmation-icon">&#10003;</div>
+        <h2>Message Received</h2>
+        <p class="confirmation-ref">REF: {{ ref_number }}</p>
+        <p class="confirmation-text">Thank you for reaching out. We'll review your message and get back to you within 24-48 hours.</p>
+        <a href="{{ url_for('views.contact') }}" class="confirmation-reset">Send Another Message</a>
+    </div>
+</div>
+{% else %}
 <div class="contact-content">
     <div class="contact-form-container">
         <h2>// SEND US A MESSAGE</h2>
-        
+
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -42,7 +72,7 @@
                 {% endfor %}
             {% endif %}
         {% endwith %}
-        
+
         <form method="POST" action="{{ url_for('views.contact') }}" class="contact-form">
             {{ form.csrf_token }}
             {{ form.form_loaded_at() }}
@@ -57,40 +87,45 @@
                 <label class="contact-label">// Email Address</label>
                 {{ form.feedbackemail(class="contact-input", placeholder="your@email.com") }}
             </div>
-            
+
             <div class="form-group">
                 <label class="contact-label">// Feedback Type</label>
-                <div class="radio-group">
+                <div class="category-group">
                     {% for subfield in form.feedbacktype %}
-                    <label class="radio-item">
+                    {% set colors = {'General': '#8B8B8B', 'Technical': '#F97316', 'Order': '#5bc0de', 'Feature': '#6ABD45'} %}
+                    <label class="category-btn" style="--cat-color: {{ colors.get(subfield.data, '#8B8B8B') }};">
                         {{ subfield() }}
                         <span>{{ subfield.label.text }}</span>
                     </label>
                     {% endfor %}
                 </div>
             </div>
-            
-            <div class="form-group">
-                <label class="contact-label">// Order ID <span class="optional">(Optional)</span></label>
-                {{ form.orderno(class="contact-input", placeholder="Enter if feedback relates to an order") }}
+
+            <div class="conditional-field" data-category="Order">
+                <div class="form-group">
+                    <label class="contact-label">// Order ID <span class="optional">(Optional)</span></label>
+                    {{ form.orderno(class="contact-input", placeholder="Enter if feedback relates to an order") }}
+                </div>
             </div>
 
-            <div class="form-group">
-                <label class="contact-label">// Serial Number <span class="optional">(Optional)</span></label>
-                {{ form.serialno(class="contact-input", placeholder="Found on your Tull Tower unit") }}
+            <div class="conditional-field" data-category="Technical">
+                <div class="form-group">
+                    <label class="contact-label">// Serial Number <span class="optional">(Optional)</span></label>
+                    {{ form.serialno(class="contact-input", placeholder="Found on your Tull Tower unit") }}
+                </div>
             </div>
 
             <div class="form-group">
                 <label class="contact-label">// Your Message</label>
                 {{ form.feedbackfield(class="contact-textarea", placeholder="Tell us what's on your mind...", rows="6") }}
             </div>
-            
+
             <button type="submit" class="contact-submit">
-                Submit Feedback <span class="arrow">→</span>
+                Send Message
             </button>
         </form>
     </div>
-    
+
     <div class="contact-info">
         <div class="contact-info-section">
             <h3>// DIRECT CONTACT</h3>
@@ -99,24 +134,25 @@
                 <span class="detail-value">info@tullhydro.com</span>
             </p>
         </div>
-        
+
         <div class="contact-info-section">
             <h3>// FOLLOW US</h3>
             <div class="contact-social">
-                <a href="https://instagram.com/tull_llc" target="_blank" class="social-link">Instagram →</a>
-                <a href="https://x.com/tull_llc" target="_blank" class="social-link">X (Twitter) →</a>
+                <a href="https://instagram.com/tull_llc" target="_blank" rel="noopener noreferrer" class="social-link">Instagram</a>
+                <a href="https://x.com/tull_llc" target="_blank" rel="noopener noreferrer" class="social-link">X (Twitter)</a>
             </div>
         </div>
-        
+
         <div class="contact-info-section">
             <h3>// RESPONSE TIME</h3>
             <p class="contact-note">We typically respond within 24-48 hours during business days.</p>
         </div>
     </div>
 </div>
+{% endif %}
 
-<div class="contact-footer">
-    <p>© 2025 Tull Hydroponics. All rights reserved.</p>
-</div>
+<footer class="contact-footer">
+    <p>&copy; 2025 Tull Hydroponics. All rights reserved.</p>
+</footer>
 
 {% endblock %}

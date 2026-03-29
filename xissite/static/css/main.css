@@ -649,9 +649,9 @@ a {
     .contact-header-title {
         color: #fff;
         font-family: 'pexicomicro-regular-webfont';
-        font-size: 1.2em;
+        font-size: 0.9em;
         border: 2px solid #fff;
-        padding: 8px 16px;
+        padding: 6px 12px;
     }
 
     .contact-hero {
@@ -681,7 +681,15 @@ a {
         padding: 6%;
         display: flex;
         flex-direction: column;
+        align-items: center;
         gap: 8%;
+        max-width: 500px;
+        margin: 0 auto;
+        width: 100%;
+    }
+
+    .contact-form-container {
+        width: 100%;
     }
 
     .contact-form-container h2 {
@@ -763,26 +771,39 @@ a {
         min-height: 120px;
     }
 
-    .radio-group {
+    .category-group {
         display: flex;
-        flex-direction: column;
-        gap: 3%;
+        flex-wrap: wrap;
+        gap: 8px;
     }
 
-    .radio-item {
-        display: flex;
-        align-items: center;
-        gap: 3%;
-        color: #CFCFCF;
-        font-size: 0.95em;
+    .category-btn {
+        flex: 1 1 calc(50% - 4px);
+        border: 2px solid #333;
+        padding: 10px 8px;
+        color: #ccc;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.75em;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        text-align: center;
         cursor: pointer;
-        padding: 2% 0;
+        transition: border-color 0.2s, color 0.2s, background 0.2s;
+        border-radius: 0;
     }
 
-    .radio-item input[type="radio"] {
-        accent-color: #6ABD45;
-        width: 1.2em;
-        height: 1.2em;
+    .category-btn input[type="radio"] {
+        display: none;
+    }
+
+    .category-btn.active {
+        border-color: var(--cat-color);
+        color: var(--cat-color);
+        background: color-mix(in srgb, var(--cat-color) 8%, transparent);
+    }
+
+    .conditional-field {
+        display: none;
     }
 
     .contact-submit {
@@ -801,13 +822,71 @@ a {
         background-color: #5aa93d;
     }
 
-    .contact-submit .arrow {
-        margin-left: 8px;
+    .contact-confirmation {
+        text-align: center;
+        padding: 10% 6%;
+        width: 100%;
+    }
+
+    .confirmation-icon {
+        width: 60px;
+        height: 60px;
+        border: 2px solid #6ABD45;
+        color: #6ABD45;
+        font-size: 1.8em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px auto;
+    }
+
+    .contact-confirmation h2 {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1.4em;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 12px;
+    }
+
+    .confirmation-ref {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1em;
+        letter-spacing: 1px;
+        margin-bottom: 16px;
+    }
+
+    .confirmation-text {
+        color: #CFCFCF;
+        font-size: 0.9em;
+        line-height: 1.6;
+        margin-bottom: 24px;
+    }
+
+    .confirmation-reset {
+        display: inline-block;
+        border: 2px solid #6ABD45;
+        color: #6ABD45;
+        padding: 12px 24px;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.85em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-decoration: none;
+        transition: background 0.2s, color 0.2s;
+    }
+
+    .confirmation-reset:hover {
+        background: #6ABD45;
+        color: #000;
     }
 
     .contact-info {
         border-top: 1px solid #333;
         padding-top: 6%;
+        text-align: center;
+        width: 100%;
     }
 
     .contact-info-section {
@@ -841,8 +920,8 @@ a {
 
     .contact-social {
         display: flex;
-        flex-direction: column;
-        gap: 2%;
+        justify-content: center;
+        gap: 16px;
     }
 
     .social-link {
@@ -2838,11 +2917,16 @@ a {
         color: #6ABD45;
     }
 
+    .contact-hero {
+        text-align: center;
+    }
+
     .contact-hero p {
         color: #CFCFCF;
         font-size: 1.1em;
         line-height: 1.6;
         max-width: 60%;
+        margin: 0 auto;
     }
 
     .contact-content {
@@ -2926,32 +3010,50 @@ a {
         min-height: 150px;
     }
 
-    .radio-group {
+    .category-group {
         display: flex;
-        gap: 4%;
+        gap: 8px;
     }
 
-    .radio-item {
-        display: flex;
-        align-items: center;
-        gap: 2%;
-        color: #CFCFCF;
-        font-size: 0.95em;
+    .category-btn {
+        flex: 1 1 0;
+        border: 2px solid #333;
+        padding: 10px 8px;
+        color: #ccc;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.8em;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        text-align: center;
         cursor: pointer;
-        padding: 1% 0;
+        transition: border-color 0.2s, color 0.2s, background 0.2s;
+        border-radius: 0;
     }
 
-    .radio-item input[type="radio"] {
-        accent-color: #6ABD45;
-        width: 1.2em;
-        height: 1.2em;
+    .category-btn input[type="radio"] {
+        display: none;
+    }
+
+    .category-btn:hover {
+        border-color: var(--cat-color);
+        color: var(--cat-color);
+    }
+
+    .category-btn.active {
+        border-color: var(--cat-color);
+        color: var(--cat-color);
+        background: color-mix(in srgb, var(--cat-color) 8%, transparent);
+    }
+
+    .conditional-field {
+        display: none;
     }
 
     .contact-submit {
         background-color: #6ABD45;
         color: #000;
         border: none;
-        padding: 2.5% 5%;
+        padding: 14px 28px;
         font-family: 'pexicomicro-regular-webfont';
         font-size: 1.1em;
         cursor: pointer;
@@ -2963,8 +3065,64 @@ a {
         background-color: #5aa93d;
     }
 
-    .contact-submit .arrow {
-        margin-left: 10px;
+    .contact-confirmation {
+        text-align: center;
+        padding: 6% 10%;
+        width: 100%;
+    }
+
+    .confirmation-icon {
+        width: 70px;
+        height: 70px;
+        border: 2px solid #6ABD45;
+        color: #6ABD45;
+        font-size: 2em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 24px auto;
+    }
+
+    .contact-confirmation h2 {
+        color: #fff;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1.6em;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 14px;
+    }
+
+    .confirmation-ref {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 1.1em;
+        letter-spacing: 1px;
+        margin-bottom: 20px;
+    }
+
+    .confirmation-text {
+        color: #CFCFCF;
+        font-size: 1em;
+        line-height: 1.6;
+        margin-bottom: 30px;
+    }
+
+    .confirmation-reset {
+        display: inline-block;
+        border: 2px solid #6ABD45;
+        color: #6ABD45;
+        padding: 14px 28px;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.9em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-decoration: none;
+        transition: background 0.2s, color 0.2s;
+    }
+
+    .confirmation-reset:hover {
+        background: #6ABD45;
+        color: #000;
     }
 
     .contact-info {
