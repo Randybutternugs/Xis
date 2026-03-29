@@ -175,16 +175,20 @@ def create_app():
     from .views import views
     from .auth import auth
     from .sales import sales
+    from .admin_api import admin_api
 
     app.register_blueprint(views, url_prefix='/')
-    app.register_blueprint(auth, url_prefix='/') 
-    app.register_blueprint(sales, url_prefix='/') 
+    app.register_blueprint(auth, url_prefix='/')
+    app.register_blueprint(sales, url_prefix='/')
+    app.register_blueprint(admin_api)
     
     # ========================================================================
     # DATABASE INITIALIZATION & MIGRATION
     # ========================================================================
     
-    from .models import Customer, Purchase_info, User, FeedBack
+    from .models import (Customer, Purchase_info, User, FeedBack,
+                         LoginAttempt, SiteVisit, BannedIP, GeoIPCache,
+                         AdminAuditLog)
     create_database(app)
     
     # ========================================================================
@@ -254,6 +258,76 @@ def run_migrations():
             'name': 'add_product_name_column',
             'check': "SELECT * FROM pragma_table_info('purchase__info') WHERE name='product_name'",
             'migrate': "ALTER TABLE purchase__info ADD COLUMN product_name VARCHAR(100) DEFAULT 'Tull Tower V1'"
+        },
+        {
+            'name': 'add_feedback_submitter_ip',
+            'check': "SELECT * FROM pragma_table_info('feed_back') WHERE name='submitter_ip'",
+            'migrate': "ALTER TABLE feed_back ADD COLUMN submitter_ip VARCHAR(45)"
+        },
+        {
+            'name': 'add_user_status',
+            'check': "SELECT * FROM pragma_table_info('user') WHERE name='status'",
+            'migrate': "ALTER TABLE user ADD COLUMN status VARCHAR(50) DEFAULT 'active'"
+        },
+        {
+            'name': 'add_user_display_name',
+            'check': "SELECT * FROM pragma_table_info('user') WHERE name='display_name'",
+            'migrate': "ALTER TABLE user ADD COLUMN display_name VARCHAR(150)"
+        },
+        {
+            'name': 'add_user_notes',
+            'check': "SELECT * FROM pragma_table_info('user') WHERE name='notes'",
+            'migrate': "ALTER TABLE user ADD COLUMN notes TEXT"
+        },
+        {
+            'name': 'add_user_last_login',
+            'check': "SELECT * FROM pragma_table_info('user') WHERE name='last_login'",
+            'migrate': "ALTER TABLE user ADD COLUMN last_login DATETIME"
+        },
+        {
+            'name': 'add_user_failed_attempts',
+            'check': "SELECT * FROM pragma_table_info('user') WHERE name='failed_attempts'",
+            'migrate': "ALTER TABLE user ADD COLUMN failed_attempts INTEGER DEFAULT 0"
+        },
+        {
+            'name': 'add_user_locked_until',
+            'check': "SELECT * FROM pragma_table_info('user') WHERE name='locked_until'",
+            'migrate': "ALTER TABLE user ADD COLUMN locked_until DATETIME"
+        },
+        {
+            'name': 'add_user_created_at',
+            'check': "SELECT * FROM pragma_table_info('user') WHERE name='created_at'",
+            'migrate': "ALTER TABLE user ADD COLUMN created_at DATETIME"
+        },
+        {
+            'name': 'add_feedback_resolved',
+            'check': "SELECT * FROM pragma_table_info('feed_back') WHERE name='resolved'",
+            'migrate': "ALTER TABLE feed_back ADD COLUMN resolved BOOLEAN DEFAULT 0"
+        },
+        {
+            'name': 'add_feedback_admin_notes',
+            'check': "SELECT * FROM pragma_table_info('feed_back') WHERE name='admin_notes'",
+            'migrate': "ALTER TABLE feed_back ADD COLUMN admin_notes TEXT"
+        },
+        {
+            'name': 'add_feedback_serial_number',
+            'check': "SELECT * FROM pragma_table_info('feed_back') WHERE name='serial_number'",
+            'migrate': "ALTER TABLE feed_back ADD COLUMN serial_number VARCHAR(100)"
+        },
+        {
+            'name': 'add_feedback_first_response_date',
+            'check': "SELECT * FROM pragma_table_info('feed_back') WHERE name='first_response_date'",
+            'migrate': "ALTER TABLE feed_back ADD COLUMN first_response_date DATETIME"
+        },
+        {
+            'name': 'add_feedback_resolved_date',
+            'check': "SELECT * FROM pragma_table_info('feed_back') WHERE name='resolved_date'",
+            'migrate': "ALTER TABLE feed_back ADD COLUMN resolved_date DATETIME"
+        },
+        {
+            'name': 'add_feedback_resolution_time_hours',
+            'check': "SELECT * FROM pragma_table_info('feed_back') WHERE name='resolution_time_hours'",
+            'migrate': "ALTER TABLE feed_back ADD COLUMN resolution_time_hours INTEGER"
         },
     ]
     
