@@ -77,7 +77,7 @@
                 <span class="feedback-resolved-badge">Resolved</span>
                 {% endif %}
             </div>
-            <span class="feedback-date">{{ feedback.date.strftime('%B %d, %Y at %I:%M %p') if feedback.date else 'N/A' }}</span>
+            <span class="feedback-date">{{ (feedback.date|to_eastern).strftime('%B %d, %Y at %I:%M %p %Z') if feedback.date else 'N/A' }}</span>
         </div>
 
         <div class="feedback-details">

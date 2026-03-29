@@ -199,7 +199,27 @@ def create_app():
     app.register_blueprint(auth, url_prefix='/')
     app.register_blueprint(sales, url_prefix='/')
     app.register_blueprint(admin_api)
-    
+
+    # ========================================================================
+    # JINJA FILTERS
+    # ========================================================================
+
+    from datetime import timezone
+    try:
+        from zoneinfo import ZoneInfo
+    except ImportError:
+        from backports.zoneinfo import ZoneInfo
+
+    def to_eastern(dt):
+        """Convert a datetime to US/Eastern for display."""
+        if dt is None:
+            return dt
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.astimezone(ZoneInfo('America/New_York'))
+
+    app.jinja_env.filters['to_eastern'] = to_eastern
+
     # ========================================================================
     # DATABASE INITIALIZATION & MIGRATION
     # ========================================================================
