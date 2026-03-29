@@ -42,7 +42,7 @@ def test_login_valid_admin(client, db):
         'password': 'correctpassword1',
     }, follow_redirects=False)
     assert response.status_code == 302
-    assert '/viewdb' in response.headers['Location']
+    assert '/admin' in response.headers['Location']
 
 
 def test_login_valid_employee(client, db):

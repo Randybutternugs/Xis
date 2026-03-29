@@ -181,7 +181,7 @@ def login():
             login_user(user, remember=True)
             print(f"[AUTH] Successful {user.user_type.upper()} login: {username}")
             if user.user_type == 'admin':
-                return redirect(url_for('auth.viewdatabase'))
+                return redirect(url_for('auth.admin_dashboard'))
             else:
                 return redirect(url_for('views.home'))
         else:
@@ -290,3 +290,11 @@ def viewfeedback():
     """
     feedback_info = FeedBack.query.order_by(FeedBack.id.desc())
     return render_template('feedbackview.html', feedback_info=feedback_info)
+
+
+@auth.route('/admin')
+@login_required
+@admin_required
+def admin_dashboard():
+    """Admin dashboard -- single-page view of all site data."""
+    return render_template('admin_dashboard.html')

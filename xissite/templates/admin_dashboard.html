@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Dashboard | Tull Hydroponics</title>
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <link rel="icon" href="{{ url_for('static', filename='icons/tullicon.ico') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- Topbar                                                     -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<header class="dash-topbar">
+  <div class="topbar-left">
+    <img src="{{ url_for('static', filename='images/Tulllogo.svg') }}" alt="Tull" class="topbar-logo">
+    <span class="topbar-label">ADMIN DASHBOARD</span>
+  </div>
+  <div class="topbar-right">
+    <div class="api-ind" id="api-ind">
+      <span class="dot dot-r" id="api-dot"></span>
+      <span id="api-label">Checking...</span>
+    </div>
+    <span class="countdown" id="countdown"></span>
+    <a href="/logout" class="topbar-logout">Logout</a>
+  </div>
+</header>
+
+<div class="container" style="padding-top:56px">
+
+<!-- Sticky section nav -->
+<div class="sec-nav" id="sec-nav">
+  <a href="#sec-users" data-sec="users">Users</a>
+  <a href="#sec-logins" data-sec="logins">Logins</a>
+  <a href="#sec-customers" data-sec="customers">Customers</a>
+  <a href="#sec-purchases" data-sec="purchases">Orders</a>
+  <a href="#sec-feedback" data-sec="feedback">Feedback</a>
+  <a href="#sec-visitors" data-sec="visitors">Visitors</a>
+  <a href="#sec-security" data-sec="security">Security</a>
+</div>
+
+<!-- Stats Row -->
+<div class="sa-stats">
+  <div class="si"><label>Active Users</label><div class="val" id="s-users">--</div></div>
+  <div class="si"><label>Total Customers</label><div class="val" id="s-customers">--</div></div>
+  <div class="si"><label>Total Purchases</label><div class="val" id="s-purchases">--</div></div>
+  <div class="si"><label>Pending Feedback</label><div class="val" id="s-feedback">--</div></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- // User Management                                         -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="sec-card" id="sec-users">
+  <div class="card">
+    <h2><span class="sec-actions"><button class="btn btn-primary btn-sm" onclick="openCreateUser()">+ Create User</button></span>// User Management <span class="sec-count" id="user-count"></span></h2>
+    <div class="table-scroll">
+      <table class="table" id="users-table" style="display:none">
+        <thead><tr><th>ID</th><th>Type</th><th>Status</th><th>Last Login</th><th>Logins</th><th>Notes</th><th>Actions</th></tr></thead>
+        <tbody id="users-body"></tbody>
+      </table>
+    </div>
+    <div class="alert-none" id="users-empty">Loading users...</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- // Login Monitor                                           -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="sec-card" id="sec-logins">
+  <div class="card">
+    <h2>// Login Monitor <span class="sec-count" id="login-count"></span></h2>
+    <div class="filter-row">
+      <select id="login-filter-result" style="max-width:120px"><option value="">All Results</option><option value="true">Success</option><option value="false">Failed</option></select>
+      <input type="text" id="login-filter-ip" placeholder="Filter by IP..." style="max-width:160px">
+      <button class="btn btn-sm btn-outline" onclick="fetchLogins()">Filter</button>
+      <button class="btn btn-sm btn-outline" onclick="window.location='/api/admin/export/logins'">Export CSV</button>
+    </div>
+    <div class="table-scroll">
+      <table class="table" id="logins-table" style="display:none">
+        <thead><tr><th>Time</th><th>IP Address</th><th>Username</th><th>Result</th><th>Reason</th><th style="width:20px"></th></tr></thead>
+        <tbody id="logins-body"></tbody>
+      </table>
+    </div>
+    <div class="alert-none" id="logins-empty">No login attempts recorded</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- // Customers                                               -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="sec-card" id="sec-customers">
+  <div class="card">
+    <h2>// Customers <span class="sec-count" id="cust-count"></span></h2>
+    <div class="filter-row">
+      <input type="text" id="cust-search" placeholder="Search email or name..." style="flex:1;max-width:280px">
+      <button class="btn btn-sm btn-primary" onclick="fetchCustomers()">Search</button>
+      <button class="btn btn-sm btn-outline" onclick="window.location='/api/admin/export/customers'">Export CSV</button>
+    </div>
+    <div class="table-scroll">
+      <table class="table" id="cust-table" style="display:none">
+        <thead><tr><th>ID</th><th>Email</th><th>Name</th><th>Created</th><th>Orders</th><th>Actions</th></tr></thead>
+        <tbody id="cust-body"></tbody>
+      </table>
+    </div>
+    <div class="alert-none" id="cust-empty">No customers yet</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- // Orders                                                  -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="sec-card" id="sec-purchases">
+  <div class="card">
+    <h2>// Orders <span class="sec-count" id="purch-count"></span></h2>
+    <div class="filter-row">
+      <select id="purch-status"><option value="">All Statuses</option><option value="paid">Paid</option><option value="pending">Pending</option></select>
+      <button class="btn btn-sm btn-primary" onclick="fetchPurchases()">Filter</button>
+      <button class="btn btn-sm btn-outline" onclick="window.location='/api/admin/export/purchases'">Export CSV</button>
+    </div>
+    <div class="table-scroll">
+      <table class="table" id="purch-table" style="display:none">
+        <thead><tr><th>#</th><th>Product</th><th>Customer</th><th>Location</th><th>Status</th><th>Date</th></tr></thead>
+        <tbody id="purch-body"></tbody>
+      </table>
+    </div>
+    <div class="alert-none" id="purch-empty">No orders yet</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- // Feedback                                                -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="sec-card" id="sec-feedback">
+  <div class="card">
+    <h2>// Feedback <span class="sec-count" id="fb-count"></span></h2>
+    <div class="filter-row">
+      <select id="fb-filter-type"><option value="">All Types</option><option value="General">General</option><option value="Technical">Technical</option><option value="Order">Order</option><option value="Feature">Feature</option></select>
+      <select id="fb-filter-resolved"><option value="">All</option><option value="false">Unresolved</option><option value="true">Resolved</option></select>
+      <button class="btn btn-sm btn-primary" onclick="fetchFeedback()">Filter</button>
+      <button class="btn btn-sm btn-outline" onclick="window.location='/api/admin/export/feedback'">Export CSV</button>
+    </div>
+    <div id="fb-list"></div>
+    <div class="alert-none" id="fb-empty">No feedback yet</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- // Visitor Trends                                          -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="sec-card" id="sec-visitors">
+  <div class="card">
+    <h2><span class="sec-actions">
+      <button class="btn btn-sm btn-outline vis-period active" data-days="7" onclick="setVisPeriod(7,this)">7d</button>
+      <button class="btn btn-sm btn-outline vis-period" data-days="14" onclick="setVisPeriod(14,this)">14d</button>
+      <button class="btn btn-sm btn-outline vis-period" data-days="30" onclick="setVisPeriod(30,this)">30d</button>
+    </span>// Visitor Trends</h2>
+    <div class="grid-4" style="margin-bottom:16px" id="vis-stats">
+      <div class="si"><label>Unique Visitors</label><div class="val" id="vis-unique">--</div></div>
+      <div class="si"><label>Total Views</label><div class="val" id="vis-views">--</div></div>
+      <div class="si"><label>Top Page</label><div class="val" id="vis-top" style="font-size:1em">--</div></div>
+      <div class="si"><label>Avg Daily</label><div class="val" id="vis-avg">--</div></div>
+    </div>
+    <div class="bar-chart" id="vis-chart"></div>
+    <div class="alert-none" id="vis-empty">No visitor data</div>
+    <div style="margin-top:16px">
+      <h3 style="font-size:.65em;color:var(--g);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px">Top Pages</h3>
+      <div class="table-scroll">
+        <table class="table" id="vis-pages-table" style="display:none">
+          <thead><tr><th>Path</th><th>Hits</th><th>Unique IPs</th></tr></thead>
+          <tbody id="vis-pages-body"></tbody>
+        </table>
+      </div>
+    </div>
+    <!-- Peak Hours Heatmap -->
+    <div class="sub-header" style="margin-top:20px">Peak Hours</div>
+    <div class="heatmap-row" id="vis-heatmap"></div>
+    <div class="alert-none" id="vis-heatmap-empty" style="display:none">No heatmap data</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- // Security                                                -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="sec-card" id="sec-security">
+  <div class="card">
+    <h2><span class="sec-actions"><button class="btn btn-sm btn-outline" onclick="fetchSecurity()">Refresh</button><button class="btn btn-sm btn-outline" onclick="window.location='/api/admin/export/logins'">Export Report</button></span>// Security</h2>
+    <div id="threat-banner" class="threat-ok">No threats detected</div>
+    <div class="grid-3" style="margin-bottom:16px">
+      <div class="si"><label>Logins (24h)</label><div class="val" id="sec-total">--</div></div>
+      <div class="si"><label>Successful</label><div class="val ok" id="sec-ok">--</div></div>
+      <div class="si"><label>Failed</label><div class="val" id="sec-fail">--</div></div>
+    </div>
+    <div id="sec-alerts"></div>
+    <div class="alert-none" id="sec-empty" style="display:none">No suspicious activity</div>
+    <!-- Login Heatmap -->
+    <div class="sub-header" style="margin-top:20px">Login Activity by Hour (7d)</div>
+    <div class="heatmap-row" id="sec-heatmap"></div>
+    <!-- Banned IPs -->
+    <div class="sub-header" style="margin-top:20px">Banned IPs <span class="sec-count" id="ban-count"></span></div>
+    <div style="margin-bottom:8px"><button class="btn btn-sm btn-primary" onclick="openBanModal()">+ Ban IP</button></div>
+    <div class="table-scroll">
+      <table class="table" id="ban-table" style="display:none">
+        <thead><tr><th>IP Address</th><th>Reason</th><th>Banned By</th><th>Expires</th><th>Action</th></tr></thead>
+        <tbody id="ban-body"></tbody>
+      </table>
+    </div>
+    <div class="alert-none" id="ban-empty">No banned IPs</div>
+    <!-- Audit Log -->
+    <div class="sub-header" style="margin-top:20px">Audit Log</div>
+    <div class="table-scroll">
+      <table class="table" id="audit-table" style="display:none">
+        <thead><tr><th>Time</th><th>Action</th><th>Target</th><th>Details</th><th>Admin IP</th></tr></thead>
+        <tbody id="audit-body"></tbody>
+      </table>
+    </div>
+    <div class="alert-none" id="audit-empty">No audit entries</div>
+  </div>
+</div>
+
+</div><!-- /.container -->
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- Modals                                                     -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<!-- Create User Modal -->
+<div class="modal-overlay" id="modal-create-user">
+  <div class="modal-box">
+    <h3>// Create User</h3>
+    <label>Email / Username</label>
+    <input type="text" id="cu-email" placeholder="user@example.com">
+    <label>Password</label>
+    <input type="password" id="cu-pass" placeholder="Strong password...">
+    <label>User Type</label>
+    <select id="cu-type"><option value="admin">Admin</option><option value="employee">Employee</option></select>
+    <label>Display Name</label>
+    <input type="text" id="cu-display-name" placeholder="Display name...">
+    <label>Notes</label>
+    <textarea id="cu-notes" placeholder="Optional notes..."></textarea>
+    <div class="modal-btns">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('modal-create-user')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="submitCreateUser()">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal-overlay" id="modal-edit-user">
+  <div class="modal-box">
+    <h3>// Edit User</h3>
+    <input type="hidden" id="eu-id">
+    <label>User Type</label>
+    <select id="eu-type"><option value="admin">Admin</option><option value="employee">Employee</option></select>
+    <label>Status</label>
+    <select id="eu-status"><option value="active">Active</option><option value="suspended">Suspended</option></select>
+    <label>Display Name</label>
+    <input type="text" id="eu-display-name" placeholder="Display name...">
+    <label>Notes</label>
+    <textarea id="eu-notes"></textarea>
+    <label>New Password (leave blank to keep current)</label>
+    <input type="password" id="eu-pass" placeholder="New password...">
+    <div class="modal-btns">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('modal-edit-user')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="submitEditUser()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Ban IP Modal -->
+<div class="modal-overlay" id="modal-ban-ip">
+  <div class="modal-box">
+    <h3>// Ban IP Address</h3>
+    <label>IP Address</label>
+    <input type="text" id="ban-ip-input" placeholder="e.g. 192.168.1.1">
+    <label>Reason</label>
+    <textarea id="ban-reason" placeholder="Why is this IP being banned?"></textarea>
+    <label>Duration (hours, leave blank for permanent)</label>
+    <input type="number" id="ban-hours" placeholder="24" min="1">
+    <div class="modal-btns">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('modal-ban-ip')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="submitBanIP()">Ban</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast-el"></div>
+<script src="{{ url_for('static', filename='js/admin_dashboard.js') }}"></script>
+</body>
+</html>
