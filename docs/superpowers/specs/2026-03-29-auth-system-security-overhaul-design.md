@@ -145,6 +145,7 @@ Track `failed_attempts` on the User record:
 - After 10 consecutive failures: lock account for 1 hour
 - Successful login resets `failed_attempts` to 0 and clears `locked_until`
 - Locked accounts show: "Account temporarily locked. Try again in X minutes."
+- Admin can manually unlock any account via `POST /api/admin/users/<uid>/activate` (already exists) -- this resets `failed_attempts` to 0 and clears `locked_until`
 
 ### Per-IP Rate Limiting
 
