@@ -74,7 +74,12 @@
                 <label class="contact-label">// Order ID <span class="optional">(Optional)</span></label>
                 {{ form.orderno(class="contact-input", placeholder="Enter if feedback relates to an order") }}
             </div>
-            
+
+            <div class="form-group">
+                <label class="contact-label">// Serial Number <span class="optional">(Optional)</span></label>
+                {{ form.serialno(class="contact-input", placeholder="Found on your Tull Tower unit") }}
+            </div>
+
             <div class="form-group">
                 <label class="contact-label">// Your Message</label>
                 {{ form.feedbackfield(class="contact-textarea", placeholder="Tell us what's on your mind...", rows="6") }}

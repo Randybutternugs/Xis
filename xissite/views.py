@@ -52,16 +52,22 @@ class ContactForm(FlaskForm):
         ]
     )
     feedbacktype = RadioField(
-        'Type of Feedback', 
+        'Type of Feedback',
         choices=[
-            ('General', 'General Feedback'),
-            ('Order', 'Order Feedback')
-        ], 
+            ('General', 'General Inquiry'),
+            ('Technical', 'Technical Support'),
+            ('Order', 'Order Related'),
+            ('Feature', 'Feature Request'),
+        ],
         validators=[InputRequired(message="Please select a feedback type")]
     )
     orderno = StringField(
-        'Order Number', 
+        'Order Number',
         validators=[Optional(), Length(max=50)]
+    )
+    serialno = StringField(
+        'Serial Number',
+        validators=[Optional(), Length(max=100)]
     )
     feedbackfield = TextAreaField(
         'Leave Feedback', 
@@ -178,6 +184,7 @@ def contact():
                     feedbackorderid=form.orderno.data if form.orderno.data else None,
                     feedbackfullfield=form.feedbackfield.data,
                     submitter_ip=client_ip,
+                    serial_number=form.serialno.data if form.serialno.data else None,
                 )
 
                 db.session.add(new_feedback)
