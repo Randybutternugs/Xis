@@ -1408,6 +1408,112 @@ a {
         font-size: 0.85em;
     }
 
+    .feedback-resolved-badge {
+        display: inline-block;
+        background-color: #555;
+        color: #fff;
+        font-size: 0.65em;
+        padding: 2px 8px;
+        border-radius: 3px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .feedback-filter-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        padding: 3% 4%;
+        border-bottom: 1px solid #333;
+    }
+
+    .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .filter-label {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.7em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-right: 4px;
+    }
+
+    .filter-btn {
+        background: transparent;
+        border: 1px solid #444;
+        color: #888;
+        font-size: 0.7em;
+        padding: 4px 10px;
+        cursor: pointer;
+        border-radius: 3px;
+        transition: all 0.15s;
+        font-family: 'pexicomicro-regular-webfont';
+    }
+
+    .filter-btn.filter-cat.active {
+        background-color: var(--cat-color);
+        color: #000;
+        border-color: var(--cat-color);
+    }
+
+    .filter-btn.filter-status.active {
+        background-color: #6ABD45;
+        color: #000;
+        border-color: #6ABD45;
+    }
+
+    .filter-btn.filter-sort.active {
+        background-color: #fff;
+        color: #000;
+        border-color: #fff;
+    }
+
+    .email-group-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 2% 4%;
+        background: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 4px;
+        margin-bottom: 2%;
+        cursor: pointer;
+    }
+
+    .group-email {
+        color: #fff;
+        font-size: 0.85em;
+        font-family: 'pexicomicro-regular-webfont';
+    }
+
+    .group-count {
+        color: #6ABD45;
+        font-size: 0.7em;
+        background: rgba(106, 189, 69, 0.15);
+        padding: 2px 8px;
+        border-radius: 3px;
+    }
+
+    .group-toggle {
+        color: #666;
+        font-size: 0.7em;
+        margin-left: auto;
+    }
+
+    @keyframes feedback-highlight {
+        0% { border-color: #6ABD45; box-shadow: 0 0 12px rgba(106, 189, 69, 0.4); }
+        100% { border-color: #333; box-shadow: none; }
+    }
+
+    .feedback-card.highlight {
+        animation: feedback-highlight 2s ease-out;
+    }
+
     /* ========================================================================
        SELL PAGE
        ======================================================================== */
@@ -3463,6 +3569,122 @@ a {
     .feedback-empty-note {
         color: #444;
         font-size: 0.9em;
+    }
+
+    .feedback-resolved-badge {
+        display: inline-block;
+        background-color: #555;
+        color: #fff;
+        font-size: 0.7em;
+        padding: 2px 8px;
+        border-radius: 3px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .feedback-filter-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        padding: 1.5% 3%;
+        border-bottom: 1px solid #333;
+        align-items: center;
+    }
+
+    .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .filter-label {
+        color: #6ABD45;
+        font-family: 'pexicomicro-regular-webfont';
+        font-size: 0.75em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-right: 4px;
+    }
+
+    .filter-btn {
+        background: transparent;
+        border: 1px solid #444;
+        color: #888;
+        font-size: 0.75em;
+        padding: 4px 12px;
+        cursor: pointer;
+        border-radius: 3px;
+        transition: all 0.15s;
+        font-family: 'pexicomicro-regular-webfont';
+    }
+
+    .filter-btn:hover {
+        border-color: #666;
+        color: #ccc;
+    }
+
+    .filter-btn.filter-cat.active {
+        background-color: var(--cat-color);
+        color: #000;
+        border-color: var(--cat-color);
+    }
+
+    .filter-btn.filter-status.active {
+        background-color: #6ABD45;
+        color: #000;
+        border-color: #6ABD45;
+    }
+
+    .filter-btn.filter-sort.active {
+        background-color: #fff;
+        color: #000;
+        border-color: #fff;
+    }
+
+    .email-group-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 1% 2%;
+        background: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 4px;
+        margin-bottom: 1%;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+
+    .email-group-header:hover {
+        background: #222;
+    }
+
+    .group-email {
+        color: #fff;
+        font-size: 0.85em;
+        font-family: 'pexicomicro-regular-webfont';
+    }
+
+    .group-count {
+        color: #6ABD45;
+        font-size: 0.75em;
+        background: rgba(106, 189, 69, 0.15);
+        padding: 2px 10px;
+        border-radius: 3px;
+    }
+
+    .group-toggle {
+        color: #666;
+        font-size: 0.75em;
+        margin-left: auto;
+    }
+
+    @keyframes feedback-highlight {
+        0% { border-color: #6ABD45; box-shadow: 0 0 12px rgba(106, 189, 69, 0.4); }
+        100% { border-color: #333; box-shadow: none; }
+    }
+
+    .feedback-card.highlight {
+        animation: feedback-highlight 2s ease-out;
     }
 
     /* ========================================================================

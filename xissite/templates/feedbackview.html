@@ -38,34 +38,69 @@
 {% block content %}
 
 <div class="db-stats-bar">
-    <span class="db-stat">// TOTAL SUBMISSIONS: {{ feedback_info|list|length }}</span>
+    <span class="db-stat">// TOTAL: {{ feedback_info|list|length }}</span>
 </div>
 
-<div class="feedback-list">
+<div class="feedback-filter-bar">
+    <div class="filter-group">
+        <span class="filter-label">// Category</span>
+        <button class="filter-btn filter-cat active" data-cat="General" style="--cat-color:#8B8B8B;">General</button>
+        <button class="filter-btn filter-cat active" data-cat="Technical" style="--cat-color:#F97316;">Technical</button>
+        <button class="filter-btn filter-cat active" data-cat="Order" style="--cat-color:#5bc0de;">Order</button>
+        <button class="filter-btn filter-cat active" data-cat="Feature" style="--cat-color:#6ABD45;">Feature</button>
+    </div>
+    <div class="filter-group">
+        <span class="filter-label">// Status</span>
+        <button class="filter-btn filter-status active" data-status="open">Open</button>
+        <button class="filter-btn filter-status" data-status="resolved">Resolved</button>
+    </div>
+    <div class="filter-group">
+        <span class="filter-label">// Sort</span>
+        <button class="filter-btn filter-sort active" data-sort="newest">Newest</button>
+        <button class="filter-btn filter-sort" data-sort="oldest">Oldest</button>
+    </div>
+</div>
+
+<div class="feedback-list" id="feedbackList">
     {% for feedback in feedback_info %}
-    <div class="feedback-card">
+    <div class="feedback-card"
+         id="feedback-{{ feedback.id }}"
+         data-email="{{ feedback.feedbackmail }}"
+         data-type="{{ feedback.feedbacktype }}"
+         data-resolved="{{ 'true' if feedback.resolved else 'false' }}"
+         data-date="{{ feedback.date.isoformat() if feedback.date else '' }}">
         <div class="feedback-header">
             <div class="feedback-meta">
                 <span class="feedback-id">#{{ feedback.id }}</span>
                 <span class="feedback-type type-{{ feedback.feedbacktype|lower }}">{{ feedback.feedbacktype }}</span>
+                {% if feedback.resolved %}
+                <span class="feedback-resolved-badge">Resolved</span>
+                {% endif %}
             </div>
             <span class="feedback-date">{{ feedback.date.strftime('%B %d, %Y at %I:%M %p') if feedback.date else 'N/A' }}</span>
         </div>
-        
+
         <div class="feedback-details">
             <div class="feedback-detail-row">
                 <span class="feedback-label">// From</span>
                 <span class="feedback-value">{{ feedback.feedbackmail }}</span>
             </div>
-            
+
             {% if feedback.feedbackorderid %}
             <div class="feedback-detail-row">
                 <span class="feedback-label">// Order ID</span>
                 <span class="feedback-value order-ref">#{{ feedback.feedbackorderid }}</span>
             </div>
             {% endif %}
+
+            {% if feedback.serial_number %}
+            <div class="feedback-detail-row">
+                <span class="feedback-label">// Serial Number</span>
+                <span class="feedback-value">{{ feedback.serial_number }}</span>
+            </div>
+            {% endif %}
         </div>
-        
+
         <div class="feedback-content">
             <span class="feedback-label">// Message</span>
             <p class="feedback-message">{{ feedback.feedbackfullfield }}</p>
@@ -82,5 +117,139 @@
 <div class="db-footer">
     <p>Tull Hydroponics Admin Panel</p>
 </div>
+
+<script>
+(function() {
+    var list = document.getElementById('feedbackList');
+    if (!list) return;
+
+    // --- Filter logic ---
+    var catBtns = document.querySelectorAll('.filter-cat');
+    var statusBtns = document.querySelectorAll('.filter-status');
+    var sortBtns = document.querySelectorAll('.filter-sort');
+
+    function getActive(btns) {
+        var out = [];
+        btns.forEach(function(b) { if (b.classList.contains('active')) out.push(b.dataset.cat || b.dataset.status || b.dataset.sort); });
+        return out;
+    }
+
+    function applyFilters() {
+        var cats = getActive(catBtns);
+        var statuses = getActive(statusBtns);
+        var cards = list.querySelectorAll('.feedback-card');
+
+        cards.forEach(function(card) {
+            var catMatch = cats.length === 0 || cats.indexOf(card.dataset.type) !== -1;
+            var resolved = card.dataset.resolved === 'true';
+            var statusMatch = false;
+            statuses.forEach(function(s) {
+                if (s === 'open' && !resolved) statusMatch = true;
+                if (s === 'resolved' && resolved) statusMatch = true;
+            });
+            if (statuses.length === 0) statusMatch = true;
+
+            card.style.display = (catMatch && statusMatch) ? '' : 'none';
+        });
+
+        applyGrouping();
+    }
+
+    catBtns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            btn.classList.toggle('active');
+            applyFilters();
+        });
+    });
+
+    statusBtns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            btn.classList.toggle('active');
+            applyFilters();
+        });
+    });
+
+    sortBtns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            sortBtns.forEach(function(b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            sortCards();
+        });
+    });
+
+    // --- Sort logic ---
+    function sortCards() {
+        var cards = Array.from(list.querySelectorAll('.feedback-card'));
+        var newest = document.querySelector('.filter-sort.active');
+        var asc = newest && newest.dataset.sort === 'oldest';
+
+        cards.sort(function(a, b) {
+            var da = a.dataset.date || '';
+            var db = b.dataset.date || '';
+            return asc ? da.localeCompare(db) : db.localeCompare(da);
+        });
+
+        // Remove group headers before re-sorting
+        list.querySelectorAll('.email-group-header').forEach(function(h) { h.remove(); });
+
+        cards.forEach(function(c) { list.appendChild(c); });
+        applyGrouping();
+    }
+
+    // --- Email grouping ---
+    function applyGrouping() {
+        // Remove old group headers
+        list.querySelectorAll('.email-group-header').forEach(function(h) { h.remove(); });
+
+        var visible = Array.from(list.querySelectorAll('.feedback-card')).filter(function(c) {
+            return c.style.display !== 'none';
+        });
+
+        var groups = {};
+        var order = [];
+        visible.forEach(function(card) {
+            var email = card.dataset.email;
+            if (!groups[email]) { groups[email] = []; order.push(email); }
+            groups[email].push(card);
+        });
+
+        order.forEach(function(email) {
+            var cards = groups[email];
+            if (cards.length < 2) return;
+
+            var header = document.createElement('div');
+            header.className = 'email-group-header';
+            header.innerHTML = '<span class="group-email">' + email + '</span>' +
+                '<span class="group-count">' + cards.length + ' entries</span>' +
+                '<span class="group-toggle">&#9660;</span>';
+
+            var collapsed = false;
+            header.addEventListener('click', function() {
+                collapsed = !collapsed;
+                header.querySelector('.group-toggle').innerHTML = collapsed ? '&#9654;' : '&#9660;';
+                for (var i = 1; i < cards.length; i++) {
+                    cards[i].style.display = collapsed ? 'none' : '';
+                }
+            });
+
+            cards[0].parentNode.insertBefore(header, cards[0]);
+        });
+    }
+
+    // --- Anchor scroll + highlight ---
+    function anchorHighlight() {
+        if (!window.location.hash) return;
+        var target = document.querySelector(window.location.hash);
+        if (!target || !target.classList.contains('feedback-card')) return;
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        target.classList.add('highlight');
+        setTimeout(function() { target.classList.remove('highlight'); }, 2000);
+    }
+
+    // Init
+    applyFilters();
+    anchorHighlight();
+})();
+</script>
 
 {% endblock %}
