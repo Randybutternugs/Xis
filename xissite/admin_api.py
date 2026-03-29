@@ -164,6 +164,8 @@ def create_user():
 
     if not email or not password:
         return jsonify(error='Email and password are required'), 400
+    if len(password) < 10:
+        return jsonify(error='Password must be at least 10 characters'), 400
     if user_type not in ('admin', 'employee'):
         return jsonify(error='user_type must be admin or employee'), 400
 
@@ -197,6 +199,8 @@ def update_user(uid):
     if 'notes' in data:
         user.notes = data['notes'] or None
     if 'password' in data and data['password']:
+        if len(data['password']) < 10:
+            return jsonify(error='Password must be at least 10 characters'), 400
         user.password = generate_password_hash(data['password'])
 
     db.session.commit()
@@ -233,6 +237,8 @@ def suspend_user(uid):
 def activate_user(uid):
     user = User.query.get_or_404(uid)
     user.status = 'active'
+    user.failed_attempts = 0
+    user.locked_until = None
     db.session.commit()
     _audit('user.activate', 'user', uid)
     return jsonify(user.to_dict())
