@@ -22,7 +22,8 @@ Environment Variables Required:
 - STRIPE_PUBLISHABLE_KEY: Stripe publishable key
 - STRIPE_WEBHOOK_SECRET: Stripe webhook signing secret
 - HP_PRICE_ID: Stripe Price ID for the product
-- MAIL_KEY: Mailgun API key for order confirmations
+- POSTMARK_SERVER_TOKEN: Postmark API server token
+- POSTMARK_SENDER_EMAIL: Verified sender email for Postmark
 
 Optional Environment Variables:
 - AUTO_BAN_THRESHOLD: Failed login attempts before IP auto-ban (default: 20)

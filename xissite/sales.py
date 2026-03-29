@@ -7,13 +7,14 @@ This module handles:
 - Payment success/cancel pages
 - Stripe webhook processing for order fulfillment
 - Customer/purchase database updates
-- Order confirmation emails via Mailgun
+- Order confirmation emails via Postmark
 
 Environment Variables Required:
     STRIPE_SECRET_KEY: Stripe API secret key
     STRIPE_WEBHOOK_SECRET: Stripe webhook signing secret
     HP_PRICE_ID: Stripe Price ID for the product
-    MAIL_KEY: Mailgun API key for order confirmations
+    POSTMARK_SERVER_TOKEN: Postmark API server token
+    POSTMARK_SENDER_EMAIL: Verified sender email for Postmark
 
 Deployment Note:
     Update MAIN_DOMAIN before deploying to production.
@@ -260,82 +261,87 @@ def create_order(session):
 
 def fulfill_order(session):
     """
-    Fulfill order by sending confirmation email.
-    
-    Uses Mailgun API to send order confirmation to customer.
-    
+    Fulfill order by sending confirmation email via Postmark.
+
     Args:
         session: Stripe checkout session object
     """
     customer_email = session["customer_details"]["email"]
     customer_name = session["customer_details"]["name"]
-    
-    mail_key = os.environ.get('MAIL_KEY')
-    if not mail_key:
-        print("[FULFILL WARNING] MAIL_KEY not configured, skipping email")
+
+    server_token = os.environ.get('POSTMARK_SERVER_TOKEN')
+    sender_email = os.environ.get('POSTMARK_SENDER_EMAIL')
+    if not server_token or not sender_email:
+        print("[FULFILL WARNING] Postmark not configured, skipping email")
         return
-    
+
     print(f"[FULFILL] Sending confirmation to {customer_email}")
-    
+
     try:
-        # NOTE: Update the Mailgun domain to your verified domain
+        from .email_templates import order_confirmation_html
         response = requests.post(
-            "https://api.mailgun.net/v3/YOUR_MAILGUN_DOMAIN/messages",
-            auth=("api", mail_key),
-            data={
-                "from": "Tull Hydroponics <orders@YOUR_MAILGUN_DOMAIN>",
-                "to": customer_email,
-                "subject": "Order Confirmation - Tull Hydroponics",
-                "template": "order_confirmation",
-                "v:customer": customer_name,
-                "v:product": CURRENT_PRODUCT,
-                "v:purchase_total": "$200"  # Update with actual price
-            }
+            'https://api.postmarkapp.com/email',
+            headers={
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-Postmark-Server-Token': server_token,
+            },
+            json={
+                'From': sender_email,
+                'To': customer_email,
+                'Subject': 'Order Confirmation - Tull Hydroponics',
+                'HtmlBody': order_confirmation_html(customer_name, CURRENT_PRODUCT, '$200'),
+            },
         )
-        
+
         if response.status_code == 200:
             print(f"[FULFILL] Email sent successfully to {customer_email}")
         else:
             print(f"[FULFILL WARNING] Email failed: {response.status_code} - {response.text}")
-            
+
     except Exception as e:
         print(f"[FULFILL ERROR] Failed to send email: {str(e)}")
 
 
 def email_customer_about_failed_payment(session):
     """
-    Notify customer about failed payment.
-    
+    Notify customer about failed payment via Postmark.
+
     Args:
         session: Stripe checkout session object
     """
     customer_email = session["customer_details"]["email"]
     customer_name = session["customer_details"]["name"]
-    
-    mail_key = os.environ.get('MAIL_KEY')
-    if not mail_key:
-        print("[EMAIL WARNING] MAIL_KEY not configured, skipping email")
+
+    server_token = os.environ.get('POSTMARK_SERVER_TOKEN')
+    sender_email = os.environ.get('POSTMARK_SENDER_EMAIL')
+    if not server_token or not sender_email:
+        print("[EMAIL WARNING] Postmark not configured, skipping email")
         return
-    
+
     print(f"[EMAIL] Sending payment failure notice to {customer_email}")
-    
+
     try:
-        # NOTE: Update the Mailgun domain to your verified domain
+        from .email_templates import payment_failed_html
         response = requests.post(
-            "https://api.mailgun.net/v3/YOUR_MAILGUN_DOMAIN/messages",
-            auth=("api", mail_key),
-            data={
-                "from": "Tull Hydroponics <orders@YOUR_MAILGUN_DOMAIN>",
-                "to": customer_email,
-                "subject": "Payment Failed - Tull Hydroponics",
-                "text": f"Hi {customer_name},\n\nUnfortunately, your payment could not be processed. Please try ordering again with a different payment method.\n\nBest regards,\nTull Hydroponics Team"
-            }
+            'https://api.postmarkapp.com/email',
+            headers={
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-Postmark-Server-Token': server_token,
+            },
+            json={
+                'From': sender_email,
+                'To': customer_email,
+                'Subject': 'Payment Failed - Tull Hydroponics',
+                'HtmlBody': payment_failed_html(customer_name),
+            },
         )
-        
+
         if response.status_code == 200:
             print(f"[EMAIL] Payment failure notice sent to {customer_email}")
         else:
             print(f"[EMAIL WARNING] Failed to send notice: {response.status_code}")
-            
+
     except Exception as e:
         print(f"[EMAIL ERROR] Failed to send payment failure notice: {str(e)}")

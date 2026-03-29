@@ -11,6 +11,9 @@ This module handles public-facing pages:
 No authentication required for these routes.
 """
 
+import os
+import requests
+
 from flask import Blueprint, render_template, flash, request
 from flask_wtf import FlaskForm
 from flask_wtf.csrf import CSRFProtect
@@ -191,6 +194,11 @@ def contact():
                 db.session.commit()
 
                 print(f"[FEEDBACK] New submission from {form.feedbackemail.data}")
+
+                # Send emails via Postmark
+                ref_number = f"TULL-{new_feedback.id:05d}"
+                _send_feedback_emails(new_feedback, ref_number)
+
                 flash('Thank you! Your feedback has been submitted successfully.', 'success')
                 message_type = 'success'
 
@@ -208,3 +216,57 @@ def contact():
             message_type = 'error'
 
     return render_template("contact.html", form=form, message_type=message_type)
+
+
+# ============================================================================
+# EMAIL HELPERS
+# ============================================================================
+
+def _send_feedback_emails(feedback, ref_number):
+    """Send confirmation to customer and notification to admin via Postmark."""
+    from .email_templates import contact_confirmation_html, admin_notification_html
+
+    server_token = os.environ.get('POSTMARK_SERVER_TOKEN')
+    sender_email = os.environ.get('POSTMARK_SENDER_EMAIL')
+    if not server_token or not sender_email:
+        print("[EMAIL] Postmark not configured, skipping emails")
+        return
+
+    site_url = os.environ.get('MAIN_DOMAIN', '')
+    headers = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-Postmark-Server-Token': server_token,
+    }
+
+    # Customer confirmation
+    try:
+        resp = requests.post(
+            'https://api.postmarkapp.com/email',
+            headers=headers,
+            json={
+                'From': sender_email,
+                'To': feedback.feedbackmail,
+                'Subject': f'We received your feedback [{ref_number}]',
+                'HtmlBody': contact_confirmation_html(ref_number, feedback.feedbacktype),
+            },
+        )
+        print(f"[EMAIL] Customer confirmation: {resp.status_code}")
+    except Exception as e:
+        print(f"[EMAIL ERROR] Customer confirmation failed: {e}")
+
+    # Admin notification
+    try:
+        resp = requests.post(
+            'https://api.postmarkapp.com/email',
+            headers=headers,
+            json={
+                'From': sender_email,
+                'To': sender_email,
+                'Subject': f'New {feedback.feedbacktype} feedback [{ref_number}]',
+                'HtmlBody': admin_notification_html(feedback, ref_number, site_url),
+            },
+        )
+        print(f"[EMAIL] Admin notification: {resp.status_code}")
+    except Exception as e:
+        print(f"[EMAIL ERROR] Admin notification failed: {e}")

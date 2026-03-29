@@ -43,9 +43,10 @@ env_variables:
   # Create a product in Stripe Dashboard and get the Price ID
   HP_PRICE_ID: "price_REPLACE_WITH_YOUR_PRICE_ID"
   
-  # Mailgun API Key for order confirmation emails
-  # Get from: https://app.mailgun.com/app/account/security/api_keys
-  MAIL_KEY: "REPLACE_WITH_YOUR_MAILGUN_KEY"
+  # Postmark API for transactional emails
+  # Get from: https://account.postmarkapp.com/servers
+  POSTMARK_SERVER_TOKEN: "REPLACE_WITH_YOUR_POSTMARK_TOKEN"
+  POSTMARK_SENDER_EMAIL: "support@tullhydro.com"
   
   # Admin Credentials (hashed values)
   # Generate with: python -c "from werkzeug.security import generate_password_hash; print(generate_password_hash('your_username'))"
