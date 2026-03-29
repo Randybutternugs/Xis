@@ -158,8 +158,8 @@ def list_users():
 def create_user():
     data = request.get_json() or {}
     email = data.get('email', '').strip()
-    password = data.get('password', '').strip()
-    user_type = data.get('user_type', 'admin')
+    password = data.get('password', '')
+    user_type = data.get('user_type', 'employee')
     notes = data.get('notes', '')
 
     if not email or not password:
@@ -196,6 +196,8 @@ def update_user(uid):
         user.status = data['status']
     if 'user_type' in data and data['user_type'] in ('admin', 'employee'):
         user.user_type = data['user_type']
+    if 'display_name' in data:
+        user.display_name = data['display_name'] or None
     if 'notes' in data:
         user.notes = data['notes'] or None
     if 'password' in data and data['password']:
@@ -212,9 +214,9 @@ def update_user(uid):
 @require_api_key
 def delete_user(uid):
     user = User.query.get_or_404(uid)
-    # Protect primary env-var admin from deletion
-    admin_hash = os.environ.get('ADMIN_USERNAME_HASH')
-    if admin_hash and user.email == admin_hash and user.user_type == 'admin':
+    # Protect the bootstrap admin from deletion
+    bootstrap_email = os.environ.get('ADMIN_BOOTSTRAP_EMAIL', 'admin')
+    if user.email == bootstrap_email and user.user_type == 'admin':
         return jsonify(error='Cannot delete the primary admin account'), 403
     user.status = 'deleted'
     db.session.commit()

@@ -16,7 +16,7 @@ from datetime import datetime, timedelta, timezone
 from flask import Blueprint, redirect, url_for, render_template, request, flash
 from sqlalchemy.sql import func
 import os
-from werkzeug.security import check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 from flask_login import login_user, login_required, logout_user, current_user
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, PasswordField
@@ -93,9 +93,9 @@ def login():
     if request.method == 'POST':
         # Check if IP is banned
         from .models import BannedIP, LoginAttempt as LA
-        client_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
-        if client_ip and ',' in client_ip:
-            client_ip = client_ip.split(',')[0].strip()
+        # Use remote_addr (set by App Engine / reverse proxy) rather than
+        # the attacker-controlled X-Forwarded-For header
+        client_ip = request.remote_addr or '0.0.0.0'
 
         active_ban = BannedIP.query.filter_by(
             ip_address=client_ip, active=True
@@ -144,6 +144,8 @@ def login():
         failure_reason = None
 
         if user is None:
+            # Dummy hash check to prevent timing-based username enumeration
+            check_password_hash(generate_password_hash('dummy'), password)
             failure_reason = 'unknown_user'
         elif user.status == 'suspended':
             failure_reason = 'account_suspended'

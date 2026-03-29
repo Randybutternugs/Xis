@@ -5,8 +5,9 @@ Tull Hydroponics Flask Application Factory
 This module initializes the Flask application with:
 - SQLAlchemy database connection
 - CSRF protection
-- Flask-Login for admin authentication
+- Flask-Login for admin and employee authentication
 - Blueprint registration for routes
+- Session security hardening
 
 AUTOMATIC ENVIRONMENT DETECTION:
     The app automatically detects whether it's running locally or on Google Cloud
@@ -16,11 +17,16 @@ Environment Variables Required:
 - FLASK_SECRET_KEY: Secret key for session management
 - ADMIN_BOOTSTRAP_EMAIL: Bootstrap admin username (default: 'admin')
 - ADMIN_BOOTSTRAP_PASSWORD: Bootstrap admin password (first-run only)
+- ADMIN_API_KEY: Bearer token for TullOps admin API access
 - STRIPE_SECRET_KEY: Stripe API secret key
 - STRIPE_PUBLISHABLE_KEY: Stripe publishable key
 - STRIPE_WEBHOOK_SECRET: Stripe webhook signing secret
 - HP_PRICE_ID: Stripe Price ID for the product
 - MAIL_KEY: Mailgun API key for order confirmations
+
+Optional Environment Variables:
+- AUTO_BAN_THRESHOLD: Failed login attempts before IP auto-ban (default: 20)
+- AUTO_BAN_WINDOW_HOURS: Duration of auto-ban in hours (default: 1)
 
 """
 

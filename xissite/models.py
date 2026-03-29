@@ -83,28 +83,27 @@ class FeedBack(db.Model):
 
 
 # ============================================================================
-# USER MODEL (Admin/Investor Authentication)
+# USER MODEL (Admin/Employee Authentication)
 # ============================================================================
 class User(db.Model, UserMixin):
     """
-    User model for admin and investor authentication.
+    User model for admin and employee authentication.
 
-    Supports multiple user types:
+    Supports two user types:
     - 'admin': Full access to database viewer, customer info, feedback
-    - 'investor': Access to investor portal only
-    - 'employee': Employee access
+    - 'employee': Employee access to operational tools pushed by TullOps
 
-    Note: Passwords are stored as hashed values using Werkzeug's
-    generate_password_hash function.
+    Passwords are stored as Werkzeug scrypt hashes.
+    Accounts are managed remotely by TullOps via the admin API.
 
     Attributes:
         id: Primary key
-        email: Hashed username (stored as email field for compatibility)
-        password: Hashed password
-        user_type: Type of user ('admin', 'investor', 'employee')
-        status: Account status ('active', 'inactive', 'suspended')
+        email: Username or email address used for login
+        password: Werkzeug scrypt hash
+        user_type: 'admin' or 'employee'
+        status: Account status ('active', 'suspended', 'deleted')
         display_name: Human-readable display name
-        notes: Internal notes about the user
+        notes: Internal admin notes
         last_login: Timestamp of last successful login
         failed_attempts: Count of consecutive failed login attempts
         locked_until: Timestamp until which the account is locked
@@ -114,8 +113,8 @@ class User(db.Model, UserMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(150), unique=True)
-    password = db.Column(db.String(150))
-    user_type = db.Column(db.String(50), default='admin')
+    password = db.Column(db.String(256))
+    user_type = db.Column(db.String(50), default='employee')
     status = db.Column(db.String(50), default='active')
     display_name = db.Column(db.String(150), nullable=True)
     notes = db.Column(db.Text, nullable=True)
@@ -162,13 +161,13 @@ class LoginAttempt(db.Model):
     __tablename__ = 'login_attempt'
 
     id = db.Column(db.Integer, primary_key=True)
-    ip_address = db.Column(db.String(45))
+    ip_address = db.Column(db.String(45), index=True)
     user_agent = db.Column(db.String(500))
     username_attempted = db.Column(db.String(150))
     success = db.Column(db.Boolean, default=False)
     failure_reason = db.Column(db.String(100))
     user_type_matched = db.Column(db.String(50))
-    timestamp = db.Column(db.DateTime(timezone=True), default=func.now())
+    timestamp = db.Column(db.DateTime(timezone=True), default=func.now(), index=True)
 
     def to_dict(self):
         return {
@@ -205,7 +204,7 @@ class BannedIP(db.Model):
     __tablename__ = 'banned_ip'
 
     id = db.Column(db.Integer, primary_key=True)
-    ip_address = db.Column(db.String(45), nullable=False)
+    ip_address = db.Column(db.String(45), nullable=False, index=True)
     reason = db.Column(db.String(200))
     banned_by = db.Column(db.String(50))
     active = db.Column(db.Boolean, default=True)
