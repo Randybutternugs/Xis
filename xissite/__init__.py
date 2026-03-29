@@ -223,6 +223,31 @@ def create_app():
         return User.query.get(int(id))
     
     # ========================================================================
+    # VISITOR TRACKING MIDDLEWARE
+    # ========================================================================
+
+    PUBLIC_PATHS = {'/', '/about', '/sell', '/contact'}
+
+    @app.before_request
+    def track_visit():
+        """Record SiteVisit for public page GET requests."""
+        from flask import request as req
+        if req.method != 'GET' or req.path not in PUBLIC_PATHS:
+            return
+        try:
+            from .models import SiteVisit
+            visit = SiteVisit(
+                ip_address=req.remote_addr or '0.0.0.0',
+                path=req.path,
+                referrer=(req.referrer or '')[:500],
+                user_agent=(req.headers.get('User-Agent', '') or '')[:500],
+            )
+            db.session.add(visit)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+    # ========================================================================
     # STARTUP INFO
     # ========================================================================
     
@@ -280,7 +305,7 @@ def create_database(app):
                     password=generate_password_hash(bootstrap_password),
                     user_type='admin',
                     status='active',
-                    display_name='Admin',
+                    display_name=os.environ.get('ADMIN_BOOTSTRAP_DISPLAY_NAME', 'Admin'),
                 )
                 db.session.add(admin)
                 db.session.commit()

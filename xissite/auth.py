@@ -183,7 +183,7 @@ def login():
             if user.user_type == 'admin':
                 return redirect(url_for('auth.admin_dashboard'))
             else:
-                return redirect(url_for('views.home'))
+                return redirect(url_for('auth.employee_ops'))
         else:
             if user and failure_reason == 'invalid_password':
                 user.failed_attempts = (user.failed_attempts or 0) + 1
@@ -290,6 +290,14 @@ def viewfeedback():
     """
     feedback_info = FeedBack.query.order_by(FeedBack.id.desc())
     return render_template('feedbackview.html', feedback_info=feedback_info)
+
+
+@auth.route('/ops')
+@login_required
+@employee_required
+def employee_ops():
+    """Employee operations center -- TullOps-pushed content appears here."""
+    return render_template('employee_ops.html', user=current_user)
 
 
 @auth.route('/admin')

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tull Operations</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='icons/favicon.svg') }}" type="image/svg+xml">
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="dash-topbar">
+    <div class="topbar-left">
+        <img src="{{ url_for('static', filename='images/Rhombus sprout.svg') }}" alt="Tull" class="topbar-logo">
+        <span class="topbar-label">OPERATIONS</span>
+    </div>
+    <div class="topbar-right">
+        <span class="topbar-user">{{ user.display_name or user.email }}</span>
+        <a href="{{ url_for('auth.logout') }}" class="topbar-logout">Logout</a>
+    </div>
+</div>
+
+<div class="ops-content">
+
+    <!-- Welcome Card -->
+    <div class="ops-welcome">
+        <h1>Welcome, {{ user.display_name or user.email }}</h1>
+        <p>Tull Hydroponics Operations Center</p>
+    </div>
+
+    <!-- Status Grid -->
+    <div class="ops-status-grid">
+        <div class="ops-status-card">
+            <div class="ops-status-label">Account Status</div>
+            <div class="badge-ok">ACTIVE</div>
+        </div>
+        <div class="ops-status-card">
+            <div class="ops-status-label">Last Login</div>
+            <div class="ops-status-value">
+                {% if user.last_login %}
+                    {{ user.last_login.strftime('%b %d, %Y at %I:%M %p') }}
+                {% else %}
+                    First session
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- My Tasks -->
+    <div class="ops-section">
+        <h2>My Tasks</h2>
+        <div class="ops-empty-state">
+            No tasks assigned yet. Tasks from TullOps will appear here.
+        </div>
+    </div>
+
+    <!-- My Checklists -->
+    <div class="ops-section">
+        <h2>My Checklists</h2>
+        <div class="ops-empty-state">
+            No active checklists. Checklists from TullOps will appear here.
+        </div>
+    </div>
+
+    <!-- Notifications -->
+    <div class="ops-section">
+        <h2>Notifications</h2>
+        <div class="ops-empty-state">
+            No new notifications. Notifications from TullOps will appear here.
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>
