@@ -91,59 +91,60 @@ def login():
     form = LoginForm()
 
     if request.method == 'POST':
-        # Check if IP is banned
         from .models import BannedIP, LoginAttempt as LA
         # Use remote_addr (set by App Engine / reverse proxy) rather than
         # the attacker-controlled X-Forwarded-For header
         client_ip = request.remote_addr or '0.0.0.0'
 
-        active_ban = BannedIP.query.filter_by(
-            ip_address=client_ip, active=True
-        ).first()
-        if active_ban:
-            if active_ban.expires_at and active_ban.expires_at < datetime.now(timezone.utc):
-                active_ban.active = False
-                db.session.commit()
-            else:
-                flash('Access blocked. Contact your administrator.', 'error')
-                return render_template('loginpage.html', form=form)
-
-        # Per-IP rate limiting: reject after 10 failed attempts in 1 hour
-        hour_ago = datetime.now(timezone.utc) - timedelta(hours=1)
-        ip_failures = LA.query.filter(
-            LA.ip_address == client_ip,
-            LA.success == False,
-            LA.timestamp >= hour_ago,
-        ).count()
-
-        auto_ban_threshold = int(os.environ.get('AUTO_BAN_THRESHOLD', '20'))
-        if ip_failures >= auto_ban_threshold:
-            ban_hours = int(os.environ.get('AUTO_BAN_WINDOW_HOURS', '1'))
-            auto_ban = BannedIP(
-                ip_address=client_ip,
-                reason=f'Auto-banned: {ip_failures} failed attempts in 1 hour',
-                banned_by='auto',
-                active=True,
-                expires_at=datetime.now(timezone.utc) + timedelta(hours=ban_hours),
-            )
-            db.session.add(auto_ban)
-            db.session.commit()
-            flash('Access blocked. Contact your administrator.', 'error')
-            return render_template('loginpage.html', form=form)
-
-        if ip_failures >= 10:
-            flash('Too many failed attempts. Try again later.', 'error')
-            return render_template('loginpage.html', form=form)
-
         username = request.form.get('username', '').strip()
         password = request.form.get('password', '')
 
         user = User.query.filter_by(email=username).first()
+        is_admin = user is not None and user.user_type == 'admin'
+
+        # Admin bypasses all IP-level restrictions
+        if not is_admin:
+            # Check if IP is banned
+            active_ban = BannedIP.query.filter_by(
+                ip_address=client_ip, active=True
+            ).first()
+            if active_ban:
+                if active_ban.expires_at and active_ban.expires_at < datetime.now(timezone.utc):
+                    active_ban.active = False
+                    db.session.commit()
+                else:
+                    flash('Access blocked. Contact your administrator.', 'error')
+                    return render_template('loginpage.html', form=form)
+
+            # Per-IP rate limiting: reject after 10 failed attempts in 1 hour
+            hour_ago = datetime.now(timezone.utc) - timedelta(hours=1)
+            ip_failures = LA.query.filter(
+                LA.ip_address == client_ip,
+                LA.success == False,
+                LA.timestamp >= hour_ago,
+            ).count()
+
+            auto_ban_threshold = int(os.environ.get('AUTO_BAN_THRESHOLD', '20'))
+            if ip_failures >= auto_ban_threshold:
+                ban_hours = int(os.environ.get('AUTO_BAN_WINDOW_HOURS', '1'))
+                auto_ban = BannedIP(
+                    ip_address=client_ip,
+                    reason=f'Auto-banned: {ip_failures} failed attempts in 1 hour',
+                    banned_by='auto',
+                    active=True,
+                    expires_at=datetime.now(timezone.utc) + timedelta(hours=ban_hours),
+                )
+                db.session.add(auto_ban)
+                db.session.commit()
+                flash('Access blocked. Contact your administrator.', 'error')
+                return render_template('loginpage.html', form=form)
+
+            if ip_failures >= 10:
+                flash('Too many failed attempts. Try again later.', 'error')
+                return render_template('loginpage.html', form=form)
 
         success = False
         failure_reason = None
-
-        is_admin = user is not None and user.user_type == 'admin'
 
         if user is None:
             # Dummy hash check to prevent timing-based username enumeration
@@ -179,6 +180,15 @@ def login():
             user.failed_attempts = 0
             user.locked_until = None
             user.last_login = datetime.now(timezone.utc)
+            # Admin login lifts any active IP ban on their address
+            if is_admin:
+                active_bans = BannedIP.query.filter_by(
+                    ip_address=client_ip, active=True
+                ).all()
+                for ban in active_bans:
+                    ban.active = False
+                if active_bans:
+                    print(f"[AUTH] Admin login lifted {len(active_bans)} IP ban(s) on {client_ip}")
             db.session.commit()
             login_user(user, remember=True)
             print(f"[AUTH] Successful {user.user_type.upper()} login: {username}")
