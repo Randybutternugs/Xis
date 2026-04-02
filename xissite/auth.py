@@ -143,16 +143,18 @@ def login():
         success = False
         failure_reason = None
 
+        is_admin = user is not None and user.user_type == 'admin'
+
         if user is None:
             # Dummy hash check to prevent timing-based username enumeration
             check_password_hash(generate_password_hash('dummy'), password)
             failure_reason = 'unknown_user'
-        elif user.status == 'suspended':
+        elif user.status == 'suspended' and not is_admin:
             failure_reason = 'account_suspended'
             flash('Account suspended. Contact your administrator.', 'error')
         elif user.status == 'deleted':
             failure_reason = 'unknown_user'
-        elif user.locked_until and user.locked_until > datetime.now(timezone.utc):
+        elif not is_admin and user.locked_until and user.locked_until > datetime.now(timezone.utc):
             remaining = int((user.locked_until - datetime.now(timezone.utc)).total_seconds() / 60) + 1
             failure_reason = 'account_locked'
             flash(f'Account temporarily locked. Try again in {remaining} minutes.', 'error')
@@ -185,7 +187,7 @@ def login():
             else:
                 return redirect(url_for('auth.employee_ops'))
         else:
-            if user and failure_reason == 'invalid_password':
+            if user and failure_reason == 'invalid_password' and not is_admin:
                 user.failed_attempts = (user.failed_attempts or 0) + 1
                 if user.failed_attempts >= 10:
                     user.locked_until = datetime.now(timezone.utc) + timedelta(hours=1)

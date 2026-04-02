@@ -925,7 +925,7 @@ tr.expandable:hover {
     left: 0;
     right: 0;
     z-index: 200;
-    height: 48px;
+    height: 60px;
     background: #000;
     border-bottom: 2px solid var(--g);
     display: flex;
@@ -947,10 +947,12 @@ tr.expandable:hover {
     display: flex;
     align-items: center;
     text-decoration: none;
+    height: 36px;
 }
+.topbar-logo img,
 .topbar-logo svg {
-    width: 72px;
-    height: auto;
+    height: 100%;
+    width: auto;
 }
 .topbar-label {
     font-size: .6em;
@@ -986,7 +988,7 @@ tr.expandable:hover {
 
 /* Push content below fixed topbar */
 .dash-body {
-    padding-top: 48px;
+    padding-top: 60px;
 }
 
 /* ─── E. Admin dashboard layout ─────────────────────────────── */
