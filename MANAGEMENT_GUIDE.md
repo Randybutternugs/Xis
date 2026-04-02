@@ -38,7 +38,6 @@ python main.py
 | User Type | Username | Password |
 |-----------|----------|----------|
 | Admin | admin | admin123 |
-| Investor | investor | invest123 |
 
 ---
 
@@ -68,15 +67,17 @@ For production, all environment variables are set in `app.yaml`. The app automat
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `FLASK_SECRET_KEY` | Yes | Random string for session security |
-| `ADMIN_USERNAME_HASH` | Yes | Werkzeug hash of admin username |
-| `ADMIN_PASSWORD_HASH` | Yes | Werkzeug hash of admin password |
-| `INVESTOR_USERNAME_HASH` | No | Werkzeug hash of investor username |
-| `INVESTOR_PASSWORD_HASH` | No | Werkzeug hash of investor password |
+| `ADMIN_BOOTSTRAP_EMAIL` | Yes | Initial admin username/email (first-run only) |
+| `ADMIN_BOOTSTRAP_PASSWORD` | Yes | Initial admin password (first-run only) |
+| `ADMIN_BOOTSTRAP_DISPLAY_NAME` | No | Initial admin display name |
+| `ADMIN_API_KEY` | Yes | API key for TullOps remote management |
+| `AUTO_BAN_THRESHOLD` | No | IP auto-ban after N failures (default: 20) |
+| `AUTO_BAN_WINDOW_HOURS` | No | Auto-ban duration in hours (default: 1) |
 | `STRIPE_SECRET_KEY` | Yes | Stripe API secret key |
 | `STRIPE_PUBLISHABLE_KEY` | Yes | Stripe API publishable key |
 | `STRIPE_WEBHOOK_SECRET` | Yes | Stripe webhook signing secret |
 | `HP_PRICE_ID` | Yes | Stripe Price ID for your product |
-| `MAIL_KEY` | Yes | Mailgun API key |
+| `POSTMARK_SERVER_TOKEN` | Yes | Postmark API key for transactional emails |
 | `MAIN_DOMAIN` | Yes | Your domain (e.g., https://tullhydro.com) |
 
 ---
@@ -87,60 +88,46 @@ For production, all environment variables are set in `app.yaml`. The app automat
 
 | User Type | Access | Destination After Login |
 |-----------|--------|------------------------|
-| `admin` | Customer database, purchases, feedback | `/viewdb` |
-| `investor` | Investor portal only | `/investor` |
+| `admin` | Customer database, purchases, feedback, all admin routes | `/admin` |
+| `employee` | Operational tools pushed by TullOps | `/ops` |
 
-### Generating Password Hashes
+### Managing Users
 
-Use Python to generate secure password hashes:
+All user accounts are managed via the TullOps admin API. The bootstrap admin is created automatically on first run from environment variables.
 
-```python
-from werkzeug.security import generate_password_hash
-
-# Generate hashes for your credentials
-username = "your_username"
-password = "your_secure_password"
-
-print(f"Username hash: {generate_password_hash(username)}")
-print(f"Password hash: {generate_password_hash(password)}")
-```
-
-Or use the setup script:
-
+**Create user via API:**
 ```bash
-python setup_credentials.py
+curl -X POST http://tullhydro.com/api/admin/users \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"email": "user@example.com", "password": "min10chars!", "user_type": "employee", "display_name": "Name"}'
 ```
 
-### Adding a New Admin
+**Update user:**
+```bash
+curl -X PUT http://tullhydro.com/api/admin/users/1 \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"status": "active", "display_name": "New Name"}'
+```
 
-1. Generate hashes for the new credentials
-2. Update `vars.env` (local) or `app.yaml` (cloud)
-3. Restart the application
+**Suspend/activate user:**
+```bash
+curl -X POST http://tullhydro.com/api/admin/users/1/suspend -H "Authorization: Bearer YOUR_API_KEY"
+curl -X POST http://tullhydro.com/api/admin/users/1/activate -H "Authorization: Bearer YOUR_API_KEY"
+```
 
-### Adding a New Investor Account
+### Password Policy
 
-1. Generate hashes:
-   ```python
-   from werkzeug.security import generate_password_hash
-   print(generate_password_hash("investor_username"))
-   print(generate_password_hash("investor_password"))
-   ```
+- Minimum 10 characters
+- No complexity regex (length is the primary defense per NIST 800-63B)
+- Passwords hashed with Werkzeug scrypt
 
-2. Add to environment:
-   ```
-   INVESTOR_USERNAME_HASH=scrypt:32768:8:1$...
-   INVESTOR_PASSWORD_HASH=scrypt:32768:8:1$...
-   ```
+### Account Lockout
 
-3. Restart the application
-
-### Changing Passwords
-
-1. Generate a new hash for the new password
-2. Replace the old hash in `vars.env` or `app.yaml`
-3. Restart the application
-
-**Note:** Users in the database are created automatically on first login. The hashes in environment variables are the source of truth.
+- 5 consecutive failed logins: 15-minute lockout
+- 10 consecutive failed logins: 1-hour lockout
+- Admin can unlock via `POST /api/admin/users/<id>/activate`
 
 ---
 
@@ -322,7 +309,9 @@ gcloud app create --region=us-central1
    env_variables:
      FLASK_SECRET_KEY: "your-secure-random-key"
      MAIN_DOMAIN: "https://YOUR_PROJECT_ID.appspot.com"
-     ADMIN_USERNAME_HASH: "scrypt:32768:8:1$..."
+     ADMIN_BOOTSTRAP_EMAIL: "admin"
+     ADMIN_BOOTSTRAP_PASSWORD: "your-secure-password"
+     ADMIN_API_KEY: "your-api-key"
      # ... other variables
    ```
 
@@ -430,22 +419,14 @@ Use any future expiry date and any 3-digit CVC.
 
 ### Common Issues
 
-#### "Admin credentials not configured"
-- Check that `ADMIN_USERNAME_HASH` and `ADMIN_PASSWORD_HASH` are set
-- For local: Verify `vars.env` exists and has correct values
-- For cloud: Check `app.yaml` environment variables
+#### "Invalid credentials" on login
+- Check that the bootstrap admin was created (look for `[SETUP] Bootstrap admin created` in console output)
+- If the database already had users, the bootstrap won't run — manage accounts via the admin API
+- For locked accounts: use `POST /api/admin/users/<id>/activate` to unlock
 
 #### "no such column: user.user_type"
 - Your database is from an older version
 - **Fix:** Delete `tullhydro.db` and restart, OR the app will auto-migrate
-
-#### "Invalid credentials" on login
-- The password hash might be incorrect
-- Regenerate the hash:
-  ```python
-  from werkzeug.security import generate_password_hash
-  print(generate_password_hash("your_password"))
-  ```
 
 #### Static files not loading (404)
 - Check that files exist in `xissite/static/`

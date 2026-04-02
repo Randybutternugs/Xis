@@ -7,7 +7,7 @@ A Flask-based e-commerce website for Tull Hydroponics, featuring a brutalist des
 - **Brutalist Design**: Clean, minimal black background with strategic green (#6ABD45) accents
 - **E-commerce**: Stripe integration for product sales with webhooks for order processing
 - **Customer Database**: Admin panel for viewing customers, purchases, and feedback
-- **Investor Portal**: Separate login for investors with confidential materials
+- **Employee Portal**: Employee access to operational tools pushed by TullOps
 - **Contact Form**: Customer feedback system with database storage
 - **Mobile First**: Fully responsive design for all devices
 - **Auto Environment Detection**: Seamlessly works locally and on Google Cloud
@@ -77,7 +77,6 @@ tull-website/
     │   ├── success.html
     │   ├── cancel.html
     │   ├── loginpage.html
-    │   ├── investor.html      # Investor portal
     │   ├── show.html          # Customer list
     │   ├── showmore.html      # Customer detail
     │   ├── feedbackview.html  # Feedback list
@@ -204,19 +203,22 @@ See [MANAGEMENT_GUIDE.md](MANAGEMENT_GUIDE.md) for complete deployment instructi
 
 - **Custom Domain**: Configure in App Engine settings after deployment.
 
-## Admin Credentials
+## Authentication
 
-Generate hashed credentials:
+The auth system uses database-backed accounts managed by TullOps via the admin API.
 
-```python
-from werkzeug.security import generate_password_hash
+**Bootstrap admin** is created on first run from env vars:
+- `ADMIN_BOOTSTRAP_EMAIL` — username/email for initial admin
+- `ADMIN_BOOTSTRAP_PASSWORD` — password (min 10 chars in production)
 
-username_hash = generate_password_hash('your_username')
-password_hash = generate_password_hash('your_password')
+**After bootstrap**, all account management happens through the TullOps admin API (`/api/admin/users`).
 
-print(f"ADMIN_USERNAME_HASH={username_hash}")
-print(f"ADMIN_PASSWORD_HASH={password_hash}")
-```
+**Security features:**
+- Werkzeug scrypt password hashing
+- Per-account lockout (5 failures = 15min, 10 = 1hr)
+- Per-IP rate limiting with auto-ban
+- 8-hour sessions, 7-day remember-me cookies
+- HTTPS-only cookies in production
 
 ## Design System
 

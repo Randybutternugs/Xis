@@ -21,8 +21,8 @@ service: default
 # To generate secure keys:
 #   python -c "import secrets; print(secrets.token_hex(32))"
 #
-# To generate password hashes for admin credentials:
-#   python -c "from werkzeug.security import generate_password_hash; print(generate_password_hash('your_password'))"
+# Admin bootstrap password is used only on first run to create the initial admin account.
+# After that, manage accounts via TullOps admin API.
 # ============================================================================
 
 env_variables:
@@ -48,17 +48,17 @@ env_variables:
   POSTMARK_SERVER_TOKEN: "REPLACE_WITH_YOUR_POSTMARK_TOKEN"
   POSTMARK_SENDER_EMAIL: "support@tullhydro.com"
   
-  # Admin Credentials (hashed values)
-  # Generate with: python -c "from werkzeug.security import generate_password_hash; print(generate_password_hash('your_username'))"
-  # These are example hashes - REPLACE with your own!
-  ADMIN_USERNAME_HASH: 'scrypt:32768:8:1$RkmSaBoEJHHEOrob$a436468c6580b68f67c3fdd733a7c52c38da768ee6dd9414da8dbdafa78ae5f92e0793fc613a78a9cd6ea5312abd5d23faf868eb0e0d2e1f52a06d1164547718'
-  ADMIN_PASSWORD_HASH: 'scrypt:32768:8:1$zOlfRPNfqJrkzdpu$94f1b0d718e1e0363f1fe709065c9d4b229819b03bb9e85c6bb61dc9f2737435e2dca08331f37a08fe2e9c70f68f0018a3a9ebb97e06d1e2f91363def8c535f6'
-  
-  # Investor Credentials (hashed values)
-  # Separate login for investors to access the investor portal
-  # Generate with: python -c "from werkzeug.security import generate_password_hash; print(generate_password_hash('your_value'))"
-  INVESTOR_USERNAME_HASH: 'REPLACE_WITH_INVESTOR_USERNAME_HASH'
-  INVESTOR_PASSWORD_HASH: 'REPLACE_WITH_INVESTOR_PASSWORD_HASH'
+  # Admin Bootstrap (first-run only — creates initial admin account)
+  ADMIN_BOOTSTRAP_EMAIL: "admin"
+  ADMIN_BOOTSTRAP_PASSWORD: "REPLACE_WITH_SECURE_PASSWORD"
+  ADMIN_BOOTSTRAP_DISPLAY_NAME: "Admin"
+
+  # Admin API Key (for TullOps remote management)
+  ADMIN_API_KEY: "REPLACE_WITH_SECURE_API_KEY"
+
+  # Security Thresholds
+  AUTO_BAN_THRESHOLD: "20"
+  AUTO_BAN_WINDOW_HOURS: "1"
 
 # ============================================================================
 # SCALING CONFIGURATION
