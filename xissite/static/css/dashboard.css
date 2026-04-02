@@ -1004,7 +1004,7 @@ tr.expandable:hover {
 .ops-content {
     max-width: 900px;
     margin: 0 auto;
-    padding: 28px 20px;
+    padding: 80px 20px 28px;
 }
 
 .ops-welcome {
@@ -1078,6 +1078,141 @@ tr.expandable:hover {
     font-size: .85em;
 }
 
+/* Status cards (missing definitions) */
+.ops-status-card {
+    background: var(--card);
+    border: 1px solid var(--brd);
+    padding: 14px 16px;
+}
+.ops-status-label {
+    font-size: .6em;
+    color: var(--mut);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-family: Consolas, monospace;
+    margin-bottom: 4px;
+}
+.ops-status-value {
+    font-family: Consolas, monospace;
+    font-size: .9em;
+    color: var(--txt);
+}
+
+/* Task cards */
+.ops-task {
+    background: var(--card);
+    border: 1px solid var(--brd);
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+.ops-task-status {
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+.ops-task-body {
+    flex: 1;
+    min-width: 0;
+}
+.ops-task-title {
+    font-family: Consolas, monospace;
+    font-size: .9em;
+    font-weight: 700;
+    color: var(--txt);
+    margin-bottom: 4px;
+}
+.ops-task-desc {
+    font-size: .8em;
+    color: var(--txt2);
+    margin-bottom: 6px;
+}
+.ops-task-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    font-family: Consolas, monospace;
+    font-size: .7em;
+    color: var(--mut);
+}
+
+/* Checklist containers */
+.ops-checklist {
+    background: var(--card);
+    border: 1px solid var(--brd);
+    padding: 16px;
+    margin-bottom: 12px;
+}
+.ops-checklist-title {
+    font-family: Consolas, monospace;
+    font-size: .8em;
+    font-weight: 700;
+    color: var(--g);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+}
+.ops-checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #1a1a1a;
+    font-family: Consolas, monospace;
+    font-size: .85em;
+    color: var(--txt);
+    cursor: pointer;
+}
+.ops-checklist-item:last-of-type {
+    border-bottom: none;
+}
+.ops-checklist-item.checked {
+    color: var(--mut);
+    text-decoration: line-through;
+}
+.ops-checklist-item input[type="checkbox"] {
+    accent-color: var(--g);
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+.ops-checklist-progress {
+    font-family: Consolas, monospace;
+    font-size: .7em;
+    color: var(--mut);
+    margin-top: 10px;
+}
+
+/* Notification items */
+.ops-notif {
+    background: var(--card);
+    border: 1px solid var(--brd);
+    padding: 12px 16px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+.ops-notif-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+.ops-notif-body {
+    flex: 1;
+    min-width: 0;
+}
+.ops-notif-text {
+    font-size: .85em;
+    color: var(--txt);
+    margin-bottom: 4px;
+}
+.ops-notif-time {
+    font-family: Consolas, monospace;
+    font-size: .7em;
+    color: var(--mut);
+}
+
 /* ─── Responsive breakpoints ────────────────────────────────── */
 
 @media (max-width: 768px) {
@@ -1147,6 +1282,8 @@ tr.expandable:hover {
 
     /* Ops grid */
     .ops-status-grid { grid-template-columns: 1fr; }
+    .ops-task { flex-direction: column; gap: 8px; }
+    .ops-notif { flex-direction: column; gap: 6px; }
 
     /* Toast full-width */
     .toast { left: 12px; right: 12px; bottom: 12px; width: auto; text-align: center; }
@@ -1165,7 +1302,8 @@ tr.expandable:hover {
     .bar-label      { min-width: 28px !important; font-size: .6em; }
     .heatmap-cell   { min-width: 24px; flex: 0 0 24px; }
     .dash-topbar    { padding: 0 12px; }
-    .ops-content    { padding: 16px 12px; }
+    .ops-content    { padding: 72px 12px 16px; }
+    .ops-task-meta  { gap: 8px; }
     .ops-welcome    { padding: 16px; }
 }
 

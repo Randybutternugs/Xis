@@ -26,7 +26,7 @@
     <!-- Welcome Card -->
     <div class="ops-welcome">
         <h1>Welcome, {{ user.display_name or user.email }}</h1>
-        <p>Tull Hydroponics Operations Center</p>
+        <p class="ops-subtitle">Tull Hydroponics Operations Center</p>
     </div>
 
     <!-- Status Grid -->
@@ -49,29 +49,195 @@
 
     <!-- My Tasks -->
     <div class="ops-section">
-        <h2>My Tasks</h2>
-        <div class="ops-empty-state">
-            No tasks assigned yet. Tasks from TullOps will appear here.
+        <h2>// My Tasks</h2>
+
+        <div class="ops-task">
+            <div class="ops-task-status"><span class="dot dot-g"></span></div>
+            <div class="ops-task-body">
+                <div class="ops-task-title">Check nutrient levels on Tower 7</div>
+                <div class="ops-task-desc">Verify EC and PPM readings are within range for lettuce grow cycle. Log readings in tower sheet.</div>
+                <div class="ops-task-meta">
+                    <span class="badge-ok">Completed</span>
+                    <span>Due: Mar 31</span>
+                    <span>Priority: <span class="ok">Low</span></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="ops-task">
+            <div class="ops-task-status"><span class="dot dot-y"></span></div>
+            <div class="ops-task-body">
+                <div class="ops-task-title">Replace pH sensor on Tower 3</div>
+                <div class="ops-task-desc">Sensor drift detected. Swap with calibrated unit from storage. Recalibrate after install.</div>
+                <div class="ops-task-meta">
+                    <span class="badge-warn">In Progress</span>
+                    <span>Due: Apr 2</span>
+                    <span>Priority: <span class="crit">High</span></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="ops-task">
+            <div class="ops-task-status"><span class="dot dot-r"></span></div>
+            <div class="ops-task-body">
+                <div class="ops-task-title">Flush reservoir B and refill nutrient solution</div>
+                <div class="ops-task-desc">Reservoir B has been running 14 days. Drain, clean, and mix fresh batch per formula chart.</div>
+                <div class="ops-task-meta">
+                    <span class="badge-crit">Pending</span>
+                    <span>Due: Apr 3</span>
+                    <span>Priority: <span class="warn">Medium</span></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="ops-task">
+            <div class="ops-task-status"><span class="dot dot-r"></span></div>
+            <div class="ops-task-body">
+                <div class="ops-task-title">Inspect pump pressure on Towers 1-4</div>
+                <div class="ops-task-desc">Flow rate alarm triggered on Tower 2 yesterday. Check all pumps in row A for blockages or wear.</div>
+                <div class="ops-task-meta">
+                    <span class="badge-crit">Pending</span>
+                    <span>Due: Apr 2</span>
+                    <span>Priority: <span class="crit">High</span></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="ops-task">
+            <div class="ops-task-status"><span class="dot dot-y"></span></div>
+            <div class="ops-task-body">
+                <div class="ops-task-title">Transplant seedlings to Tower 12</div>
+                <div class="ops-task-desc">Basil seedlings in nursery tray are ready. Move to Tower 12 slots 1-20. Update grow log.</div>
+                <div class="ops-task-meta">
+                    <span class="badge-warn">In Progress</span>
+                    <span>Due: Apr 4</span>
+                    <span>Priority: <span class="ok">Low</span></span>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- My Checklists -->
     <div class="ops-section">
-        <h2>My Checklists</h2>
-        <div class="ops-empty-state">
-            No active checklists. Checklists from TullOps will appear here.
+        <h2>// My Checklists</h2>
+
+        <div class="ops-checklist">
+            <div class="ops-checklist-title">Morning Startup Checklist</div>
+            <label class="ops-checklist-item checked">
+                <input type="checkbox" checked> Verify all pump systems are running
+            </label>
+            <label class="ops-checklist-item checked">
+                <input type="checkbox" checked> Check water temperature across reservoirs
+            </label>
+            <label class="ops-checklist-item">
+                <input type="checkbox"> Record pH levels for Towers 1-6
+            </label>
+            <label class="ops-checklist-item">
+                <input type="checkbox"> Record pH levels for Towers 7-12
+            </label>
+            <label class="ops-checklist-item">
+                <input type="checkbox"> Inspect grow lights and timer schedules
+            </label>
+            <label class="ops-checklist-item">
+                <input type="checkbox"> Check ambient temperature and humidity
+            </label>
+            <div class="ops-checklist-progress">2 / 6 complete</div>
+        </div>
+
+        <div class="ops-checklist">
+            <div class="ops-checklist-title">End of Day Shutdown</div>
+            <label class="ops-checklist-item">
+                <input type="checkbox"> Drain and clean harvest trays
+            </label>
+            <label class="ops-checklist-item">
+                <input type="checkbox"> Log daily yield weights
+            </label>
+            <label class="ops-checklist-item">
+                <input type="checkbox"> Secure nutrient storage area
+            </label>
+            <label class="ops-checklist-item">
+                <input type="checkbox"> Set overnight lighting schedule
+            </label>
+            <label class="ops-checklist-item">
+                <input type="checkbox"> Confirm backup pump is on standby
+            </label>
+            <div class="ops-checklist-progress">0 / 5 complete</div>
+        </div>
+
+        <div class="ops-checklist">
+            <div class="ops-checklist-title">Weekly Maintenance (Row A)</div>
+            <label class="ops-checklist-item checked">
+                <input type="checkbox" checked> Calibrate pH and EC sensors
+            </label>
+            <label class="ops-checklist-item checked">
+                <input type="checkbox" checked> Clean tower nozzles and filters
+            </label>
+            <label class="ops-checklist-item checked">
+                <input type="checkbox" checked> Inspect root health on all active towers
+            </label>
+            <label class="ops-checklist-item">
+                <input type="checkbox"> Test backup generator
+            </label>
+            <div class="ops-checklist-progress">3 / 4 complete</div>
         </div>
     </div>
 
     <!-- Notifications -->
     <div class="ops-section">
-        <h2>Notifications</h2>
-        <div class="ops-empty-state">
-            No new notifications. Notifications from TullOps will appear here.
+        <h2>// Notifications</h2>
+
+        <div class="ops-notif" style="border-left: 3px solid var(--crit);">
+            <div class="ops-notif-icon"><span class="dot dot-r"></span></div>
+            <div class="ops-notif-body">
+                <div class="ops-notif-text"><strong class="crit">ALERT:</strong> pH sensor on Tower 3 reading out of range (3.2). Immediate calibration required.</div>
+                <div class="ops-notif-time">Today at 08:14 AM</div>
+            </div>
+        </div>
+
+        <div class="ops-notif" style="border-left: 3px solid var(--warn);">
+            <div class="ops-notif-icon"><span class="dot dot-y"></span></div>
+            <div class="ops-notif-body">
+                <div class="ops-notif-text"><strong class="warn">WARNING:</strong> Reservoir B nutrient levels below threshold. Scheduled refill due tomorrow.</div>
+                <div class="ops-notif-time">Today at 07:30 AM</div>
+            </div>
+        </div>
+
+        <div class="ops-notif" style="border-left: 3px solid var(--blue);">
+            <div class="ops-notif-icon"><span class="dot dot-g"></span></div>
+            <div class="ops-notif-body">
+                <div class="ops-notif-text">New grow cycle started on Towers 10-12. Basil variety: Genovese. Expected harvest: Apr 28.</div>
+                <div class="ops-notif-time">Yesterday at 04:15 PM</div>
+            </div>
+        </div>
+
+        <div class="ops-notif" style="border-left: 3px solid var(--g);">
+            <div class="ops-notif-icon"><span class="dot dot-g"></span></div>
+            <div class="ops-notif-body">
+                <div class="ops-notif-text">Weekly maintenance report submitted successfully. All towers passed inspection.</div>
+                <div class="ops-notif-time">Mar 31 at 05:00 PM</div>
+            </div>
         </div>
     </div>
 
 </div>
+
+<script>
+document.querySelectorAll('.ops-checklist-item input[type="checkbox"]').forEach(function(cb) {
+    cb.addEventListener('change', function() {
+        var item = this.closest('.ops-checklist-item');
+        if (this.checked) {
+            item.classList.add('checked');
+        } else {
+            item.classList.remove('checked');
+        }
+        var checklist = this.closest('.ops-checklist');
+        var total = checklist.querySelectorAll('.ops-checklist-item').length;
+        var done = checklist.querySelectorAll('.ops-checklist-item input:checked').length;
+        var prog = checklist.querySelector('.ops-checklist-progress');
+        if (prog) prog.textContent = done + ' / ' + total + ' complete';
+    });
+});
+</script>
 
 </body>
 </html>
