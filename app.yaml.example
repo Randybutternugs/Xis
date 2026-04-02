@@ -64,13 +64,14 @@ env_variables:
 # SCALING CONFIGURATION
 # ============================================================================
 # Automatic scaling adjusts instances based on traffic
-# min_instances: 1 keeps one instance warm to reduce cold starts
+# IMPORTANT: max_instances must be 1 while using SQLite (/tmp is per-instance,
+# so multiple instances = multiple independent databases). Increase only after
+# migrating to Cloud SQL.
 # ============================================================================
 
 automatic_scaling:
   min_instances: 1
-  max_instances: 10
-  min_idle_instances: 1
+  max_instances: 1
   max_concurrent_requests: 50
   target_cpu_utilization: 0.65
 
