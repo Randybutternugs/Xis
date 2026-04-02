@@ -80,6 +80,7 @@ coverage.xml
 logs/
 
 # Google Cloud
+app.yaml
 .gcloudignore
 
 # Stripe CLI
