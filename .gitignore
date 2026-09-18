@@ -94,3 +94,6 @@ app.yaml
 # Local venv for admin_panel work (Python 3.14; xissite pins SQLAlchemy 2.0.23
 # which cannot import on 3.13+, so admin_panel gets its own environment)
 .venv-admin/
+
+# Admin panel secrets (see admin_panel.env.example)
+admin_panel.env
