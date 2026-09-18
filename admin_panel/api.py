@@ -31,6 +31,29 @@ def _upstream(path):
     )
 
 
+@bp.route("/api/site-admin/export/<table>")
+def export_csv(table):
+    """CSV download. Registered before the catch-all: it needs an attachment
+    header the generic passthrough does not add."""
+    try:
+        r = _upstream(f"export/{table}")
+    except requests.Timeout:
+        return jsonify(error="TullSite API timeout"), 504
+    except requests.ConnectionError:
+        return jsonify(error="TullSite API unreachable"), 502
+    except requests.RequestException as e:
+        return jsonify(error=str(e)), 502
+    if r.status_code != 200:
+        return jsonify(error="Export failed"), 502
+    return Response(
+        r.content,
+        mimetype=r.headers.get("Content-Type", "text/csv"),
+        headers={
+            "Content-Disposition": f"attachment; filename=tullsite_{table}.csv"
+        },
+    )
+
+
 @bp.route("/api/site-admin/<path:sub>", methods=FORWARD_METHODS)
 def passthrough(sub):
     try:
