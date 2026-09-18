@@ -14,8 +14,8 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 load_dotenv(ROOT / "admin_panel.env")
 
-from admin_panel import create_app  # noqa: E402  (must follow load_dotenv)
-from admin_panel.config import Config  # noqa: E402
+from admin_panel import create_app  # noqa: E402  (admin_panel/ not importable until ROOT is on sys.path)
+from admin_panel.config import Config  # noqa: E402  (admin_panel/ not importable until ROOT is on sys.path)
 
 
 def main():
@@ -30,7 +30,16 @@ def main():
     print("=" * 60)
     print(f"  Upstream:  {cfg.api_url}")
     print(f"  Listening: http://{cfg.host}:{cfg.port}/site-admin")
-    print("  NO AUTHENTICATION — keep this port on the LAN only.")
+
+    # Warn if not bound to loopback
+    is_loopback = cfg.host in ("127.0.0.1", "localhost")
+    if not is_loopback:
+        print(f"  ⚠️  WARNING: Binding to {cfg.host} — this panel is reachable")
+        print("      from the network with NO AUTHENTICATION. Only use on ARCS")
+        print("      behind a router. Never port-forward or expose via Tailscale.")
+    else:
+        print("  ✓ Loopback-only (safe). Set ADMIN_PANEL_HOST=0.0.0.0 for LAN access.")
+
     print("=" * 60)
     app.run(host=cfg.host, port=cfg.port, debug=False, use_reloader=False)
 

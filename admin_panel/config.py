@@ -8,7 +8,10 @@ import os
 from dataclasses import dataclass
 
 DEFAULT_API_URL = "https://xissite-355821.ue.r.appspot.com"
-DEFAULT_HOST = "0.0.0.0"
+# The panel has no authentication, so it binds loopback (127.0.0.1) by default.
+# Set ADMIN_PANEL_HOST=0.0.0.0 to expose it on the LAN (ARCS only; never
+# combine with port-forwarding or Tailscale funnel).
+DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 5002
 
 

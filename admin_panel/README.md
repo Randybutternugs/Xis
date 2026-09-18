@@ -18,8 +18,13 @@ Then open http://localhost:5002/site-admin
 ## Security
 
 The panel has **no authentication**, matching how it behaved inside the fleet
-server. Its only protection is network position. Never port-forward 5002 or
-expose it through Tailscale funnel.
+server. Its only protection is network position.
+
+**Default binding:** `127.0.0.1` (loopback, safe on any machine).
+
+**LAN access:** Set `ADMIN_PANEL_HOST=0.0.0.0` to bind all interfaces (ARCS only,
+safe because it sits behind a router). Never combine with port-forwarding or
+Tailscale funnel.
 
 `ADMIN_API_KEY` must match the value in TullSite's `app.yaml`. The panel
 refuses to start without it.

@@ -5,9 +5,19 @@ REPO = Path(__file__).resolve().parent.parent.parent
 
 def test_admin_panel_excluded_from_gae_deploy():
     text = (REPO / ".gcloudignore").read_text()
-    assert "admin_panel/" in text, (
+    lines = [line.strip() for line in text.split("\n")]
+
+    # Assert admin_panel/ is explicitly listed
+    assert "admin_panel/" in lines, (
         "admin_panel must not ship to App Engine — it runs on ARCS"
     )
+
+    # Assert it is not negated (no !admin_panel/ or !admin_panel)
+    negation_patterns = ["!admin_panel/", "!admin_panel"]
+    for pattern in negation_patterns:
+        assert pattern not in lines, (
+            f"admin_panel exclusion must not be negated by {pattern}"
+        )
 
 
 def test_env_file_gitignored():

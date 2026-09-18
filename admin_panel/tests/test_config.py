@@ -16,8 +16,16 @@ def test_from_env_defaults(monkeypatch):
     monkeypatch.delenv("ADMIN_PANEL_PORT", raising=False)
     cfg = Config.from_env()
     assert cfg.api_url == DEFAULT_API_URL
-    assert cfg.host == "0.0.0.0"
+    assert cfg.host == "127.0.0.1"
     assert cfg.port == 5002
+
+
+def test_admin_panel_host_opt_in(monkeypatch):
+    """Verify that ADMIN_PANEL_HOST=0.0.0.0 opt-in still works."""
+    monkeypatch.setenv("ADMIN_API_KEY", "secret")
+    monkeypatch.setenv("ADMIN_PANEL_HOST", "0.0.0.0")
+    cfg = Config.from_env()
+    assert cfg.host == "0.0.0.0"
 
 
 def test_trailing_slash_stripped(monkeypatch):
