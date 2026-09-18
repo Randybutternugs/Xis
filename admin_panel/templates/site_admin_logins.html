@@ -1,0 +1,321 @@
+{% extends "base.html" %}
+{% block title %}Login Monitor - Site Admin{% endblock %}
+
+{% block head %}
+<style>
+.page-hdr{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.page-hdr h1{font-size:1.1em;font-weight:700;font-family:'Consolas',monospace;color:var(--txt)}
+.pulse-dot{width:10px;height:10px;border-radius:50%;background:var(--g);animation:pulse-glow 2s infinite}
+@keyframes pulse-glow{0%,100%{opacity:1;box-shadow:0 0 4px var(--g)}50%{opacity:.4;box-shadow:0 0 8px var(--g)}}
+.refresh-label{font-size:.65em;color:var(--mut);text-transform:uppercase;letter-spacing:1px}
+
+.sub-nav{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.sub-nav a{padding:6px 14px;font-size:.75em;font-weight:700;text-transform:uppercase;letter-spacing:1px;border:1px solid var(--brd);color:var(--mut);text-decoration:none;transition:all .2s}
+.sub-nav a:hover,.sub-nav a.active{color:var(--g);border-color:var(--g)}
+
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.filter-bar label{font-size:.7em;color:var(--mut);text-transform:uppercase;letter-spacing:1px}
+.filter-bar input,.filter-bar select{padding:6px 8px;font-size:.85em}
+.filter-group{display:flex;flex-direction:column;gap:4px}
+
+.mono{font-family:'Consolas',monospace}
+.ua-cell{max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:help}
+.row-fail{background:rgba(255,50,50,0.05)}
+
+.suspicious-entry{background:#0a0a0a;border:1px solid #1a1a1a;padding:10px 12px;margin:6px 0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.suspicious-entry .ip{font-family:'Consolas',monospace;font-size:.95em;color:var(--txt)}
+.suspicious-entry .meta{font-size:.75em;color:var(--mut);font-family:'Consolas',monospace}
+.suspicious-entry .details{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+
+.empty-state{text-align:center;padding:40px;color:var(--mut);font-size:.85em}
+
+@media(max-width:768px){
+  .filter-bar{flex-direction:column;align-items:stretch}
+  .filter-group{width:100%}
+  .filter-group input,.filter-group select{width:100%}
+  .suspicious-entry{flex-direction:column;align-items:flex-start}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="page-hdr">
+  <h1>// Login Monitor</h1>
+  <span class="pulse-dot"></span>
+  <span class="refresh-label">Auto-refresh active</span>
+</div>
+
+<!-- Sub-nav -->
+<div class="sub-nav">
+  <a href="/site-admin">Dashboard</a>
+  <a href="/site-admin/logins" class="active">Logins</a>
+  <a href="/site-admin/visitors">Visitors</a>
+  <a href="/site-admin/feedback">Feedback</a>
+  <a href="/site-admin/security">Security</a>
+</div>
+
+<!-- Stats row -->
+<div class="grid-4" id="stats-row" style="margin-bottom:16px">
+  <div class="si">
+    <label>Total Attempts (24h)</label>
+    <div class="val mono" id="stat-total">--</div>
+  </div>
+  <div class="si">
+    <label>Successful (24h)</label>
+    <div class="val mono ok" id="stat-success">--</div>
+  </div>
+  <div class="si">
+    <label>Failed (24h)</label>
+    <div class="val mono" id="stat-failed">--</div>
+  </div>
+  <div class="si">
+    <label>Unique IPs (24h)</label>
+    <div class="val mono" id="stat-ips">--</div>
+  </div>
+</div>
+
+<!-- Filter bar -->
+<div class="card" style="margin-bottom:16px">
+  <h2>// Filters</h2>
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label>From</label>
+      <input type="date" id="filter-from">
+    </div>
+    <div class="filter-group">
+      <label>To</label>
+      <input type="date" id="filter-to">
+    </div>
+    <div class="filter-group">
+      <label>Result</label>
+      <select id="filter-result">
+        <option value="">All</option>
+        <option value="success">Success</option>
+        <option value="failed">Failed</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>IP Search</label>
+      <input type="text" id="filter-ip" placeholder="e.g. 192.168.1">
+    </div>
+    <div class="filter-group" style="justify-content:flex-end;margin-top:auto">
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-primary" onclick="applyFilters()">Filter</button>
+        <button class="btn btn-outline" onclick="exportLogins()">Export</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Login attempts table -->
+<div class="card">
+  <h2>// Login Attempts</h2>
+  <div class="table-scroll">
+    <table class="table" id="logins-table">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>IP Address</th>
+          <th>User Agent</th>
+          <th>Username</th>
+          <th>Result</th>
+          <th>Failure Reason</th>
+        </tr>
+      </thead>
+      <tbody id="logins-body">
+        <tr><td colspan="6" class="empty-state">Loading login attempts...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Suspicious activity -->
+<div class="card">
+  <h2>// Suspicious Activity</h2>
+  <div id="suspicious-list">
+    <div class="empty-state">Loading alerts...</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function(){
+  let refreshTimer;
+
+  function relativeTime(ts){
+    if(!ts) return '--';
+    const now=Date.now();
+    const d=new Date(ts);
+    const diff=Math.floor((now-d.getTime())/1000);
+    if(diff<0) return 'just now';
+    if(diff<60) return diff+'s ago';
+    if(diff<3600) return Math.floor(diff/60)+'m ago';
+    if(diff<86400) return Math.floor(diff/3600)+'h ago';
+    return Math.floor(diff/86400)+'d ago';
+  }
+
+  function fullDateTime(ts){
+    if(!ts) return '';
+    const d=new Date(ts);
+    return d.toLocaleString();
+  }
+
+  function truncate(str,len){
+    if(!str) return '';
+    return str.length>len ? str.substring(0,len)+'...' : str;
+  }
+
+  function formatUsername(entry){
+    if(entry.username==='admin' || entry.user_type==='admin') return '[admin]';
+    if(entry.username==='investor' || entry.user_type==='investor') return '[investor]';
+    return entry.username || '--';
+  }
+
+  function showToast(msg,duration){
+    const t=document.getElementById('toast');
+    t.textContent=msg;
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),duration||3000);
+  }
+
+  function getFilterParams(){
+    const params=new URLSearchParams();
+    const from=document.getElementById('filter-from').value;
+    const to=document.getElementById('filter-to').value;
+    const result=document.getElementById('filter-result').value;
+    const ip=document.getElementById('filter-ip').value.trim();
+    if(from) params.set('from',from);
+    if(to) params.set('to',to);
+    if(result) params.set('result',result);
+    if(ip) params.set('ip',ip);
+    return params.toString();
+  }
+
+  async function fetchStats(){
+    try{
+      const resp=await fetch('/api/site-admin/stats');
+      if(!resp.ok) throw new Error('Stats fetch failed');
+      const data=await resp.json();
+      const s=data.login_24h||{};
+      document.getElementById('stat-total').textContent=s.total!=null?s.total:'--';
+      document.getElementById('stat-success').textContent=s.success!=null?s.success:'--';
+      const failEl=document.getElementById('stat-failed');
+      failEl.textContent=s.failed!=null?s.failed:'--';
+      failEl.className='val mono'+(s.failed>0?' crit':'');
+      document.getElementById('stat-ips').textContent=s.unique_ips!=null?s.unique_ips:'--';
+    }catch(e){
+      console.error('Stats error:',e);
+    }
+  }
+
+  async function fetchLogins(){
+    try{
+      const qs=getFilterParams();
+      const url='/api/site-admin/login-attempts'+(qs?'?'+qs:'');
+      const resp=await fetch(url);
+      if(!resp.ok) throw new Error('Login fetch failed');
+      const data=await resp.json();
+      renderLogins(data.attempts||data||[]);
+    }catch(e){
+      console.error('Logins error:',e);
+      showToast('Failed to load login attempts');
+    }
+  }
+
+  function renderLogins(attempts){
+    const tbody=document.getElementById('logins-body');
+    if(!attempts.length){
+      tbody.innerHTML='<tr><td colspan="6" class="empty-state">No login attempts found</td></tr>';
+      return;
+    }
+    let html='';
+    for(const a of attempts){
+      const isFail=a.result==='failed'||a.result==='fail'||!a.success;
+      const rowClass=isFail?'row-fail':'';
+      html+='<tr class="'+rowClass+'">';
+      html+='<td title="'+fullDateTime(a.timestamp)+'">'+relativeTime(a.timestamp)+'</td>';
+      html+='<td class="mono">'+(a.ip_address||a.ip||'--')+'</td>';
+      html+='<td class="ua-cell" title="'+(a.user_agent||'').replace(/"/g,'&quot;')+'">'
+        +truncate(a.user_agent,40)+'</td>';
+      html+='<td>'+formatUsername(a)+'</td>';
+      if(isFail){
+        html+='<td><span class="dot dot-r"></span> FAIL</td>';
+        html+='<td style="font-size:.8em;color:var(--crit)">'+(a.failure_reason||a.reason||'')+'</td>';
+      }else{
+        html+='<td><span class="dot dot-g"></span> OK</td>';
+        html+='<td></td>';
+      }
+      html+='</tr>';
+    }
+    tbody.innerHTML=html;
+  }
+
+  async function fetchAlerts(){
+    try{
+      const resp=await fetch('/api/site-admin/security/alerts');
+      if(!resp.ok) throw new Error('Alerts fetch failed');
+      const data=await resp.json();
+      renderAlerts(data.alerts||data||[]);
+    }catch(e){
+      console.error('Alerts error:',e);
+    }
+  }
+
+  function renderAlerts(alerts){
+    const container=document.getElementById('suspicious-list');
+    if(!alerts.length){
+      container.innerHTML='<div class="empty-state">No suspicious activity detected</div>';
+      return;
+    }
+    let html='';
+    for(const a of alerts){
+      const count=a.attempt_count||a.count||0;
+      const badgeClass=count>=5?'badge-crit':'badge-warn';
+      const badgeLabel=count>=5?'Critical':'Warning';
+      html+='<div class="suspicious-entry">';
+      html+='<div class="details">';
+      html+='<span class="ip">'+(a.ip_address||a.ip||'--')+'</span>';
+      html+='<span class="badge '+badgeClass+'">'+badgeLabel+' - '+count+' attempts</span>';
+      html+='</div>';
+      html+='<div class="meta">';
+      html+='Last: '+relativeTime(a.last_attempt||a.last_seen);
+      if(a.user_agent) html+=' - '+truncate(a.user_agent,50);
+      html+='</div>';
+      html+='</div>';
+    }
+    container.innerHTML=html;
+  }
+
+  function applyFilters(){
+    fetchLogins();
+    showToast('Filters applied');
+  }
+
+  function exportLogins(){
+    const qs=getFilterParams();
+    const url='/api/site-admin/export/logins'+(qs?'?'+qs:'');
+    window.location.href=url;
+  }
+
+  function refreshAll(){
+    fetchStats();
+    fetchLogins();
+    fetchAlerts();
+  }
+
+  // Expose to onclick handlers
+  window.applyFilters=applyFilters;
+  window.exportLogins=exportLogins;
+
+  // Initial load
+  refreshAll();
+
+  // Auto-refresh every 10 seconds
+  refreshTimer=setInterval(refreshAll,10000);
+})();
+</script>
+{% endblock %}

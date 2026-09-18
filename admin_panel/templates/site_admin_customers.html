@@ -1,0 +1,351 @@
+{% extends "base.html" %}
+{% block title %}Customers - Site Admin{% endblock %}
+
+{% block head %}
+<style>
+.page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.page-header h1{font-size:1.1em;color:var(--g);font-family:'Consolas',monospace;font-weight:400}
+
+.sub-nav{display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap}
+.sub-nav a{padding:6px 14px;font-size:.7em;font-weight:700;text-transform:uppercase;letter-spacing:1px;border:1px solid var(--brd);color:var(--mut);text-decoration:none;transition:all .2s}
+.sub-nav a:hover{color:var(--txt);border-color:#444}
+.sub-nav a.active{background:var(--g);color:#000;border-color:var(--g)}
+
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.filter-bar input{min-width:220px;padding:6px 10px;font-size:.85em}
+
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.table-count{font-size:.75em;color:var(--mut);font-family:'Consolas',monospace;margin-bottom:8px}
+
+.actions-cell{display:flex;gap:4px;flex-wrap:wrap}
+
+.empty-state{text-align:center;padding:40px 20px;color:var(--mut);font-family:monospace;font-size:.85em}
+
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:100}
+.modal-overlay.show{display:flex}
+.modal-box{background:var(--card);border:1px solid var(--brd);padding:24px;width:100%;max-width:640px;max-height:80vh;overflow-y:auto}
+.modal-box h3{font-size:.8em;color:var(--g);text-transform:uppercase;letter-spacing:2px;margin-bottom:16px}
+.modal-info{margin-bottom:16px}
+.modal-info-row{display:flex;gap:12px;margin-bottom:6px;font-size:.85em}
+.modal-info-row .info-label{color:var(--mut);min-width:80px;text-transform:uppercase;font-size:.75em;letter-spacing:1px}
+.modal-info-row .info-val{font-family:'Consolas',monospace}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+
+@media(max-width:768px){
+  .filter-bar{flex-direction:column;align-items:stretch}
+  .filter-bar input{min-width:100%;width:100%}
+  .modal-box{margin:12px;max-height:90vh}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="page-header">
+  <h1>// Customer Management</h1>
+</div>
+
+<!-- Sub-nav -->
+<div class="sub-nav">
+  <a href="/site-admin">Dashboard</a>
+  <a href="/site-admin/users">Users</a>
+  <a href="/site-admin/logins">Logins</a>
+  <a href="/site-admin/customers" class="active">Customers</a>
+  <a href="/site-admin/purchases">Purchases</a>
+  <a href="/site-admin/feedback">Feedback</a>
+  <a href="/site-admin/visitors">Visitors</a>
+  <a href="/site-admin/security">Security</a>
+</div>
+
+<!-- Stats row -->
+<div class="grid-3" style="margin-bottom:16px">
+  <div class="si">
+    <label>Total Customers</label>
+    <div class="val" id="stat-customers">--</div>
+  </div>
+  <div class="si">
+    <label>Total Purchases</label>
+    <div class="val" id="stat-purchases">--</div>
+  </div>
+  <div class="si">
+    <label>Paid Orders</label>
+    <div class="val" id="stat-paid">--</div>
+  </div>
+</div>
+
+<!-- Filter/search bar -->
+<div class="card">
+  <h2>// Search</h2>
+  <div class="filter-bar">
+    <input type="text" id="filter-search" placeholder="Search by email or name...">
+    <button class="btn btn-outline" onclick="exportCustomers()">Export CSV</button>
+  </div>
+</div>
+
+<!-- Customers table -->
+<div class="card">
+  <h2>// Customers</h2>
+  <div class="table-count" id="table-count"></div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Email</th>
+          <th>Name</th>
+          <th>Created</th>
+          <th>Purchases</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="customers-tbody">
+        <tr><td colspan="6" class="empty-state">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Customer detail modal -->
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal-box">
+    <h3>// Customer Detail</h3>
+    <div class="modal-info" id="detail-info"></div>
+    <h3 style="margin-top:16px">// Purchase History</h3>
+    <div class="table-wrap">
+      <table class="table" id="detail-purchases-table" style="display:none">
+        <thead>
+          <tr>
+            <th>Order #</th>
+            <th>Product</th>
+            <th>Location</th>
+            <th>Status</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="detail-purchases-body"></tbody>
+      </table>
+    </div>
+    <div class="empty-state" id="detail-purchases-empty" style="display:none">No purchases found</div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function(){
+  let _customers = [];
+
+  function showToast(msg, isError) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.borderColor = isError ? 'var(--crit)' : 'var(--g)';
+    t.style.color = isError ? 'var(--crit)' : 'var(--g)';
+    t.style.background = isError ? '#1a0a0a' : '#1a3a1a';
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  function relativeTime(dateStr) {
+    if (!dateStr) return '--';
+    const now = Date.now();
+    const then = new Date(dateStr).getTime();
+    const diff = Math.floor((now - then) / 1000);
+    if (diff < 0) return 'just now';
+    if (diff < 60) return diff + 's ago';
+    if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+    if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+    if (diff < 2592000) return Math.floor(diff / 86400) + 'd ago';
+    return new Date(dateStr).toLocaleDateString();
+  }
+
+  function esc(str) {
+    const d = document.createElement('div');
+    d.textContent = str || '';
+    return d.innerHTML;
+  }
+
+  function statusBadge(status) {
+    if (!status) return '<span class="badge badge-off">unknown</span>';
+    const s = status.toLowerCase();
+    if (s === 'paid' || s === 'completed' || s === 'complete') return '<span class="badge badge-ok">' + esc(s) + '</span>';
+    if (s === 'pending' || s === 'processing') return '<span class="badge badge-warn">' + esc(s) + '</span>';
+    if (s === 'cancelled' || s === 'canceled' || s === 'failed' || s === 'refunded') return '<span class="badge badge-crit">' + esc(s) + '</span>';
+    return '<span class="badge badge-off">' + esc(s) + '</span>';
+  }
+
+  function openModal() {
+    document.getElementById('detail-modal').classList.add('show');
+  }
+
+  function closeModal() {
+    document.getElementById('detail-modal').classList.remove('show');
+  }
+
+  // Close modal on overlay click
+  document.getElementById('detail-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  // Fetch stats
+  async function fetchStats() {
+    try {
+      const resp = await fetch('/api/site-admin/stats');
+      if (!resp.ok) throw new Error('Stats fetch failed');
+      const data = await resp.json();
+
+      const customers = data.total_customers || 0;
+      document.getElementById('stat-customers').textContent = customers;
+
+      const purchases = data.total_purchases || 0;
+      document.getElementById('stat-purchases').textContent = purchases;
+
+      const paid = data.paid_purchases || 0;
+      const paidEl = document.getElementById('stat-paid');
+      paidEl.textContent = paid;
+      paidEl.className = 'val' + (paid > 0 ? ' ok' : '');
+    } catch (e) {
+      console.error('Stats error:', e);
+    }
+  }
+
+  // Fetch customers
+  async function fetchCustomers() {
+    const search = document.getElementById('filter-search').value.trim();
+    const params = new URLSearchParams();
+    if (search) params.set('search', search);
+
+    try {
+      const url = '/api/site-admin/customers' + (params.toString() ? '?' + params.toString() : '');
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error('Failed to fetch customers');
+      const data = await resp.json();
+      _customers = Array.isArray(data) ? data : (data.customers || []);
+      renderTable(_customers);
+    } catch (e) {
+      showToast('Error loading customers: ' + e.message, true);
+      document.getElementById('customers-tbody').innerHTML = '<tr><td colspan="6" class="empty-state">Failed to load customers</td></tr>';
+      document.getElementById('table-count').textContent = '';
+    }
+  }
+
+  function renderTable(customers) {
+    const tbody = document.getElementById('customers-tbody');
+    const countEl = document.getElementById('table-count');
+
+    if (!customers || !customers.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No customers found</td></tr>';
+      countEl.textContent = '0 customers';
+      return;
+    }
+
+    countEl.textContent = customers.length + ' customer' + (customers.length !== 1 ? 's' : '');
+
+    tbody.innerHTML = customers.map(c => `<tr>
+      <td style="font-family:monospace">${c.id}</td>
+      <td>${esc(c.email || '-')}</td>
+      <td>${esc(c.name || c.full_name || '-')}</td>
+      <td style="font-family:monospace;font-size:.85em" title="${esc(c.created_at || c.created || '')}">${relativeTime(c.created_at || c.created)}</td>
+      <td style="font-family:monospace">${c.purchase_count != null ? c.purchase_count : (c.purchases != null ? c.purchases : '-')}</td>
+      <td>
+        <div class="actions-cell">
+          <button class="btn btn-sm btn-outline" onclick="viewCustomer(${c.id})">View</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteCustomer(${c.id})">Delete</button>
+        </div>
+      </td>
+    </tr>`).join('');
+  }
+
+  // View customer detail
+  async function viewCustomer(id) {
+    try {
+      const resp = await fetch('/api/site-admin/customers/' + id);
+      if (!resp.ok) throw new Error('Failed to fetch customer');
+      const data = await resp.json();
+
+      // Render customer info
+      const infoEl = document.getElementById('detail-info');
+      infoEl.innerHTML = `
+        <div class="modal-info-row">
+          <span class="info-label">Email</span>
+          <span class="info-val">${esc(data.email || '-')}</span>
+        </div>
+        <div class="modal-info-row">
+          <span class="info-label">Name</span>
+          <span class="info-val">${esc(data.name || data.full_name || '-')}</span>
+        </div>
+        <div class="modal-info-row">
+          <span class="info-label">Created</span>
+          <span class="info-val">${esc(data.created_at || data.created || '-')}</span>
+        </div>`;
+
+      // Render purchase history
+      const purchases = data.purchases || [];
+      const tableEl = document.getElementById('detail-purchases-table');
+      const emptyEl = document.getElementById('detail-purchases-empty');
+      const tbodyEl = document.getElementById('detail-purchases-body');
+
+      if (purchases.length) {
+        tableEl.style.display = 'table';
+        emptyEl.style.display = 'none';
+        tbodyEl.innerHTML = purchases.map(p => `<tr>
+          <td style="font-family:monospace">${esc(p.order_number || p.order_id || String(p.id || '-'))}</td>
+          <td>${esc(p.product || p.product_name || '-')}</td>
+          <td>${esc(p.location || '-')}</td>
+          <td>${statusBadge(p.status)}</td>
+          <td style="font-family:monospace;font-size:.85em" title="${esc(p.created_at || p.date || '')}">${relativeTime(p.created_at || p.date)}</td>
+        </tr>`).join('');
+      } else {
+        tableEl.style.display = 'none';
+        emptyEl.style.display = 'block';
+      }
+
+      openModal();
+    } catch (e) {
+      showToast('Error loading customer: ' + e.message, true);
+    }
+  }
+
+  // Delete customer
+  async function deleteCustomer(id) {
+    if (!confirm('Are you sure you want to delete this customer? This cannot be undone.')) return;
+    try {
+      const resp = await fetch('/api/site-admin/customers/' + id, { method: 'DELETE' });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'Delete failed');
+      showToast('Customer deleted');
+      fetchCustomers();
+      fetchStats();
+    } catch (e) {
+      showToast('Error: ' + e.message, true);
+    }
+  }
+
+  // Export CSV
+  function exportCustomers() {
+    window.location = '/api/site-admin/export/customers';
+  }
+
+  // Client-side search debounce
+  let searchTimeout;
+  document.getElementById('filter-search').addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(fetchCustomers, 300);
+  });
+
+  // Expose to inline handlers
+  window.viewCustomer = viewCustomer;
+  window.deleteCustomer = deleteCustomer;
+  window.closeModal = closeModal;
+  window.exportCustomers = exportCustomers;
+
+  // Initial load
+  fetchStats();
+  fetchCustomers();
+})();
+</script>
+{% endblock %}
