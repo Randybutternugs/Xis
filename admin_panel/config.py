@@ -39,9 +39,14 @@ class Config:
                 "TullSite admin API without it. Copy the value from TullSite's "
                 "app.yaml into admin_panel.env."
             )
+        port_raw = (os.environ.get("ADMIN_PANEL_PORT") or "").strip()
         return cls(
             api_url=os.environ.get("TULLSITE_API_URL", DEFAULT_API_URL).rstrip("/"),
             api_key=api_key,
-            host=os.environ.get("ADMIN_PANEL_HOST", DEFAULT_HOST),
-            port=int(os.environ.get("ADMIN_PANEL_PORT", DEFAULT_PORT)),
+            # A blank (but present) value is what an operator gets by blanking
+            # the line in admin_panel.env rather than deleting it. That must
+            # still fall back to the loopback default, not bind every
+            # interface via app.run(host="").
+            host=(os.environ.get("ADMIN_PANEL_HOST") or "").strip() or DEFAULT_HOST,
+            port=int(port_raw) if port_raw else DEFAULT_PORT,
         )

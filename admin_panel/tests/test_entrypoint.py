@@ -20,6 +20,21 @@ def test_admin_panel_excluded_from_gae_deploy():
         )
 
 
+def test_dev_artifacts_excluded_from_gae_deploy():
+    """.gcloudignore has no #!include:.gitignore directive, so .gitignore
+    entries (like .venv-admin/, .pytest_cache/, .remember/) do not apply to
+    `gcloud app deploy` on their own — they must be listed here explicitly.
+    """
+    text = (REPO / ".gcloudignore").read_text()
+    lines = [line.strip() for line in text.split("\n")]
+
+    assert ".venv*/" in lines, (
+        "the admin_panel dev virtualenv must not ship to App Engine"
+    )
+    assert ".pytest_cache/" in lines
+    assert ".remember/" in lines
+
+
 def test_env_file_gitignored():
     text = (REPO / ".gitignore").read_text()
     assert "admin_panel.env" in text

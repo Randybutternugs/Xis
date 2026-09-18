@@ -18,6 +18,12 @@ __pycache__/
 # Ignored by the build system
 /setup.cfg
 
+# .gitignore entries do not apply here (no #!include:.gitignore directive),
+# so dev-only artifacts must be excluded explicitly or they ship to App Engine.
+.venv*/
+.pytest_cache/
+.remember/
+
 # The admin panel runs on ARCS, not on App Engine. Never deploy it.
 admin_panel/
 admin_panel.env
