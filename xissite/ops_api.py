@@ -12,7 +12,7 @@ Design: docs/superpowers/specs/2026-09-20-ops-content-push-design.md
 import functools
 from datetime import datetime
 
-from flask import Blueprint, request, jsonify, abort
+from flask import Blueprint, request, jsonify, abort, current_app
 from flask_login import current_user
 from flask_wtf.csrf import validate_csrf
 from sqlalchemy import desc, func
@@ -206,3 +206,111 @@ def list_events():
               .order_by(OpsEvent.id).limit(limit).all())
     next_after = events[-1].id if events else after
     return jsonify(events=[e.to_dict() for e in events], next_after=next_after, reset=reset)
+
+
+# ============================================================================
+# EMPLOYEE: MY ITEMS AND ACTIONS
+# ============================================================================
+
+def require_employee_session(f):
+    """Browser session with employee or admin role; CSRF header on mutations.
+    No Bearer access: these endpoints act as a person."""
+    @functools.wraps(f)
+    def decorated(*args, **kwargs):
+        if not current_user.is_authenticated or \
+                getattr(current_user, 'user_type', None) not in ('employee', 'admin'):
+            return jsonify(error='Unauthorized'), 401
+        if request.method != 'GET' and current_app.config.get('WTF_CSRF_ENABLED', True):
+            try:
+                validate_csrf(request.headers.get('X-CSRFToken', ''))
+            except Exception:
+                return jsonify(error='CSRF validation failed'), 403
+        return f(*args, **kwargs)
+    return decorated
+
+
+ALLOWED_ACTIONS = {
+    'task': ('complete', 'reopen'),
+    'checklist': ('tick', 'untick', 'complete', 'reopen'),
+    'notice': ('ack',),
+}
+PRIORITY_RANK = {'critical': 0, 'high': 1, 'normal': 2, 'low': 3}
+
+
+def _visible_to(user):
+    return OpsItem.query.filter(OpsItem.status != 'archived').filter(
+        (OpsItem.assignee_id == user.id) | (OpsItem.assignee_id == None)  # noqa: E711
+    )
+
+
+def apply_action(item, user, action, step_key=None, note=None):
+    """Validate `action` against the item's kind, update item.state/status
+    and add an OpsEvent to the session. Raises BadRequest. Caller commits."""
+    if action not in ALLOWED_ACTIONS[item.kind]:
+        raise BadRequest(f'{action} is not allowed on a {item.kind}')
+    if note is not None:
+        note = str(note)
+        if len(note) > MAX_NOTE:
+            raise BadRequest(f'note must be at most {MAX_NOTE} characters')
+    state = item.get_state()
+    now = utcnow().isoformat()
+
+    if action in ('tick', 'untick'):
+        keys = {s['key'] for s in item.get_steps()}
+        if not step_key or step_key not in keys:
+            raise BadRequest('step_key must name one of the checklist steps')
+        if action == 'tick':
+            state['steps'][step_key] = {'by': user.email, 'at': now}
+        else:
+            state['steps'].pop(step_key, None)
+    elif action == 'complete':
+        if item.kind == 'checklist':
+            missing = [s['key'] for s in item.get_steps() if s['key'] not in state['steps']]
+            if missing:
+                raise BadRequest('all steps must be ticked before completing')
+        item.status = 'done'
+        state['done_by'] = user.email
+        state['done_at'] = now
+    elif action == 'reopen':
+        item.status = 'open'
+        state['done_by'] = None
+        state['done_at'] = None
+    elif action == 'ack':
+        state['acks'][user.email] = now
+
+    item.set_state(state)
+    event = OpsEvent(item_id=item.id, item_ref=item.ref, user_id=user.id,
+                     username=user.email, action=action,
+                     step_key=step_key if action in ('tick', 'untick') else None,
+                     note=note)
+    db.session.add(event)
+    return event
+
+
+@ops_me.route('/me')
+@require_employee_session
+def my_items():
+    items = _visible_to(current_user).all()
+    items.sort(key=lambda i: (
+        i.status != 'open',
+        PRIORITY_RANK.get(i.priority, 2),
+        i.due_at is None,
+        i.due_at or datetime.max,
+        -i.id,
+    ))
+    return jsonify(items=[i.to_dict() for i in items])
+
+
+@ops_me.route('/items/<int:item_id>/events', methods=['POST'])
+@require_employee_session
+def record_event(item_id):
+    item = _visible_to(current_user).filter(OpsItem.id == item_id).first()
+    if item is None:
+        abort(404, description='Not found')
+    data = request.get_json(silent=True) or {}
+    action = data.get('action')
+    if action not in OpsEvent.ACTIONS:
+        raise BadRequest('action must be one of complete, reopen, tick, untick, ack')
+    apply_action(item, current_user, action, data.get('step_key'), data.get('note'))
+    db.session.commit()
+    return jsonify(item.to_dict())
