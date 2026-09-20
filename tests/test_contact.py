@@ -43,12 +43,13 @@ def test_contact_submit_creates_feedback(mock_csrf, client, db, app):
         'form_loaded_at': token,
     }, follow_redirects=True)
     assert resp.status_code == 200
-    assert b'submitted successfully' in resp.data
 
     fb = FeedBack.query.first()
     assert fb is not None
     assert fb.feedbackmail == 'test@example.com'
     assert fb.feedbacktype == 'General'
+    # The confirmation screen shows the reference number for the new row.
+    assert f'TULL-{fb.id:05d}'.encode() in resp.data
 
 
 @patch('xissite.views.csrf.protect')

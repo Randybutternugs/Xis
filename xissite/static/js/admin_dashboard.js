@@ -9,7 +9,13 @@ var visDays=7;
 var cache={users:null,logins:null,stats:null,visitors:null,security:null,customers:null,purchases:null,feedback:null};
 
 // ---- Utility ---------------------------------------------------------------
-function esc(s){var d=document.createElement('div');d.textContent=s||'';return d.innerHTML}
+// Escapes for both text and attribute contexts. The textContent trick leaves
+// quotes alone, which broke out of title="..." on the audit log.
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+// Resolve with the JSON body on 2xx, reject with the server's error otherwise,
+// so a 403 or 404 never shows a success toast.
+function checked(r){return r.json().catch(function(){return {}}).then(function(d){if(!r.ok)throw new Error(d.error||('HTTP '+r.status));return d})}
+function failToast(e){showToast('Error: '+(e&&e.message?e.message:'request failed'))}
 function relTime(iso){
   if(!iso)return'--';
   var diff=Math.max(0,Math.floor((Date.now()-new Date(iso).getTime())/1000));
@@ -92,10 +98,13 @@ function fetchStats(){
 
 // ---- Users -----------------------------------------------------------------
 function fetchUsers(){
-  fetch(API+'/users').then(function(r){if(!r.ok)throw new Error();return r.json()}).then(function(d){
-    if(!Array.isArray(d))return;
+  fetch(API+'/users').then(checked).then(function(d){
+    if(!Array.isArray(d))throw new Error('unexpected response');
     cache.users=d;renderUsers(d);
-  }).catch(function(){});
+  }).catch(function(e){
+    var emp=document.getElementById('users-empty');
+    emp.style.display='block';emp.textContent='Failed to load users: '+e.message;
+  });
 }
 function renderUsers(users){
   var tb=document.getElementById('users-body'),tbl=document.getElementById('users-table'),emp=document.getElementById('users-empty'),cnt=document.getElementById('user-count');
@@ -103,13 +112,14 @@ function renderUsers(users){
   emp.style.display='none';tbl.style.display='table';cnt.textContent='('+users.length+')';
   var html='';
   users.forEach(function(u){
-    var isHash=u.email&&u.email.length>50;
-    var label=isHash?'Primary Admin':esc(u.email);
     var typeBadge=u.user_type==='admin'?'badge-ok':'badge-off';
     var statusBadge=u.status==='active'?'badge-ok':u.status==='suspended'?'badge-warn':'badge-crit';
-    var isPrimary=isHash;
+    // The server refuses to delete or suspend the bootstrap admin (and your
+    // own account); this only hides the button for the obvious case.
+    var isPrimary=u.user_type==='admin'&&u.id===1;
     html+='<tr>'+
       '<td>'+u.id+'</td>'+
+      '<td>'+esc(u.email)+(u.display_name?' <span style="color:var(--mut);font-size:.85em">'+esc(u.display_name)+'</span>':'')+'</td>'+
       '<td><span class="badge '+typeBadge+'">'+esc(u.user_type)+'</span></td>'+
       '<td><span class="badge '+statusBadge+'">'+esc(u.status||'active')+'</span></td>'+
       '<td title="'+esc(fullDate(u.last_login))+'">'+relTime(u.last_login)+'</td>'+
@@ -160,9 +170,9 @@ window.submitEditUser=function(){
       showToast('User updated');closeModal('modal-edit-user');fetchUsers();
     }).catch(function(){showToast('Failed to update')});
 };
-window.suspendUser=function(id){if(confirm('Suspend this user?'))apiPost('/users/'+id+'/suspend',{}).then(function(){showToast('User suspended');fetchUsers()})};
-window.activateUser=function(id){apiPost('/users/'+id+'/activate',{}).then(function(){showToast('User activated');fetchUsers()})};
-window.deleteUser=function(id){if(confirm('Delete this user? This is a soft delete.'))apiDelete('/users/'+id).then(function(){showToast('User deleted');fetchUsers()})};
+window.suspendUser=function(id){if(confirm('Suspend this user? They lose access immediately.'))apiPost('/users/'+id+'/suspend',{}).then(checked).then(function(){showToast('User suspended');fetchUsers()}).catch(failToast)};
+window.activateUser=function(id){apiPost('/users/'+id+'/activate',{}).then(checked).then(function(){showToast('User activated');fetchUsers()}).catch(failToast)};
+window.deleteUser=function(id){if(confirm('Delete this user? The account is marked deleted and can no longer log in.'))apiDelete('/users/'+id).then(checked).then(function(){showToast('User deleted');fetchUsers()}).catch(failToast)};
 
 // ---- Logins ----------------------------------------------------------------
 var expandedLoginId=null;
@@ -286,7 +296,7 @@ window.viewCustomer=function(id){
     document.getElementById('cd-cust-id').value=d.id;
   }).catch(function(){el.innerHTML='Failed to load'});
 };
-window.deleteCustomer=function(id){if(confirm('Delete this customer and all their purchases?'))apiDelete('/customers/'+id).then(function(){showToast('Customer deleted');fetchCustomers()})};
+window.deleteCustomer=function(id){if(confirm('Delete this customer and all their purchases?'))apiDelete('/customers/'+id).then(checked).then(function(){showToast('Customer deleted');fetchCustomers()}).catch(failToast)};
 
 // ---- Orders (Purchases) ----------------------------------------------------
 function fetchPurchases(){
@@ -376,7 +386,7 @@ window.updateFeedbackNotes=function(id){
   apiPut('/feedback/'+id,{admin_notes:notes})
     .then(function(){showToast('Notes saved')}).catch(function(){showToast('Failed')});
 };
-window.deleteFb=function(id){if(confirm('Delete this feedback?'))apiDelete('/feedback/'+id).then(function(){showToast('Deleted');fetchFeedback()})};
+window.deleteFb=function(id){if(confirm('Delete this feedback?'))apiDelete('/feedback/'+id).then(checked).then(function(){showToast('Deleted');fetchFeedback()}).catch(failToast)};
 
 // ---- Visitors --------------------------------------------------------------
 function fetchVisitors(){
@@ -546,7 +556,7 @@ window.submitBanIP=function(){
       showToast('IP banned');closeModal('modal-ban-ip');fetchBannedIPs();
     }).catch(function(){showToast('Failed to ban IP')});
 };
-window.unbanIP=function(id){if(confirm('Unban this IP?'))apiDelete('/banned-ips/'+id).then(function(){showToast('IP unbanned');fetchBannedIPs()})};
+window.unbanIP=function(id){if(confirm('Unban this IP?'))apiDelete('/banned-ips/'+id).then(checked).then(function(){showToast('IP unbanned');fetchBannedIPs()}).catch(failToast)};
 window.banIPQuick=function(ip){openBanModal(ip)};
 
 // ---- Audit Log -------------------------------------------------------------
