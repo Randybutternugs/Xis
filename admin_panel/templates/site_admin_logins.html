@@ -169,10 +169,18 @@
     return str.length>len ? str.substring(0,len)+'...' : str;
   }
 
+  // Escapes for both text and attribute contexts. User-Agent and IP strings
+  // are written verbatim from public /login POSTs, so they are attacker data.
+  function esc(str){
+    return String(str==null?'':str)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
   function formatUsername(entry){
     if(entry.username==='admin' || entry.user_type==='admin') return '[admin]';
     if(entry.username==='investor' || entry.user_type==='investor') return '[investor]';
-    return entry.username || '--';
+    return esc(entry.username || '--');
   }
 
   function showToast(msg,duration){
@@ -238,9 +246,9 @@
       const rowClass=isFail?'row-fail':'';
       html+='<tr class="'+rowClass+'">';
       html+='<td title="'+fullDateTime(a.timestamp)+'">'+relativeTime(a.timestamp)+'</td>';
-      html+='<td class="mono">'+(a.ip_address||a.ip||'--')+'</td>';
-      html+='<td class="ua-cell" title="'+(a.user_agent||'').replace(/"/g,'&quot;')+'">'
-        +truncate(a.user_agent,40)+'</td>';
+      html+='<td class="mono">'+esc(a.ip_address||a.ip||'--')+'</td>';
+      html+='<td class="ua-cell" title="'+esc(a.user_agent||'')+'">'
+        +esc(truncate(a.user_agent,40))+'</td>';
       html+='<td>'+formatUsername(a)+'</td>';
       if(isFail){
         html+='<td><span class="dot dot-r"></span> FAIL</td>';
@@ -278,12 +286,12 @@
       const badgeLabel=count>=5?'Critical':'Warning';
       html+='<div class="suspicious-entry">';
       html+='<div class="details">';
-      html+='<span class="ip">'+(a.ip_address||a.ip||'--')+'</span>';
+      html+='<span class="ip">'+esc(a.ip_address||a.ip||'--')+'</span>';
       html+='<span class="badge '+badgeClass+'">'+badgeLabel+' - '+count+' attempts</span>';
       html+='</div>';
       html+='<div class="meta">';
       html+='Last: '+relativeTime(a.last_attempt||a.last_seen);
-      if(a.user_agent) html+=' - '+truncate(a.user_agent,50);
+      if(a.user_agent) html+=' - '+esc(truncate(a.user_agent,50));
       html+='</div>';
       html+='</div>';
     }
