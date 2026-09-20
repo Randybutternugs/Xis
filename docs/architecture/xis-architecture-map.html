@@ -1,0 +1,603 @@
+<title>Xis Architecture Map</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#F3F5F0; --surface:#FFFFFF; --surface2:#E9EDE5; --border:#CFD6CA; --text:#141711; --muted:#5B6458;
+  --accent:#3A8C1E; --accent-soft:rgba(58,140,30,.12);
+  --warn:#B36A00; --crit:#B8362A; --info:#1F6FB0;
+  --sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+  --display:'Archivo','Arial Narrow',Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0B0C0B; --surface:#141614; --surface2:#1C1F1B; --border:#2A2E29; --text:#E6E9E3; --muted:#8F978C;
+    --accent:#6ABD45; --accent-soft:rgba(106,189,69,.14);
+    --warn:#E0A030; --crit:#E2594A; --info:#62A9DD;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0B0C0B; --surface:#141614; --surface2:#1C1F1B; --border:#2A2E29; --text:#E6E9E3; --muted:#8F978C;
+  --accent:#6ABD45; --accent-soft:rgba(106,189,69,.14);
+  --warn:#E0A030; --crit:#E2594A; --info:#62A9DD;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1100px;margin:0 auto;padding-inline:20px;padding-block:0 80px}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* top bar */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--border);padding-block:10px}
+.bar .in{max-width:1100px;margin:0 auto;padding-inline:20px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.brand{font-family:var(--display);font-weight:800;letter-spacing:.14em;text-transform:uppercase;font-size:13px;display:flex;align-items:center;gap:10px}
+.brand i{display:inline-block;width:10px;height:10px;background:var(--accent);transform:rotate(45deg)}
+.jump{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
+.jump a{font-family:var(--mono);font-size:11.5px;letter-spacing:.04em;text-decoration:none;color:var(--muted);padding:4px 8px;border:1px solid transparent}
+.jump a:hover{color:var(--text);border-color:var(--border)}
+
+/* hero */
+.hero{padding-block:44px 28px;border-bottom:1px solid var(--border)}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--accent);text-transform:uppercase;margin:0 0 10px}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(30px,5vw,48px);line-height:1.02;letter-spacing:.01em;text-transform:uppercase;margin:0 0 16px;text-wrap:balance}
+.lede{max-width:64ch;font-size:16.5px;color:var(--text);margin:0 0 22px}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--border);border:1px solid var(--border)}
+.facts div{background:var(--surface);padding:12px 14px}
+.facts label{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.facts b{font-family:var(--display);font-weight:600;font-size:15px;letter-spacing:.01em}
+
+/* sections */
+section{padding-block:44px 8px;border-bottom:1px solid var(--border)}
+section:last-of-type{border-bottom:0}
+h2{font-family:var(--display);font-weight:800;font-size:clamp(20px,3vw,26px);text-transform:uppercase;letter-spacing:.03em;margin:0 0 10px;text-wrap:balance}
+h3{font-family:var(--display);font-weight:600;font-size:15px;text-transform:uppercase;letter-spacing:.06em;margin:28px 0 10px;color:var(--text)}
+p{max-width:70ch}
+.summary{color:var(--muted);max-width:70ch;margin:0 0 22px}
+code,.mono{font-family:var(--mono);font-size:.92em}
+code{background:var(--surface2);padding:1px 5px;border-radius:2px}
+
+figure{margin:22px 0 8px;border:1px solid var(--border);background:var(--surface);padding:16px 12px 10px}
+figure .scroll{overflow-x:auto}
+figure svg{display:block;max-width:100%;height:auto;min-width:640px;color:var(--text);font-family:var(--sans)}
+figcaption{font-size:13px;color:var(--muted);padding:10px 4px 0;max-width:none}
+figcaption b{color:var(--text);font-weight:600}
+@media (max-width:700px){figure svg{min-width:720px}}
+
+/* svg element classes */
+.bx{fill:var(--surface);stroke:currentColor;stroke-width:1.2}
+.bx2{fill:var(--surface2);stroke:currentColor;stroke-width:1.2}
+.hl{fill:var(--surface);stroke:var(--accent);stroke-width:1.6}
+.hlz{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.4}
+.zone{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:6 5}
+.ln{stroke:currentColor;stroke-width:1.3;fill:none}
+.lnA{stroke:var(--accent);stroke-width:1.6;fill:none}
+.lnM{stroke:var(--muted);stroke-width:1.2;fill:none;stroke-dasharray:4 4}
+.t{font-size:11.5px;fill:currentColor}
+.tb{font-size:12px;font-weight:600;fill:currentColor}
+.tm{font-size:10.5px;fill:var(--muted)}
+.ta{font-size:11px;fill:var(--accent);font-weight:600}
+.tk{font-family:var(--mono);font-size:11px;fill:currentColor}
+.th{font-family:var(--mono);font-size:12px;font-weight:600;fill:currentColor}
+.tz{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;fill:var(--muted)}
+.hdr{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.2}
+.col{fill:var(--surface);stroke:var(--accent);stroke-width:1.2}
+
+/* tables */
+.tbl{overflow-x:auto;border:1px solid var(--border);margin:14px 0 6px}
+table{width:100%;border-collapse:collapse;font-size:13.5px;background:var(--surface)}
+th{text-align:left;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:9px 12px;border-bottom:1px solid var(--border);background:var(--surface2);white-space:nowrap}
+td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.r{font-family:var(--mono);font-size:12.5px;white-space:nowrap}
+td.n{font-family:var(--mono);font-size:12.5px;text-align:right;font-variant-numeric:tabular-nums}
+.pill{display:inline-block;font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;padding:2px 7px;border:1px solid var(--border);border-radius:2px;white-space:nowrap}
+.pill.pub{color:var(--muted)}
+.pill.adm{color:var(--accent);border-color:var(--accent)}
+.pill.emp{color:var(--info);border-color:var(--info)}
+.pill.key{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+.pill.sig{color:var(--warn);border-color:var(--warn)}
+.pill.leg{color:var(--muted);border-style:dashed}
+
+/* module grid */
+.mods{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin:14px 0 6px}
+.mod{background:var(--surface);border:1px solid var(--border);padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.mod .f{font-family:var(--mono);font-size:12.5px;font-weight:500;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.mod .f span{color:var(--muted);font-weight:400;font-size:11px}
+.mod .d{font-size:13px;color:var(--text)}
+.mod .u{font-size:11.5px;color:var(--muted);font-family:var(--mono)}
+.mod.core{border-color:var(--accent)}
+
+/* observations */
+.obs{list-style:none;padding:0;margin:14px 0 6px;display:grid;gap:10px}
+.obs li{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--border);padding:10px 14px;font-size:14px}
+.obs li.hi{border-left-color:var(--crit)}
+.obs li.md{border-left-color:var(--warn)}
+.obs li.lo{border-left-color:var(--muted)}
+.obs b{display:block;font-weight:600;margin-bottom:2px}
+.obs .w{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;margin-right:8px}
+.hi .w{color:var(--crit)}.md .w{color:var(--warn)}.lo .w{color:var(--muted)}
+
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin:8px 0 0}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:22px;height:0;border-top:2px solid currentColor}
+.sw.a{border-color:var(--accent)}.sw.d{border-top-style:dashed;border-color:var(--muted)}
+
+ul.plain{padding-left:18px;max-width:72ch}
+ul.plain li{margin-bottom:6px}
+@media (prefers-reduced-motion:no-preference){a{transition:color .15s}}
+</style>
+
+<div class="bar"><div class="in">
+  <div class="brand"><i></i>Xis · Tull Hydroponics</div>
+  <nav class="jump" aria-label="Sections">
+    <a href="#context">System</a><a href="#pipeline">Request path</a><a href="#modules">Modules</a><a href="#routes">Routes</a><a href="#flows">Flows</a><a href="#data">Data</a><a href="#security">Security</a><a href="#config">Config &amp; deploy</a><a href="#obs">Observations</a>
+  </nav>
+</div></div>
+
+<div class="wrap">
+
+<header class="hero">
+  <p class="eyebrow">// architecture map · repo Randybutternugs/Xis · branch main @ 7abfe4b · read 2026-09-20</p>
+  <h1>How the Tull website is built and what talks to what</h1>
+  <p class="lede">Xis is one Flask application (the <code>xissite/</code> package) deployed to Google App Engine as tullhydro.com, plus a second, separate Flask app (<code>admin_panel/</code>) that runs only on the LAN and proxies to the first one's admin API. Everything below was read from the code, not the docs, and where the two disagree the code wins and the disagreement is listed at the end.</p>
+  <div class="facts">
+    <div><label>Runtime</label><b>Python 3.12 · Flask 3.1</b></div>
+    <div><label>Hosting</label><b>GAE Standard · F1 · 1 instance</b></div>
+    <div><label>Database</label><b>SQLite in /tmp (ephemeral)</b></div>
+    <div><label>Blueprints</label><b>views · auth · sales · admin_api</b></div>
+    <div><label>Tables</label><b>9 models · 1 foreign key</b></div>
+    <div><label>External services</label><b>Stripe · Postmark · ip-api</b></div>
+    <div><label>App code</label><b>≈3.9k lines Python · 605 JS</b></div>
+    <div><label>Tests</label><b>49 site · 41 admin panel</b></div>
+  </div>
+</header>
+
+<!-- ===================================================== SYSTEM CONTEXT -->
+<section id="context">
+  <p class="eyebrow">// 01 system context</p>
+  <h2>Five parties, one app in the middle</h2>
+  <p class="summary">The website is the only thing on the public internet. Stripe and Postmark are called from it; TullOps and the admin panel call into it from the LAN using one shared Bearer key. Nothing on the internet can reach the LAN, so the LAN always initiates.</p>
+
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 980 600" role="img" aria-label="System context: browsers and the LAN call the Flask app on App Engine; the app calls Stripe, Postmark and ip-api; Stripe calls back via a signed webhook.">
+      <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker>
+      <marker id="arA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/></marker></defs>
+
+      <!-- GAE zone -->
+      <rect class="hlz" x="300" y="70" width="390" height="320" rx="3"/>
+      <text class="tz" x="316" y="92">GOOGLE APP ENGINE · xissite-355821 · tullhydro.com</text>
+      <rect class="hl" x="320" y="110" width="350" height="160" rx="2"/>
+      <text class="tb" x="495" y="132" text-anchor="middle">Flask app · xissite/ · gunicorn main:app</text>
+      <text class="tm" x="495" y="156" text-anchor="middle">before_request visitor tracker · CSRFProtect · Flask-Login</text>
+      <rect class="bx2" x="326" y="176" width="80" height="40" rx="2"/><text class="tb" x="366" y="192" text-anchor="middle">views</text><text class="tm" x="366" y="207" text-anchor="middle">public pages</text>
+      <rect class="bx2" x="412" y="176" width="80" height="40" rx="2"/><text class="tb" x="452" y="192" text-anchor="middle">auth</text><text class="tm" x="452" y="207" text-anchor="middle">login, /admin, /ops</text>
+      <rect class="bx2" x="498" y="176" width="80" height="40" rx="2"/><text class="tb" x="538" y="192" text-anchor="middle">sales</text><text class="tm" x="538" y="207" text-anchor="middle">Stripe</text>
+      <rect class="bx2" x="584" y="176" width="80" height="40" rx="2"/><text class="tb" x="624" y="192" text-anchor="middle">admin_api</text><text class="tm" x="624" y="207" text-anchor="middle">/api/admin REST</text>
+      <text class="tm" x="495" y="242" text-anchor="middle">SQLAlchemy models · 9 tables · migrations run at startup</text>
+      <line class="ln" x1="495" y1="270" x2="495" y2="300" marker-end="url(#ar)"/>
+      <text class="tm" x="503" y="289">reads / writes</text>
+      <rect class="bx" x="320" y="300" width="350" height="56" rx="2"/>
+      <text class="tb" x="495" y="322" text-anchor="middle">SQLite  /tmp/tullhydro.db</text>
+      <text class="tm" x="495" y="340" text-anchor="middle">ephemeral · wiped on deploy or restart</text>
+      <text class="tm" x="495" y="378" text-anchor="middle">max_instances: 1 because /tmp is per-instance</text>
+
+      <!-- left actors -->
+      <rect class="bx" x="40" y="130" width="180" height="56" rx="2"/>
+      <text class="tb" x="130" y="152" text-anchor="middle">Shopper / visitor</text><text class="tm" x="130" y="170" text-anchor="middle">any browser</text>
+      <line class="ln" x1="220" y1="150" x2="320" y2="150" marker-end="url(#ar)"/>
+      <text class="tm" x="270" y="142" text-anchor="middle">site pages</text><text class="tm" x="270" y="164" text-anchor="middle">contact POST</text>
+
+      <rect class="bx" x="40" y="230" width="180" height="56" rx="2"/>
+      <text class="tb" x="130" y="252" text-anchor="middle">Admin / employee</text><text class="tm" x="130" y="270" text-anchor="middle">browser session</text>
+      <line class="ln" x1="220" y1="258" x2="320" y2="258" marker-end="url(#ar)"/>
+      <text class="tm" x="270" y="250" text-anchor="middle">/login cookie</text><text class="tm" x="270" y="272" text-anchor="middle">JS + CSRF token</text>
+
+      <!-- visitor to stripe -->
+      <polyline class="ln" points="130,130 130,50 860,50 860,80" marker-end="url(#ar)"/>
+      <text class="tm" x="495" y="44" text-anchor="middle">303 redirect to Stripe hosted Checkout (route exists; no page links to it yet)</text>
+
+      <!-- right externals -->
+      <rect class="bx" x="770" y="80" width="180" height="56" rx="2"/>
+      <text class="tb" x="860" y="102" text-anchor="middle">Stripe</text><text class="tm" x="860" y="120" text-anchor="middle">Checkout + webhooks</text>
+      <line class="ln" x1="770" y1="130" x2="670" y2="130" marker-end="url(#ar)"/>
+      <text class="tm" x="720" y="122" text-anchor="middle">POST /webhook</text><text class="tm" x="720" y="144" text-anchor="middle">signed events</text>
+
+      <rect class="bx" x="770" y="180" width="180" height="56" rx="2"/>
+      <text class="tb" x="860" y="202" text-anchor="middle">Postmark</text><text class="tm" x="860" y="220" text-anchor="middle">transactional email</text>
+      <line class="ln" x1="670" y1="208" x2="770" y2="208" marker-end="url(#ar)"/>
+      <text class="tm" x="720" y="200" text-anchor="middle">HTTPS POST</text><text class="tm" x="720" y="222" text-anchor="middle">5 templates</text>
+
+      <rect class="bx" x="770" y="280" width="180" height="56" rx="2"/>
+      <text class="tb" x="860" y="302" text-anchor="middle">ip-api.com</text><text class="tm" x="860" y="320" text-anchor="middle">free GeoIP lookup</text>
+      <polyline class="ln" points="670,250 720,250 720,308 770,308" marker-end="url(#ar)"/>
+      <text class="tm" x="726" y="276">geo lookup</text><text class="tm" x="726" y="290">cached</text>
+
+      <!-- LAN zone -->
+      <rect class="zone" x="40" y="430" width="910" height="150" rx="3"/>
+      <text class="tz" x="52" y="568">TULL LAN · NOT REACHABLE FROM THE INTERNET · TULLOPS IS THE AUTHORITY ON USERS; TULLSITE IS THE DELIVERY CHANNEL</text>
+      <rect class="bx" x="60" y="490" width="170" height="56" rx="2"/>
+      <text class="tb" x="145" y="512" text-anchor="middle">Operator browser</text><text class="tm" x="145" y="530" text-anchor="middle">on ARCS</text>
+      <line class="ln" x1="230" y1="518" x2="280" y2="518" marker-end="url(#ar)"/>
+      <text class="tm" x="255" y="510" text-anchor="middle">loopback</text>
+      <rect class="bx" x="280" y="490" width="220" height="56" rx="2"/>
+      <text class="tb" x="390" y="512" text-anchor="middle">Admin panel · admin_panel/</text><text class="tm" x="390" y="530" text-anchor="middle">Flask on :5002 · no auth · loopback</text>
+      <line class="lnA" x1="390" y1="490" x2="390" y2="390" marker-end="url(#arA)"/>
+      <text class="tm" x="398" y="430">/api/site-admin/*  proxies to</text><text class="tm" x="398" y="444">/api/admin/*  with Bearer key</text>
+      <rect class="bx" x="560" y="490" width="240" height="56" rx="2"/>
+      <text class="tb" x="680" y="512" text-anchor="middle">TullOps fleet server</text><text class="tm" x="680" y="530" text-anchor="middle">manages users · reads analytics · exports</text>
+      <line class="lnA" x1="640" y1="490" x2="640" y2="390" marker-end="url(#arA)"/>
+      <text class="tm" x="648" y="430">Bearer ADMIN_API_KEY</text><text class="tm" x="648" y="444">same key the panel uses</text>
+    </svg>
+    </div>
+    <figcaption><b>Every arrow is a real call in the code.</b> Green arrows carry the one shared secret, <code>ADMIN_API_KEY</code>, which is set in <code>app.yaml</code> on the site and in <code>admin_panel.env</code> on ARCS. The Stripe redirect is drawn dashed in spirit: the route is live but the sell page is a "coming soon" placeholder with no buy button.</figcaption>
+  </figure>
+  <div class="legend"><span><i class="sw a"></i>Bearer-key call from the LAN</span><span><i class="sw"></i>HTTP call</span><span><i class="sw d"></i>network boundary</span></div>
+</section>
+
+<!-- ===================================================== REQUEST PIPELINE -->
+<section id="pipeline">
+  <p class="eyebrow">// 02 request path</p>
+  <h2>What a request passes through</h2>
+  <p class="summary">App Engine answers static files itself. Everything else reaches gunicorn, then the app factory's middleware, then one of four blueprints. The factory in <code>xissite/__init__.py</code> also decides, at import time, whether it is running locally or in the cloud and which database URI to use.</p>
+
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 960 250" role="img" aria-label="Request pipeline: HTTPS request, GAE handler, gunicorn, before_request visitor tracker, blueprint route with decorators, SQLAlchemy. Static files branch off at the GAE handler and never reach Flask.">
+      <defs><marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+      <rect class="bx" x="20" y="40" width="130" height="64" rx="2"/><text class="tb" x="85" y="60" text-anchor="middle">HTTPS request</text><text class="tm" x="85" y="76" text-anchor="middle">tullhydro.com</text><text class="tm" x="85" y="91" text-anchor="middle">secure: always</text>
+      <line class="ln" x1="150" y1="72" x2="180" y2="72" marker-end="url(#ar2)"/>
+      <rect class="bx" x="180" y="40" width="130" height="64" rx="2"/><text class="tb" x="245" y="60" text-anchor="middle">GAE handler</text><text class="tm" x="245" y="76" text-anchor="middle">/static → static_dir</text><text class="tm" x="245" y="91" text-anchor="middle">else script: auto</text>
+      <line class="ln" x1="310" y1="72" x2="340" y2="72" marker-end="url(#ar2)"/>
+      <rect class="bx" x="340" y="40" width="130" height="64" rx="2"/><text class="tb" x="405" y="60" text-anchor="middle">gunicorn</text><text class="tm" x="405" y="76" text-anchor="middle">main:app</text><text class="tm" x="405" y="91" text-anchor="middle">F1 · 50 concurrent</text>
+      <line class="ln" x1="470" y1="72" x2="500" y2="72" marker-end="url(#ar2)"/>
+      <rect class="hl" x="500" y="40" width="130" height="64" rx="2"/><text class="tb" x="565" y="60" text-anchor="middle">before_request</text><text class="tm" x="565" y="76" text-anchor="middle">track_visit()</text><text class="tm" x="565" y="91" text-anchor="middle">GET on 4 public paths</text>
+      <line class="ln" x1="630" y1="72" x2="660" y2="72" marker-end="url(#ar2)"/>
+      <rect class="hl" x="660" y="40" width="130" height="64" rx="2"/><text class="tb" x="725" y="60" text-anchor="middle">Blueprint route</text><text class="tm" x="725" y="76" text-anchor="middle">decorators gate it</text><text class="tm" x="725" y="91" text-anchor="middle">session · role · key</text>
+      <line class="ln" x1="790" y1="72" x2="820" y2="72" marker-end="url(#ar2)"/>
+      <rect class="bx" x="820" y="40" width="130" height="64" rx="2"/><text class="tb" x="885" y="60" text-anchor="middle">SQLAlchemy</text><text class="tm" x="885" y="76" text-anchor="middle">SQLite or Cloud SQL</text><text class="tm" x="885" y="91" text-anchor="middle">pool_pre_ping</text>
+      <!-- static branch -->
+      <line class="ln" x1="245" y1="104" x2="245" y2="150" marker-end="url(#ar2)"/>
+      <rect class="bx2" x="180" y="150" width="130" height="56" rx="2"/><text class="tb" x="245" y="170" text-anchor="middle">Static files</text><text class="tm" x="245" y="185" text-anchor="middle">css · js · fonts · images</text><text class="tm" x="245" y="199" text-anchor="middle">Cache-Control 1h</text>
+      <text class="tm" x="320" y="182">served by App Engine, never reaches Flask</text>
+      <text class="tm" x="485" y="236" text-anchor="middle">Responses: Jinja templates render HTML for pages; admin_api returns JSON or CSV. Public GETs also write a site_visit row on the way in.</text>
+    </svg>
+    </div>
+    <figcaption><b>The visitor tracker is the only global side effect.</b> It fires for GET on <code>/</code>, <code>/about</code>, <code>/sell</code> and <code>/contact</code> only, writes one row, and swallows its own errors so a broken DB never blocks a page.</figcaption>
+  </figure>
+
+  <h3>Startup sequence inside create_app()</h3>
+  <ul class="plain">
+    <li><b>Environment detection.</b> If <code>GAE_ENV</code>, <code>GAE_APPLICATION</code> or <code>GOOGLE_CLOUD_PROJECT</code> is set it is "cloud"; otherwise it loads <code>vars.env</code> with python-dotenv.</li>
+    <li><b>Database URI.</b> <code>DATABASE_URL</code> or <code>CLOUD_SQL_URI</code> wins if present. Otherwise SQLite at <code>/tmp/tullhydro.db</code> in the cloud or <code>./tullhydro.db</code> locally.</li>
+    <li><b>Session hardening.</b> 8 hour sessions, 7 day remember-me, HttpOnly + SameSite=Lax, Secure cookies only when not in development.</li>
+    <li><b>Extensions and blueprints.</b> CSRFProtect (with <code>WTF_CSRF_CHECK_DEFAULT=False</code>, so CSRF is checked only where a form validates or a route asks), SQLAlchemy, then the four blueprints, then a <code>to_eastern</code> Jinja filter.</li>
+    <li><b>create_database().</b> <code>db.create_all()</code>, then 16 idempotent "add column if missing" migrations, then deletes legacy users whose email is a hash artifact, then creates the bootstrap admin from <code>ADMIN_BOOTSTRAP_*</code> if the user table is empty.</li>
+    <li><b>Flask-Login.</b> Login view is <code>auth.login</code>; the user loader is a primary-key lookup on <code>User</code>.</li>
+  </ul>
+</section>
+
+<!-- ===================================================== MODULES -->
+<section id="modules">
+  <p class="eyebrow">// 03 modules</p>
+  <h2>What each file is responsible for</h2>
+  <p class="summary">Green-bordered cards are the request-handling core. The dependency direction is strict: blueprints import <code>db</code> and models from the package; models import only <code>db</code>; helpers (<code>spam_guard</code>, <code>email_templates</code>) import nothing from the app.</p>
+
+  <div class="mods">
+    <div class="mod"><div class="f">main.py <span>45 lines</span></div><div class="d">Calls <code>create_app()</code> and exposes <code>app</code> for gunicorn. Runs the dev server on port 5000 when executed directly.</div><div class="u">uses: xissite</div></div>
+    <div class="mod core"><div class="f">xissite/__init__.py <span>444</span></div><div class="d">App factory, environment detection, DB URI selection, session config, blueprint registration, visitor tracker, migrations, bootstrap admin.</div><div class="u">uses: views, auth, sales, admin_api, models</div></div>
+    <div class="mod core"><div class="f">xissite/models.py <span>435</span></div><div class="d">Nine SQLAlchemy models, each with a <code>to_dict()</code> the admin API serialises. <code>User</code> mixes in Flask-Login's <code>UserMixin</code>.</div><div class="u">uses: db</div></div>
+    <div class="mod core"><div class="f">xissite/views.py <span>271</span></div><div class="d">Public pages and the contact form: WTForms <code>ContactForm</code> with honeypot and timestamp fields, spam validation, <code>FeedBack</code> insert, two Postmark emails.</div><div class="u">uses: models, spam_guard, email_templates, requests</div></div>
+    <div class="mod core"><div class="f">xissite/auth.py <span>320</span></div><div class="d">Login with IP bans, rate limits and lockouts; logout; <code>admin_required</code> and <code>employee_required</code>; <code>/admin</code> dashboard, <code>/ops</code> employee page, legacy <code>/viewdb</code> pages.</div><div class="u">uses: models, werkzeug.security, flask_login</div></div>
+    <div class="mod core"><div class="f">xissite/sales.py <span>347</span></div><div class="d">Stripe Checkout session creation, success and cancel pages, signed webhook handler, customer/purchase upsert, confirmation and failure emails.</div><div class="u">uses: stripe, models, email_templates, requests</div></div>
+    <div class="mod core"><div class="f">xissite/admin_api.py <span>1218</span></div><div class="d">37 JSON/CSV endpoints under <code>/api/admin</code>: users, logins, customers, purchases, feedback, visitors, security, bans, GeoIP, audit log, exports. Dual auth decorator.</div><div class="u">uses: models, email_templates, requests (ip-api, Postmark)</div></div>
+    <div class="mod"><div class="f">xissite/spam_guard.py <span>356</span></div><div class="d">Six pure-function checks plus an in-memory sliding-window rate limiter. Returns a verdict that says whether to reject silently or visibly.</div><div class="u">uses: nothing from the app</div></div>
+    <div class="mod"><div class="f">xissite/email_templates.py <span>199</span></div><div class="d">Five branded HTML email bodies: contact confirmation, admin notification (with deep link), order confirmation, payment failed, feedback reply.</div><div class="u">uses: html.escape</div></div>
+    <div class="mod"><div class="f">templates/ · static/ <span>14 html · 4.1k css</span></div><div class="d"><code>base.html</code> wraps public pages. <code>admin_dashboard.html</code> + <code>admin_dashboard.js</code> is a single-page UI that polls <code>/api/admin/*</code> every refresh cycle.</div><div class="u">main.css, dashboard.css, flickity carousel</div></div>
+    <div class="mod"><div class="f">admin_panel/ <span>227 lines</span></div><div class="d">Separate Flask app for ARCS: 8 template pages and a two-route passthrough that forwards <code>/api/site-admin/&lt;path&gt;</code> upstream with the Bearer key. Excluded from GAE by <code>.gcloudignore</code>.</div><div class="u">uses: requests, python-dotenv</div></div>
+    <div class="mod"><div class="f">scripts <span>3</span></div><div class="d"><code>setup_credentials.py</code> writes <code>vars.env</code>. <code>seed_users.py</code> wipes and recreates two named accounts. <code>manage_db.py</code> is a raw-sqlite CLI that targets an older schema (see observations).</div><div class="u">standalone</div></div>
+  </div>
+</section>
+
+<!-- ===================================================== ROUTES -->
+<section id="routes">
+  <p class="eyebrow">// 04 routes</p>
+  <h2>Every URL the site answers, and who may call it</h2>
+  <p class="summary">Access is decided by decorators, not by URL prefix. The admin API accepts either a Bearer key or an admin browser session; nothing else on the site accepts a key.</p>
+  <div class="legend">
+    <span><i class="pill pub">public</i> no auth</span>
+    <span><i class="pill adm">admin session</i> <code>@admin_required</code></span>
+    <span><i class="pill emp">employee+</i> <code>@employee_required</code>, admin also passes</span>
+    <span><i class="pill key">key or admin session</i> <code>@require_api_key</code></span>
+    <span><i class="pill sig">Stripe signature</i> webhook secret</span>
+    <span><i class="pill leg">legacy</i> superseded by /admin</span>
+  </div>
+
+  <h3>Site pages and forms</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Route</th><th>Method</th><th>Blueprint</th><th>Access</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td class="r">/</td><td class="r">GET</td><td>views</td><td><i class="pill pub">public</i></td><td>Home page. Links to /sell, /about, /contact, /login and social accounts.</td></tr>
+      <tr><td class="r">/about</td><td class="r">GET</td><td>views</td><td><i class="pill pub">public</i></td><td>Company page.</td></tr>
+      <tr><td class="r">/sell</td><td class="r">GET</td><td>views</td><td><i class="pill pub">public</i></td><td>Tull Tower V1 page. Currently a "coming soon" layout that links to /contact; no checkout button.</td></tr>
+      <tr><td class="r">/contact</td><td class="r">GET · POST</td><td>views</td><td><i class="pill pub">public</i></td><td>GET issues a signed timestamp token. POST validates, runs spam checks, stores feedback, sends two emails, shows ref number TULL-nnnnn.</td></tr>
+      <tr><td class="r">/create-checkout-session</td><td class="r">POST</td><td>sales</td><td><i class="pill pub">public</i></td><td>Creates a Stripe Checkout session for HP_PRICE_ID, US/CA shipping, automatic tax, and 303-redirects to it. CSRF exempt.</td></tr>
+      <tr><td class="r">/success · /cancel</td><td class="r">GET</td><td>sales</td><td><i class="pill pub">public</i></td><td>Static thank-you and cancelled pages Stripe redirects back to.</td></tr>
+      <tr><td class="r">/webhook</td><td class="r">POST</td><td>sales</td><td><i class="pill sig">Stripe signature</i></td><td>Verifies the signature, then handles checkout.session.completed, async_payment_succeeded, async_payment_failed.</td></tr>
+      <tr><td class="r">/login</td><td class="r">GET · POST</td><td>auth</td><td><i class="pill pub">public</i></td><td>Bans, rate limits, lockouts, scrypt check, login_attempt row. Admin goes to /admin, employee to /ops.</td></tr>
+      <tr><td class="r">/logout</td><td class="r">GET</td><td>auth</td><td>login</td><td>Ends the session.</td></tr>
+      <tr><td class="r">/admin</td><td class="r">GET</td><td>auth</td><td><i class="pill adm">admin session</i></td><td>Renders the single-page dashboard shell; all data is then fetched by JS from /api/admin.</td></tr>
+      <tr><td class="r">/ops</td><td class="r">GET</td><td>auth</td><td><i class="pill emp">employee+</i></td><td>Employee operations centre. Today it renders placeholder tasks, checklists and notifications from the template.</td></tr>
+      <tr><td class="r">/viewdb</td><td class="r">GET · POST</td><td>auth</td><td><i class="pill adm">admin session</i> <i class="pill leg">legacy</i></td><td>Customer list with search by email or purchase id.</td></tr>
+      <tr><td class="r">/viewdb/&lt;id&gt;</td><td class="r">GET</td><td>auth</td><td><i class="pill adm">admin session</i> <i class="pill leg">legacy</i></td><td>One customer and their purchases.</td></tr>
+      <tr><td class="r">/viewdb/feedbackview</td><td class="r">GET</td><td>auth</td><td><i class="pill adm">admin session</i> <i class="pill leg">legacy</i></td><td>Feedback list. The Postmark admin-notification email deep-links here.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Admin API · prefix /api/admin · 37 endpoints</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Group</th><th>Endpoints</th><th>Access</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Health</td><td class="r">GET /health</td><td><i class="pill pub">public</i></td><td>The one unauthenticated endpoint. The dashboard uses it for its green/red status dot.</td></tr>
+      <tr><td>Stats</td><td class="r">GET /stats</td><td><i class="pill key">key or admin session</i></td><td>Counts for users, customers, purchases, unresolved feedback, logins in 24h.</td></tr>
+      <tr><td>Users</td><td class="r">GET · POST /users<br>PUT · DELETE /users/&lt;id&gt;<br>POST /users/&lt;id&gt;/suspend · /activate</td><td><i class="pill key">key or admin session</i></td><td>Password minimum 10 chars, types admin or employee. Activate also clears lockout counters. Delete is a soft delete (status=deleted). All audited.</td></tr>
+      <tr><td>Logins</td><td class="r">GET /login-attempts</td><td><i class="pill key">key or admin session</i></td><td>Filter by success, IP, limit.</td></tr>
+      <tr><td>Customers</td><td class="r">GET /customers · /customers/stats · /customers/geo<br>GET · DELETE /customers/&lt;id&gt;</td><td><i class="pill key">key or admin session</i></td><td>Search by email or name. Detail includes purchases. Delete audited.</td></tr>
+      <tr><td>Purchases</td><td class="r">GET /purchases · /purchases/stats · /purchases/geo · /purchases/funnel</td><td><i class="pill key">key or admin session</i></td><td>Filter by pay_status. Funnel joins site visits on /sell to purchases.</td></tr>
+      <tr><td>Feedback</td><td class="r">GET /feedback · /feedback/stats<br>PUT · DELETE /feedback/&lt;id&gt;<br>POST /feedback/&lt;id&gt;/reply</td><td><i class="pill key">key or admin session</i></td><td>Reply sends a Postmark email, appends to admin_notes, sets first_response_date and optionally resolves with resolution_time_hours.</td></tr>
+      <tr><td>Visitors</td><td class="r">GET /visitors · /recent · /devices · /referrers · /heatmap · /pageflow</td><td><i class="pill key">key or admin session</i></td><td>All computed from site_visit rows, so only since the last instance restart.</td></tr>
+      <tr><td>Security</td><td class="r">GET /security/alerts · /login-heatmap · /audit-log<br>POST /security/resolve-geo</td><td><i class="pill key">key or admin session</i></td><td>Alerts: 5+ failures/hour is "critical", 3+/day is "warning". resolve-geo batches up to 20 IPs through ip-api.com and caches.</td></tr>
+      <tr><td>Bans</td><td class="r">GET · POST /banned-ips<br>DELETE /banned-ips/&lt;id&gt;</td><td><i class="pill key">key or admin session</i></td><td>Manual bans with optional expiry. Audited as ip.ban / ip.unban.</td></tr>
+      <tr><td>Export</td><td class="r">GET /export/&lt;table&gt;</td><td><i class="pill key">key or admin session</i></td><td>CSV for customers, purchases, feedback, logins.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Admin panel (ARCS only, port 5002)</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Route</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td class="r">/site-admin, /users, /logins, /customers, /purchases, /feedback, /visitors, /security</td><td>Eight template pages generated from one <code>PAGES</code> tuple, which also drives the nav so they cannot drift. No authentication; the only protection is that it binds 127.0.0.1 unless <code>ADMIN_PANEL_HOST</code> says otherwise.</td></tr>
+      <tr><td class="r">/api/site-admin/export/&lt;table&gt;</td><td>Forwards upstream and adds a <code>Content-Disposition: attachment</code> header so the browser downloads the CSV.</td></tr>
+      <tr><td class="r">/api/site-admin/&lt;path&gt;</td><td>GET/POST/PUT/DELETE catch-all. Forwards to <code>TULLSITE_API_URL/api/admin/&lt;path&gt;</code> with the Bearer header, 10 s timeout, and maps timeout to 504 and connection failure to 502. The key never reaches the browser.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ===================================================== FLOWS -->
+<section id="flows">
+  <p class="eyebrow">// 05 flows</p>
+  <h2>The four things that actually happen end to end</h2>
+  <p class="summary">Purchase, contact, login, and admin access. Each diagram shows the hops and the data written at each one.</p>
+
+  <h3>A. Purchase (dormant until /sell gets a buy button)</h3>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 960 415" role="img" aria-label="Purchase sequence: shopper posts to create-checkout-session, the site creates a Stripe session and redirects, the shopper pays on Stripe, Stripe redirects back and posts a signed webhook, the site writes customer and purchase rows and sends a Postmark confirmation.">
+      <defs><marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+      <rect class="bx" x="30" y="20" width="160" height="36" rx="2"/><text class="tb" x="110" y="43" text-anchor="middle">Shopper</text>
+      <rect class="hl" x="270" y="20" width="160" height="36" rx="2"/><text class="tb" x="350" y="43" text-anchor="middle">TullSite (sales.py)</text>
+      <rect class="bx" x="530" y="20" width="160" height="36" rx="2"/><text class="tb" x="610" y="43" text-anchor="middle">Stripe</text>
+      <rect class="bx" x="770" y="20" width="160" height="36" rx="2"/><text class="tb" x="850" y="43" text-anchor="middle">Postmark</text>
+      <line class="lnM" x1="110" y1="56" x2="110" y2="400"/><line class="lnM" x1="350" y1="56" x2="350" y2="400"/><line class="lnM" x1="610" y1="56" x2="610" y2="400"/><line class="lnM" x1="850" y1="56" x2="850" y2="400"/>
+
+      <line class="ln" x1="110" y1="90" x2="350" y2="90" marker-end="url(#ar3)"/><text class="t" x="230" y="83" text-anchor="middle">POST /create-checkout-session</text>
+      <line class="ln" x1="350" y1="125" x2="610" y2="125" marker-end="url(#ar3)"/><text class="t" x="480" y="118" text-anchor="middle">Session.create(price, ship US/CA, auto tax)</text>
+      <line class="ln" x1="350" y1="160" x2="110" y2="160" marker-end="url(#ar3)"/><text class="t" x="230" y="153" text-anchor="middle">303 → checkout_session.url</text>
+      <line class="ln" x1="110" y1="195" x2="610" y2="195" marker-end="url(#ar3)"/><text class="t" x="360" y="188" text-anchor="middle">pays on Stripe's hosted Checkout page</text>
+      <line class="ln" x1="610" y1="230" x2="110" y2="230" marker-end="url(#ar3)"/><text class="t" x="360" y="223" text-anchor="middle">browser redirect to /success or /cancel (plain pages, no DB write)</text>
+      <line class="lnA" x1="610" y1="265" x2="350" y2="265" marker-end="url(#ar3)"/><text class="t" x="480" y="258" text-anchor="middle">POST /webhook · checkout.session.completed</text>
+      <rect class="hl" x="250" y="288" width="200" height="44" rx="2"/><text class="t" x="350" y="305" text-anchor="middle">verify signature → create_order()</text><text class="tm" x="350" y="322" text-anchor="middle">Customer upsert by email + Purchase_info</text>
+      <line class="ln" x1="350" y1="352" x2="850" y2="352" marker-end="url(#ar3)"/><text class="t" x="600" y="345" text-anchor="middle">fulfill_order() → order confirmation email, only if payment_status is paid</text>
+      <text class="tm" x="480" y="392" text-anchor="middle">async_payment_succeeded → fulfill_order later · async_payment_failed → payment-failed email · every webhook returns 200 JSON</text>
+    </svg>
+    </div>
+    <figcaption><b>The database is written only from the webhook, never from the success page.</b> If two orders share an email they attach to one customer row. The email template hardcodes a "$200" total rather than reading the Stripe amount.</figcaption>
+  </figure>
+
+  <h3>B. Contact form with layered spam defence</h3>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 960 290" role="img" aria-label="Contact flow: GET issues a signed timestamp; POST passes CSRF and WTForms validation, then six spam checks; outcome is silent reject, visible reject, or save plus two Postmark emails.">
+      <defs><marker id="ar4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+      <rect class="bx" x="20" y="100" width="150" height="64" rx="2"/><text class="tb" x="95" y="122" text-anchor="middle">GET /contact</text><text class="tm" x="95" y="138" text-anchor="middle">form + hidden honeypot</text><text class="tm" x="95" y="152" text-anchor="middle">+ HMAC timestamp token</text>
+      <line class="ln" x1="170" y1="132" x2="200" y2="132" marker-end="url(#ar4)"/>
+      <rect class="bx" x="200" y="100" width="150" height="64" rx="2"/><text class="tb" x="275" y="122" text-anchor="middle">POST /contact</text><text class="tm" x="275" y="138" text-anchor="middle">CSRF + WTForms</text><text class="tm" x="275" y="152" text-anchor="middle">email, type, 10 to 2000 chars</text>
+      <line class="ln" x1="350" y1="132" x2="380" y2="132" marker-end="url(#ar4)"/>
+      <rect class="hl" x="380" y="100" width="150" height="64" rx="2"/><text class="tb" x="455" y="122" text-anchor="middle">spam_guard</text><text class="tm" x="455" y="138" text-anchor="middle">6 checks, each scored</text><text class="tm" x="455" y="152" text-anchor="middle">IP from X-Forwarded-For</text>
+
+      <polyline class="ln" points="530,132 565,132 565,48 600,48" marker-end="url(#ar4)"/>
+      <polyline class="ln" points="565,132 600,132" marker-end="url(#ar4)"/>
+      <polyline class="ln" points="565,132 565,228 600,228" marker-end="url(#ar4)"/>
+
+      <rect class="bx2" x="600" y="20" width="200" height="56" rx="2"/><text class="tb" x="700" y="40" text-anchor="middle">Silent reject</text><text class="tm" x="700" y="55" text-anchor="middle">honeypot · rate limit · too fast</text><text class="tm" x="700" y="69" text-anchor="middle">bot sees a fake success message</text>
+      <rect class="bx2" x="600" y="104" width="200" height="56" rx="2"/><text class="tb" x="700" y="124" text-anchor="middle">Visible reject</text><text class="tm" x="700" y="139" text-anchor="middle">URL · disposable email · score ≥ 50</text><text class="tm" x="700" y="153" text-anchor="middle">user is told what to fix</text>
+      <rect class="hl" x="600" y="200" width="200" height="56" rx="2"/><text class="tb" x="700" y="220" text-anchor="middle">Accept</text><text class="tm" x="700" y="235" text-anchor="middle">feed_back row · ref TULL-00012</text><text class="tm" x="700" y="249" text-anchor="middle">rate limiter records the IP</text>
+      <line class="ln" x1="800" y1="228" x2="830" y2="228" marker-end="url(#ar4)"/>
+      <rect class="bx" x="830" y="200" width="120" height="56" rx="2"/><text class="tb" x="890" y="220" text-anchor="middle">Postmark ×2</text><text class="tm" x="890" y="235" text-anchor="middle">confirm to sender</text><text class="tm" x="890" y="249" text-anchor="middle">notify admin inbox</text>
+      <text class="tm" x="20" y="280">Checks and scores: honeypot 100 · missing/forged/too-fast token 70 to 80 · more than 3 per IP per hour 80 · disposable domain 60 · each URL 60+ · phrase/caps/repeat scoring, reject at 50.</text>
+    </svg>
+    </div>
+    <figcaption><b>Bots get lied to, humans get told.</b> Anything only a bot would trigger returns the normal success screen so the bot cannot learn what tripped it. The rate limiter lives in process memory, which is fine with one instance but resets on every restart.</figcaption>
+  </figure>
+
+  <h3>C. Login gates</h3>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 960 270" role="img" aria-label="Login gates in order: IP ban check, per-IP failure count, account status and lockout, password check, then success redirect. Admin accounts skip the IP gates and lockout. Every attempt writes a login_attempt row.">
+      <defs><marker id="ar5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+      <polyline class="lnM" points="180,44 180,36 630,36 630,44"/>
+      <text class="tm" x="405" y="30" text-anchor="middle">admin accounts skip these three gates and lockout; a successful admin login also lifts any active ban on its IP</text>
+
+      <rect class="bx" x="20" y="60" width="130" height="64" rx="2"/><text class="tb" x="85" y="80" text-anchor="middle">POST /login</text><text class="tm" x="85" y="96" text-anchor="middle">username + password</text><text class="tm" x="85" y="111" text-anchor="middle">ip = remote_addr</text>
+      <line class="ln" x1="150" y1="92" x2="180" y2="92" marker-end="url(#ar5)"/>
+      <rect class="bx" x="180" y="60" width="130" height="64" rx="2"/><text class="tb" x="245" y="80" text-anchor="middle">IP banned?</text><text class="tm" x="245" y="96" text-anchor="middle">banned_ip.active</text><text class="tm" x="245" y="111" text-anchor="middle">expired bans auto-lift</text>
+      <line class="ln" x1="310" y1="92" x2="340" y2="92" marker-end="url(#ar5)"/>
+      <rect class="bx" x="340" y="60" width="130" height="64" rx="2"/><text class="tb" x="405" y="80" text-anchor="middle">IP failures / 1 h</text><text class="tm" x="405" y="96" text-anchor="middle">≥ 20 → auto-ban 1 h</text><text class="tm" x="405" y="111" text-anchor="middle">≥ 10 → reject</text>
+      <line class="ln" x1="470" y1="92" x2="500" y2="92" marker-end="url(#ar5)"/>
+      <rect class="bx" x="500" y="60" width="130" height="64" rx="2"/><text class="tb" x="565" y="80" text-anchor="middle">Account state</text><text class="tm" x="565" y="96" text-anchor="middle">suspended · deleted</text><text class="tm" x="565" y="111" text-anchor="middle">locked_until</text>
+      <line class="ln" x1="630" y1="92" x2="660" y2="92" marker-end="url(#ar5)"/>
+      <rect class="bx" x="660" y="60" width="130" height="64" rx="2"/><text class="tb" x="725" y="80" text-anchor="middle">Password</text><text class="tm" x="725" y="96" text-anchor="middle">scrypt hash check</text><text class="tm" x="725" y="111" text-anchor="middle">dummy hash if no user</text>
+      <line class="ln" x1="790" y1="92" x2="820" y2="92" marker-end="url(#ar5)"/>
+      <rect class="hl" x="820" y="60" width="130" height="64" rx="2"/><text class="tb" x="885" y="80" text-anchor="middle">Success</text><text class="tm" x="885" y="96" text-anchor="middle">admin → /admin</text><text class="tm" x="885" y="111" text-anchor="middle">employee → /ops</text>
+
+      <line class="ln" x1="245" y1="124" x2="245" y2="150" marker-end="url(#ar5)"/><text class="tm" x="245" y="166" text-anchor="middle">"Access blocked"</text>
+      <line class="ln" x1="405" y1="124" x2="405" y2="150" marker-end="url(#ar5)"/><text class="tm" x="405" y="166" text-anchor="middle">"Too many failed attempts"</text>
+      <line class="ln" x1="565" y1="124" x2="565" y2="150" marker-end="url(#ar5)"/><text class="tm" x="565" y="166" text-anchor="middle">"Suspended" / "Locked N min"</text>
+      <line class="ln" x1="725" y1="124" x2="725" y2="150" marker-end="url(#ar5)"/><text class="tm" x="725" y="166" text-anchor="middle">failed_attempts += 1</text><text class="tm" x="725" y="180" text-anchor="middle">5 → 15 min lock · 10 → 1 h</text>
+      <rect class="zone" x="20" y="205" width="930" height="40" rx="2"/>
+      <text class="t" x="485" y="230" text-anchor="middle">Every attempt, pass or fail, writes a login_attempt row: ip, user agent, username tried, success, failure_reason, matched user_type.</text>
+    </svg>
+    </div>
+    <figcaption><b>Two independent counters.</b> IP failures are counted from login_attempt rows over the last hour; account failures are the <code>failed_attempts</code> column on the user. Only the account counter resets on success. The login route reads the raw form and never calls <code>validate_on_submit</code>, so the CSRF token in the login page is not actually checked.</figcaption>
+  </figure>
+
+  <h3>D. Admin access: three UIs, one API, two credentials</h3>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 960 200" role="img" aria-label="Admin API auth decision: a Bearer header must equal ADMIN_API_KEY and skips CSRF; otherwise an admin browser session is accepted, with non-GET requests requiring an X-CSRFToken header; anything else is 401.">
+      <defs><marker id="ar6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+      <rect class="bx" x="20" y="60" width="170" height="56" rx="2"/><text class="tb" x="105" y="82" text-anchor="middle">Request to /api/admin/*</text><text class="tm" x="105" y="100" text-anchor="middle">@require_api_key</text>
+      <line class="ln" x1="190" y1="88" x2="230" y2="88" marker-end="url(#ar6)"/>
+      <rect class="bx" x="230" y="60" width="180" height="56" rx="2"/><text class="tb" x="320" y="82" text-anchor="middle">Authorization: Bearer?</text><text class="tm" x="320" y="100" text-anchor="middle">header present</text>
+      <polyline class="ln" points="410,78 430,78 430,34 450,34" marker-end="url(#ar6)"/><text class="tm" x="434" y="70">yes</text>
+      <polyline class="ln" points="410,98 430,98 430,142 450,142" marker-end="url(#ar6)"/><text class="tm" x="434" y="118">no</text>
+      <rect class="bx" x="450" y="10" width="190" height="48" rx="2"/><text class="tb" x="545" y="30" text-anchor="middle">token == ADMIN_API_KEY</text><text class="tm" x="545" y="46" text-anchor="middle">otherwise 401</text>
+      <line class="ln" x1="640" y1="34" x2="680" y2="34" marker-end="url(#ar6)"/>
+      <rect class="hl" x="680" y="10" width="270" height="48" rx="2"/><text class="tb" x="815" y="30" text-anchor="middle">Allowed, no CSRF needed</text><text class="tm" x="815" y="46" text-anchor="middle">TullOps · admin panel passthrough · curl</text>
+      <rect class="bx" x="450" y="118" width="190" height="48" rx="2"/><text class="tb" x="545" y="138" text-anchor="middle">session user is admin?</text><text class="tm" x="545" y="154" text-anchor="middle">employee session → 401</text>
+      <line class="ln" x1="640" y1="142" x2="680" y2="142" marker-end="url(#ar6)"/>
+      <rect class="hl" x="680" y="118" width="270" height="48" rx="2"/><text class="tb" x="815" y="138" text-anchor="middle">Allowed; non-GET needs X-CSRFToken</text><text class="tm" x="815" y="154" text-anchor="middle">/admin dashboard JS (same-origin cookie)</text>
+      <text class="tm" x="485" y="192" text-anchor="middle">If ADMIN_API_KEY is unset in the environment every protected endpoint answers 503, including for logged-in admins.</text>
+    </svg>
+    </div>
+    <figcaption><b>Three front ends share this one API.</b> The in-site <code>/admin</code> dashboard uses the session path. The ARCS admin panel and TullOps use the key path. The legacy <code>/viewdb</code> pages bypass the API entirely and query the models directly.</figcaption>
+  </figure>
+</section>
+
+<!-- ===================================================== DATA -->
+<section id="data">
+  <p class="eyebrow">// 06 data model</p>
+  <h2>Nine tables, one real relationship</h2>
+  <p class="summary">Only customer to purchase is a declared foreign key. The security and analytics tables relate to each other by IP address value, which is why the dashboard resolves and caches GeoIP per IP rather than per row.</p>
+
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 980 590" role="img" aria-label="Entity diagram of nine tables grouped as commerce, support and analytics, accounts and logins, security and cache; purchase_info.customer_id references customer.id.">
+      <defs><marker id="ar7" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/></marker></defs>
+      <text class="tz" x="20" y="46">COMMERCE</text><text class="tz" x="260" y="46">SUPPORT · ANALYTICS</text><text class="tz" x="500" y="46">ACCOUNTS · LOGINS</text><text class="tz" x="740" y="46">SECURITY · AUDIT · GEOIP</text>
+
+      <!-- customer -->
+      <rect class="col" x="20" y="60" width="210" height="98" rx="2"/><rect class="hdr" x="20" y="60" width="210" height="26"/><text class="th" x="30" y="77">customer</text>
+      <text class="tk" x="30" y="100">id  PK</text><text class="tk" x="30" y="116">email</text><text class="tk" x="30" y="132">name</text><text class="tk" x="30" y="148">creation_date</text>
+      <!-- purchase_info -->
+      <rect class="col" x="20" y="230" width="210" height="210" rx="2"/><rect class="hdr" x="20" y="230" width="210" height="26"/><text class="th" x="30" y="247">purchase_info</text>
+      <text class="tk" x="30" y="270">id  PK  (order number)</text><text class="tk" x="30" y="286">product_name</text><text class="tk" x="30" y="302">city</text><text class="tk" x="30" y="318">country</text><text class="tk" x="30" y="334">line1</text><text class="tk" x="30" y="350">line2</text><text class="tk" x="30" y="366">postal_code</text><text class="tk" x="30" y="382">state</text><text class="tk" x="30" y="398">pay_status</text><text class="tk" x="30" y="414">purchase_date</text><text class="tk" x="30" y="430">customer_id  FK</text>
+      <line class="lnA" x1="125" y1="230" x2="125" y2="158" marker-end="url(#ar7)"/>
+      <text class="ta" x="132" y="190">customer_id → customer.id</text><text class="tm" x="132" y="204">one customer, many purchases</text>
+
+      <!-- feed_back -->
+      <rect class="col" x="260" y="60" width="210" height="242" rx="2"/><rect class="hdr" x="260" y="60" width="210" height="26"/><text class="th" x="270" y="77">feed_back</text>
+      <text class="tk" x="270" y="100">id  PK  (ref TULL-nnnnn)</text><text class="tk" x="270" y="116">feedbackmail</text><text class="tk" x="270" y="132">feedbacktype</text><text class="tk" x="270" y="148">feedbackorderid</text><text class="tk" x="270" y="164">feedbackfullfield</text><text class="tk" x="270" y="180">date</text><text class="tk" x="270" y="196">submitter_ip</text><text class="tk" x="270" y="212">resolved</text><text class="tk" x="270" y="228">admin_notes</text><text class="tk" x="270" y="244">serial_number</text><text class="tk" x="270" y="260">first_response_date</text><text class="tk" x="270" y="276">resolved_date</text><text class="tk" x="270" y="292">resolution_time_hours</text>
+      <!-- site_visit -->
+      <rect class="col" x="260" y="340" width="210" height="130" rx="2"/><rect class="hdr" x="260" y="340" width="210" height="26"/><text class="th" x="270" y="357">site_visit</text>
+      <text class="tk" x="270" y="380">id  PK</text><text class="tk" x="270" y="396">ip_address</text><text class="tk" x="270" y="412">path</text><text class="tk" x="270" y="428">referrer</text><text class="tk" x="270" y="444">user_agent</text><text class="tk" x="270" y="460">timestamp</text>
+
+      <!-- user -->
+      <rect class="col" x="500" y="60" width="210" height="210" rx="2"/><rect class="hdr" x="500" y="60" width="210" height="26"/><text class="th" x="510" y="77">user</text>
+      <text class="tk" x="510" y="100">id  PK</text><text class="tk" x="510" y="116">email  unique (login name)</text><text class="tk" x="510" y="132">password  scrypt hash</text><text class="tk" x="510" y="148">user_type  admin | employee</text><text class="tk" x="510" y="164">status  active | suspended | deleted</text><text class="tk" x="510" y="180">display_name</text><text class="tk" x="510" y="196">notes</text><text class="tk" x="510" y="212">last_login</text><text class="tk" x="510" y="228">failed_attempts</text><text class="tk" x="510" y="244">locked_until</text><text class="tk" x="510" y="260">created_at</text>
+      <!-- login_attempt -->
+      <rect class="col" x="500" y="310" width="210" height="162" rx="2"/><rect class="hdr" x="500" y="310" width="210" height="26"/><text class="th" x="510" y="327">login_attempt</text>
+      <text class="tk" x="510" y="350">id  PK</text><text class="tk" x="510" y="366">ip_address  indexed</text><text class="tk" x="510" y="382">user_agent</text><text class="tk" x="510" y="398">username_attempted</text><text class="tk" x="510" y="414">success</text><text class="tk" x="510" y="430">failure_reason</text><text class="tk" x="510" y="446">user_type_matched</text><text class="tk" x="510" y="462">timestamp  indexed</text>
+
+      <!-- banned_ip -->
+      <rect class="col" x="740" y="60" width="210" height="146" rx="2"/><rect class="hdr" x="740" y="60" width="210" height="26"/><text class="th" x="750" y="77">banned_ip</text>
+      <text class="tk" x="750" y="100">id  PK</text><text class="tk" x="750" y="116">ip_address  indexed</text><text class="tk" x="750" y="132">reason</text><text class="tk" x="750" y="148">banned_by  auto | admin</text><text class="tk" x="750" y="164">active</text><text class="tk" x="750" y="180">created_date</text><text class="tk" x="750" y="196">expires_at  (null = permanent)</text>
+      <!-- admin_audit_log -->
+      <rect class="col" x="740" y="240" width="210" height="146" rx="2"/><rect class="hdr" x="740" y="240" width="210" height="26"/><text class="th" x="750" y="257">admin_audit_log</text>
+      <text class="tk" x="750" y="280">id  PK</text><text class="tk" x="750" y="296">action  e.g. user.create</text><text class="tk" x="750" y="312">target_type</text><text class="tk" x="750" y="328">target_id</text><text class="tk" x="750" y="344">details  JSON</text><text class="tk" x="750" y="360">admin_ip</text><text class="tk" x="750" y="376">timestamp</text>
+      <!-- geo_ip_cache -->
+      <rect class="col" x="740" y="420" width="210" height="146" rx="2"/><rect class="hdr" x="740" y="420" width="210" height="26"/><text class="th" x="750" y="437">geo_ip_cache</text>
+      <text class="tk" x="750" y="460">id  PK</text><text class="tk" x="750" y="476">ip_address  unique</text><text class="tk" x="750" y="492">country</text><text class="tk" x="750" y="508">region</text><text class="tk" x="750" y="524">city</text><text class="tk" x="750" y="540">isp</text><text class="tk" x="750" y="556">cached_at</text>
+    </svg>
+    </div>
+    <figcaption><b>Writers:</b> Stripe webhook writes customer and purchase_info. Contact form writes feed_back. Login writes login_attempt and updates user; the auto-ban path writes banned_ip. The visitor middleware writes site_visit. The admin API writes user, banned_ip, feed_back, geo_ip_cache and admin_audit_log. Audited actions: user.create/update/delete/suspend/activate, customer.delete, feedback.update/delete/reply, ip.ban/unban.</figcaption>
+  </figure>
+</section>
+
+<!-- ===================================================== SECURITY -->
+<section id="security">
+  <p class="eyebrow">// 07 security model</p>
+  <h2>Who can do what, and what stops the rest</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Layer</th><th>Mechanism</th><th>Where</th></tr></thead>
+    <tbody>
+      <tr><td>Transport</td><td>App Engine forces HTTPS on every handler; Secure cookie flags on in production.</td><td class="r">app.yaml · __init__.py</td></tr>
+      <tr><td>Roles</td><td>Two roles. <code>admin</code> sees everything. <code>employee</code> sees only <code>/ops</code>. Investor role was removed in the March 2026 overhaul and a test guards against its return.</td><td class="r">auth.py · tests/test_investor_removal.py</td></tr>
+      <tr><td>Passwords</td><td>Werkzeug scrypt. Minimum 10 characters enforced by the API, no complexity rules. A dummy hash is computed for unknown usernames to blunt timing enumeration.</td><td class="r">admin_api.py · auth.py</td></tr>
+      <tr><td>Brute force</td><td>Per-IP counters from login_attempt rows, auto-ban at <code>AUTO_BAN_THRESHOLD</code> (20), per-account lockout at 5 and 10 failures, manual bans with expiry. Admin accounts are exempt so a lockout attack cannot lock the owner out.</td><td class="r">auth.py</td></tr>
+      <tr><td>Machine access</td><td>One static Bearer key for the whole admin API. No per-caller keys, no rotation mechanism, no rate limit on the key path.</td><td class="r">admin_api.py</td></tr>
+      <tr><td>CSRF</td><td>Global check is off. Enforced where a WTForm validates (contact, /viewdb search) and by the <code>X-CSRFToken</code> header on session-authenticated API mutations. Webhook and checkout routes are exempt on purpose.</td><td class="r">views.py · admin_api.py · sales.py</td></tr>
+      <tr><td>Spam</td><td>Six-layer guard on the contact form, described in flow B.</td><td class="r">spam_guard.py</td></tr>
+      <tr><td>Audit</td><td>Eleven admin actions write admin_audit_log with the caller IP.</td><td class="r">admin_api.py</td></tr>
+      <tr><td>Admin panel</td><td>No authentication at all. Binds loopback by default; the README forbids port-forwarding or a Tailscale funnel. Refuses to start without the key so a misconfiguration fails loudly instead of silently 401ing.</td><td class="r">admin_panel/config.py</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ===================================================== CONFIG & DEPLOY -->
+<section id="config">
+  <p class="eyebrow">// 08 configuration and deployment</p>
+  <h2>Environment variables and where the app runs</h2>
+  <p class="summary">The same code runs in two modes with no code change. Locally it reads <code>vars.env</code>; on App Engine it reads <code>env_variables</code> from <code>app.yaml</code>, which is gitignored and mirrored by <code>app.yaml.example</code>.</p>
+
+  <div class="tbl"><table>
+    <thead><tr><th>Variable</th><th>Used by</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td class="r">FLASK_SECRET_KEY</td><td>__init__, spam_guard</td><td>Session signing and the contact form's timestamp HMAC. Falls back to a random key with a warning.</td></tr>
+      <tr><td class="r">FLASK_ENV</td><td>__init__, main</td><td>"development" enables debug and disables Secure cookies.</td></tr>
+      <tr><td class="r">MAIN_DOMAIN</td><td>sales, views</td><td>Stripe success/cancel URLs and the deep link in admin notification emails.</td></tr>
+      <tr><td class="r">STRIPE_SECRET_KEY · STRIPE_WEBHOOK_SECRET · HP_PRICE_ID</td><td>sales</td><td>API auth, webhook signature verification, the one product's price. <code>STRIPE_PUBLISHABLE_KEY</code> is declared in app.yaml but no code reads it.</td></tr>
+      <tr><td class="r">POSTMARK_SERVER_TOKEN · POSTMARK_SENDER_EMAIL</td><td>views, sales, admin_api</td><td>All outbound email. When unset, email is skipped with a log line and the request still succeeds.</td></tr>
+      <tr><td class="r">ADMIN_BOOTSTRAP_EMAIL · _PASSWORD · _DISPLAY_NAME</td><td>__init__</td><td>Create the first admin when the user table is empty. Because the DB is ephemeral, this runs after every deploy or restart.</td></tr>
+      <tr><td class="r">ADMIN_API_KEY</td><td>admin_api · admin_panel</td><td>The shared Bearer secret. Also required by the ARCS panel via admin_panel.env.</td></tr>
+      <tr><td class="r">AUTO_BAN_THRESHOLD · AUTO_BAN_WINDOW_HOURS</td><td>auth</td><td>Login auto-ban tuning (defaults 20 and 1).</td></tr>
+      <tr><td class="r">BRUTE_FORCE_THRESHOLD · SUSPICIOUS_THRESHOLD</td><td>admin_api</td><td>Alert thresholds for the security panel (defaults 5 and 3). Not listed in the docs.</td></tr>
+      <tr><td class="r">DATABASE_URL · CLOUD_SQL_URI</td><td>__init__</td><td>If set, replaces SQLite. Tests set it to an in-memory SQLite.</td></tr>
+      <tr><td class="r">TULLSITE_API_URL · ADMIN_PANEL_HOST · ADMIN_PANEL_PORT</td><td>admin_panel</td><td>Upstream URL (defaults to the appspot URL), bind address (127.0.0.1) and port (5002).</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Deployment shape</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Setting</th><th>Value</th><th>Consequence</th></tr></thead>
+    <tbody>
+      <tr><td>Runtime / entry</td><td class="r">python312 · gunicorn -b :$PORT main:app</td><td>One WSGI process per instance.</td></tr>
+      <tr><td>Instance class</td><td class="r">F1 · min 1 · max 1 · 50 concurrent</td><td>Never scales out. Chosen deliberately because each instance would get its own /tmp database.</td></tr>
+      <tr><td>Static handler</td><td class="r">/static → xissite/static · 1 h cache</td><td>App Engine serves CSS, JS, fonts and images without touching Flask.</td></tr>
+      <tr><td>Session affinity</td><td class="r">true</td><td>Harmless with one instance; would matter for the in-memory rate limiter if scaled.</td></tr>
+      <tr><td>Excluded from upload</td><td class="r">.git · .venv* · .pytest_cache · .remember · admin_panel/ · admin_panel.env*</td><td>The LAN panel and its secret never reach Google. A test asserts this.</td></tr>
+      <tr><td>Local run</td><td class="r">python main.py → localhost:5000</td><td>SQLite file in the repo root, persistent across restarts.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ===================================================== OBSERVATIONS -->
+<section id="obs">
+  <p class="eyebrow">// 09 observations</p>
+  <h2>Where the code, the docs and the intent disagree</h2>
+  <p class="summary">Found while mapping. Ordered by how much they would surprise someone operating the site. None of these were changed.</p>
+  <ul class="obs">
+    <li class="hi"><b><span class="w">high</span>Every deploy or instance restart erases users, customers, purchases, feedback and all security history.</b> SQLite lives in /tmp. The bootstrap admin is recreated from env vars, but the accounts seeded by <code>seed_users.py</code> (for example the employee account) are gone until TullOps recreates them. The admin panel README already notes the analytics side of this; the user side is the sharper edge. Cloud SQL is the intended fix and is one env var away in code.</li>
+    <li class="hi"><b><span class="w">high</span>The purchase pipeline is built but not reachable.</b> <code>/sell</code> is a "coming soon" page whose only call to action is /contact. Nothing posts to <code>/create-checkout-session</code>, so Stripe, the webhook, customer and purchase tables, and the order email are all live code with no traffic. The dashboard's Orders and Customers panels will stay empty until a buy button exists.</li>
+    <li class="md"><b><span class="w">medium</span>TullOps content push does not exist yet.</b> The design says TullOps pushes tasks, checklists and notifications to employees through the admin API. There is no endpoint for that; <code>/ops</code> renders placeholder content hardcoded in the template (commit d463c10). The API today is read-mostly plus user management.</li>
+    <li class="md"><b><span class="w">medium</span>Three admin front ends for one dataset.</b> The in-site <code>/admin</code> JS dashboard, the legacy <code>/viewdb</code> pages, and the ARCS admin panel all show the same data. The Postmark admin-notification email still deep-links to the legacy feedback page, not to <code>/admin</code>.</li>
+    <li class="md"><b><span class="w">medium</span>manage_db.py targets a schema that no longer exists.</b> It queries table <code>purchase__info</code> with columns <code>first_name</code>, <code>last_name</code>, <code>paid</code>; the models use <code>purchase_info</code>, <code>name</code>, <code>pay_status</code>. Its <code>users</code> command also claims credentials live in env vars, which stopped being true in March. The <code>status</code>, <code>purchases</code> and <code>export</code> commands will error or skip on a current database. MANAGEMENT_GUIDE.md's schema section has the same stale shape.</li>
+    <li class="md"><b><span class="w">medium</span>One startup migration checks the wrong table name.</b> <code>add_product_name_column</code> inspects <code>purchase__info</code> (double underscore), finds nothing, tries to ALTER a table that does not exist, and is swallowed by the bare except on every boot. Harmless today because new databases get the column from the model, but it prints a misleading "Running" line each start.</li>
+    <li class="lo"><b><span class="w">low</span>Login POST does not check its CSRF token.</b> The route reads <code>request.form</code> directly instead of calling <code>form.validate_on_submit()</code>, and the global CSRF check is off. Impact is limited to login CSRF, but the token in the template is decorative.</li>
+    <li class="lo"><b><span class="w">low</span>Two different ideas of the client IP.</b> Login trusts <code>remote_addr</code> (correct behind App Engine). The contact form trusts the first <code>X-Forwarded-For</code> value, which a client can set, so the contact rate limit can be sidestepped by spoofing the header.</li>
+    <li class="lo"><b><span class="w">low</span>Hardcoded order total.</b> <code>fulfill_order</code> emails "$200" regardless of what Stripe charged; the price lives only in the Stripe Price object.</li>
+    <li class="lo"><b><span class="w">low</span>Docs drift.</b> README lists a <code>dataviz.html</code> that does not exist, omits <code>/admin</code>, <code>/ops</code> and the whole <code>/api/admin</code> surface, and app.yaml comments still mention Mailgun although all email moved to Postmark.</li>
+  </ul>
+</section>
+
+</div>

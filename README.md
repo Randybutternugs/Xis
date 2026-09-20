@@ -31,6 +31,7 @@ python main.py
 ## Documentation
 
 - **[MANAGEMENT_GUIDE.md](MANAGEMENT_GUIDE.md)** - Complete guide for database, users, and deployment
+- **[docs/architecture/xis-architecture-map.html](docs/architecture/xis-architecture-map.html)** - Visual architecture map: system context, request path, routes, flows, data model, security, config (open in a browser)
 - **[README.md](README.md)** - This file (project overview)
 
 ## Management Scripts
