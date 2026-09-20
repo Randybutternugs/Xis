@@ -24,6 +24,7 @@ from wtforms.validators import DataRequired, Length, InputRequired, Email, Optio
 from . import db
 from .models import FeedBack
 from .spam_guard import validate_submission, generate_timestamp_token, contact_rate_limiter
+from .clientip import client_ip as client_address
 
 # Initialize CSRF protection
 csrf = CSRFProtect()
@@ -144,10 +145,7 @@ def contact():
         if form.validate_on_submit():
             from flask import current_app
 
-            # Get client IP (App Engine uses X-Forwarded-For)
-            client_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
-            if client_ip and ',' in client_ip:
-                client_ip = client_ip.split(',')[0].strip()
+            client_ip = client_address()
 
             # Run anti-spam checks
             spam_result = validate_submission(

@@ -1,12 +1,11 @@
 """
-Authentication & Database Viewer Routes
-=======================================
+Authentication & Dashboard Routes
+=================================
 
 This module handles:
-- Admin login/logout authentication
-- Customer database viewer (protected routes)
-- Search functionality for customers and orders
-- Feedback viewer for customer submissions
+- Admin and employee login/logout
+- /admin (single-page admin dashboard, data via /api/admin)
+- /ops (employee operations page)
 
 All routes except /login require authentication via Flask-Login.
 """
@@ -14,18 +13,18 @@ All routes except /login require authentication via Flask-Login.
 from datetime import datetime, timedelta, timezone
 
 from flask import Blueprint, redirect, url_for, render_template, request, flash
-from sqlalchemy.sql import func
 import os
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_login import login_user, login_required, logout_user, current_user
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, PasswordField
-from wtforms.validators import DataRequired, Length
+from wtforms.validators import DataRequired
 from functools import wraps
 
 from . import db
-from .models import Customer, FeedBack, Purchase_info, User
+from .models import User
 from .timeutil import as_utc
+from .clientip import client_ip as client_address
 
 # Create Blueprint
 auth = Blueprint('auth', __name__)
@@ -40,12 +39,6 @@ class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField('Authenticate')
-
-
-class SearchForm(FlaskForm):
-    """Search form for finding customers by email or purchase ID."""
-    SearchWord = StringField('', validators=[DataRequired(), Length(min=1, max=40)])
-    submit = SubmitField('')
 
 
 # ============================================================================
@@ -91,14 +84,18 @@ def login():
     """
     form = LoginForm()
 
+    # validate_on_submit() checks the CSRF token the template renders and the
+    # required fields. A form that fails it is not a login attempt.
+    if request.method == 'POST' and not form.validate_on_submit():
+        flash('The form could not be verified. Please reload the page and try again.', 'error')
+        return render_template('loginpage.html', form=form)
+
     if request.method == 'POST':
         from .models import BannedIP, LoginAttempt as LA
-        # Use remote_addr (set by App Engine / reverse proxy) rather than
-        # the attacker-controlled X-Forwarded-For header
-        client_ip = request.remote_addr or '0.0.0.0'
+        client_ip = client_address()
 
-        username = request.form.get('username', '').strip()
-        password = request.form.get('password', '')
+        username = form.username.data.strip()
+        password = form.password.data
 
         user = User.query.filter_by(email=username).first()
         is_admin = user is not None and user.user_type == 'admin'
@@ -221,90 +218,6 @@ def logout():
     print(f"[AUTH] {current_user.user_type.upper()} user logged out")
     logout_user()
     return redirect(url_for('auth.login'))
-
-
-# ============================================================================
-# DATABASE VIEWER ROUTES (Admin Only)
-# ============================================================================
-
-@auth.route('/viewdb', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def viewdatabase():
-    """
-    Main database viewer page (Admin only).
-    
-    Displays all customers with search functionality.
-    Search supports:
-        - Email addresses (containing @)
-        - Purchase IDs (numeric strings)
-    """
-    customerinf = Customer.query.order_by(Customer.id.desc())
-    form = SearchForm()
-    
-    if form.validate_on_submit():
-        search_term = form.SearchWord.data.strip()
-        
-        if "@" in search_term:
-            # Search by email
-            customer = Customer.query.filter_by(email=search_term).first()
-            if customer:
-                return redirect(f'/viewdb/{customer.id}')
-            else:
-                flash('Email not found in database')
-        else:
-            # Search by purchase ID
-            purchase = Purchase_info.query.filter_by(id=search_term).first()
-            if purchase:
-                return redirect(f'/viewdb/{purchase.customer_id}')
-            else:
-                flash('Purchase ID not found in database')
-                
-    return render_template('show.html', customerinf=customerinf, form=form)
-
-
-@auth.route('/viewdb/<int:customerid>', methods=['GET'])
-@login_required
-@admin_required
-def viewcustomer(customerid):
-    """
-    Detailed view of a single customer and their purchase history (Admin only).
-    
-    Args:
-        customerid: Database ID of the customer to view
-    """
-    customer_info = Customer.query.get_or_404(customerid)
-    
-    # Count total purchases for this customer
-    customer_purchasesno = db.session.query(func.count(Purchase_info.id))\
-        .filter(Purchase_info.customer_id == customerid)\
-        .scalar()
-    
-    # Get all purchases, ordered by date (most recent last)
-    customer_purchase_info = Purchase_info.query\
-        .filter_by(customer_id=customerid)\
-        .order_by(Purchase_info.purchase_date.asc())\
-        .all()
-    
-    return render_template(
-        'showmore.html', 
-        customer_info=customer_info, 
-        customer_purchase_info=customer_purchase_info, 
-        customer_purchasesno=customer_purchasesno
-    )
-
-
-@auth.route('/viewdb/feedbackview', methods=['GET'])
-@login_required
-@admin_required
-def viewfeedback():
-    """
-    View all customer feedback submissions (Admin only).
-    
-    Displays feedback ordered by most recent first.
-    """
-    feedback_info = FeedBack.query.order_by(FeedBack.id.desc())
-    return render_template('feedbackview.html', feedback_info=feedback_info)
 
 
 @auth.route('/ops')

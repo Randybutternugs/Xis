@@ -30,6 +30,7 @@ from .models import (User, Customer, Purchase_info, FeedBack, LoginAttempt,
                      SiteVisit, BannedIP, GeoIPCache, AdminAuditLog)
 from .email_templates import feedback_reply_html
 from .timeutil import as_utc
+from .clientip import client_ip as client_address
 
 
 admin_api = Blueprint('admin_api', __name__, url_prefix='/api/admin')
@@ -88,7 +89,7 @@ def _audit(action, target_type=None, target_id=None, details=None):
     """Record an admin API action in the audit log."""
     try:
         import json as _json
-        client_ip = request.remote_addr or '0.0.0.0'
+        client_ip = client_address()
         entry = AdminAuditLog(
             action=action,
             target_type=target_type,
@@ -745,10 +746,7 @@ def ban_ip():
         return jsonify(error='ip_address is required'), 400
 
     # Prevent banning own IP
-    client_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
-    if client_ip and ',' in client_ip:
-        client_ip = client_ip.split(',')[0].strip()
-    if ip_address == client_ip:
+    if ip_address == client_address():
         return jsonify(error='Cannot ban your own IP address'), 400
 
     existing = BannedIP.query.filter_by(ip_address=ip_address, active=True).first()

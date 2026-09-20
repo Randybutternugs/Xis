@@ -114,7 +114,7 @@ def admin_notification_html(feedback, ref_number, site_url=''):
 
     deep_link = ''
     if site_url:
-        link_url = f"{site_url.rstrip('/')}/viewdb/feedbackview#feedback-{feedback.id}"
+        link_url = f"{site_url.rstrip('/')}/admin#sec-feedback"
         deep_link = (
             f'<a href="{link_url}" style="display:inline-block;background:#000;'
             f'color:#fff;padding:10px 20px;border-radius:4px;font-size:13px;'

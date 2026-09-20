@@ -117,12 +117,11 @@ def test_employee_login_redirects_to_ops(client, db):
 
 
 # ---------------------------------------------------------------------------
-# /viewdb backward compatibility
+# legacy /viewdb pages are gone; /admin is the in-site dashboard
 # ---------------------------------------------------------------------------
 
-def test_viewdb_still_works_for_admin(client, db):
-    """Legacy /viewdb route still accessible to admin."""
+def test_legacy_viewdb_pages_are_removed(client, db):
     _create_admin(db)
     _login(client, 'admin', 'adminpass1')
-    resp = client.get('/viewdb')
-    assert resp.status_code == 200
+    for path in ('/viewdb', '/viewdb/1', '/viewdb/feedbackview'):
+        assert client.get(path).status_code == 404, path

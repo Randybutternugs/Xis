@@ -39,7 +39,8 @@ def test_admin_notification_contains_deep_link():
 
     html = admin_notification_html(FakeFeedback(), 'TULL-00042', 'https://tullhydro.com')
     assert 'TULL-00042' in html
-    assert 'feedbackview#feedback-42' in html or 'feedback-42' in html
+    assert 'https://tullhydro.com/admin#sec-feedback' in html
+    assert 'viewdb' not in html
 
 
 def test_feedback_reply_contains_ref():

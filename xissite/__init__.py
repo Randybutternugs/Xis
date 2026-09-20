@@ -355,8 +355,8 @@ def run_migrations():
         },
         {
             'name': 'add_product_name_column',
-            'check': "SELECT * FROM pragma_table_info('purchase__info') WHERE name='product_name'",
-            'migrate': "ALTER TABLE purchase__info ADD COLUMN product_name VARCHAR(100) DEFAULT 'Tull Tower V1'"
+            'check': "SELECT * FROM pragma_table_info('purchase_info') WHERE name='product_name'",
+            'migrate': "ALTER TABLE purchase_info ADD COLUMN product_name VARCHAR(100) DEFAULT 'Tull Tower V1'"
         },
         {
             'name': 'add_feedback_submitter_ip',
