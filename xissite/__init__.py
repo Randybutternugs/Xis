@@ -241,7 +241,12 @@ def create_app():
 
     @login_manager.user_loader
     def load_user(id):
-        return User.query.get(int(id))
+        # A suspended or deleted account loses its session on the next
+        # request, not just at the next login.
+        user = User.query.get(int(id))
+        if user is None or user.status != 'active':
+            return None
+        return user
     
     # ========================================================================
     # VISITOR TRACKING MIDDLEWARE

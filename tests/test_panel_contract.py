@@ -193,10 +193,16 @@ def _args_read_by_route():
             continue
         names = set()
         for sub in ast.walk(node):
-            if (isinstance(sub, ast.Call) and isinstance(sub.func, ast.Attribute)
-                    and sub.func.attr == 'get' and isinstance(sub.func.value, ast.Attribute)
-                    and sub.func.value.attr == 'args' and sub.args
-                    and isinstance(sub.args[0], ast.Constant)):
+            if not (isinstance(sub, ast.Call) and sub.args and isinstance(sub.args[0], ast.Constant)):
+                continue
+            # request.args.get('name', ...)
+            if (isinstance(sub.func, ast.Attribute) and sub.func.attr == 'get'
+                    and isinstance(sub.func.value, ast.Attribute)
+                    and sub.func.value.attr == 'args'):
+                names.add(sub.args[0].value)
+            # _int_arg('name', default, ...) reads request.args unless source= is given
+            elif (isinstance(sub.func, ast.Name) and sub.func.id == '_int_arg'
+                    and not any(k.arg == 'source' for k in sub.keywords)):
                 names.add(sub.args[0].value)
         for p in paths:
             routes.setdefault(p, set()).update(names)

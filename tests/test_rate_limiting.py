@@ -33,18 +33,42 @@ def test_banned_ip_rejected(client, db):
     assert b'blocked' in response.data.lower() or b'banned' in response.data.lower()
 
 
-def test_account_locks_after_5_failures(client, db):
-    """Account locks after 5 consecutive failed attempts."""
+def _create_employee(db):
     from xissite.models import User
-    _create_admin(db)
+    user = User(
+        email='emp',
+        password=generate_password_hash('correctpassword1'),
+        user_type='employee',
+        status='active',
+    )
+    db.session.add(user)
+    db.session.commit()
+    return user
+
+
+def test_account_locks_after_5_failures(client, db):
+    """A non-admin account locks after 5 consecutive failed attempts.
+    Admins are deliberately exempt so a lockout attack cannot lock the
+    owner out (see auth.py)."""
+    from xissite.models import User
+    _create_employee(db)
     for _ in range(5):
         client.post('/login', data={
-            'username': 'admin',
+            'username': 'emp',
             'password': 'wrongpassword',
         })
-    user = User.query.filter_by(email='admin').first()
+    user = User.query.filter_by(email='emp').first()
     assert user.failed_attempts >= 5
     assert user.locked_until is not None
+
+
+def test_admin_is_exempt_from_lockout(client, db):
+    from xissite.models import User
+    _create_admin(db)
+    for _ in range(6):
+        client.post('/login', data={'username': 'admin', 'password': 'wrongpassword'})
+    user = User.query.filter_by(email='admin').first()
+    assert user.locked_until is None
 
 
 def test_successful_login_resets_lockout(client, db):

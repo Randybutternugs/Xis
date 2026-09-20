@@ -151,7 +151,9 @@ def login():
             # Dummy hash check to prevent timing-based username enumeration
             check_password_hash(generate_password_hash('dummy'), password)
             failure_reason = 'unknown_user'
-        elif user.status == 'suspended' and not is_admin:
+        elif user.status == 'suspended':
+            # Applies to admins too. The bootstrap admin can never be
+            # suspended (admin_api refuses), so this cannot lock out recovery.
             failure_reason = 'account_suspended'
             flash('Account suspended. Contact your administrator.', 'error')
         elif user.status == 'deleted':

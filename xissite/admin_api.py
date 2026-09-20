@@ -15,8 +15,11 @@ import io
 import functools
 from datetime import datetime, timedelta, timezone
 
-from flask import Blueprint, request, jsonify, Response
+import hmac
+
+from flask import Blueprint, request, jsonify, Response, g
 from flask_login import current_user
+from werkzeug.exceptions import BadRequest
 from flask_wtf.csrf import validate_csrf
 from sqlalchemy.sql import func
 from sqlalchemy import desc
@@ -30,6 +33,51 @@ from .timeutil import as_utc
 
 
 admin_api = Blueprint('admin_api', __name__, url_prefix='/api/admin')
+
+
+# ============================================================================
+# REQUEST PARSING HELPERS
+# ============================================================================
+
+@admin_api.errorhandler(BadRequest)
+def _bad_request(e):
+    return jsonify(error=e.description or 'Bad request'), 400
+
+
+def _int_arg(name, default, lo=None, hi=None, source=None):
+    """Integer query/body parameter with bounds. Non-numeric -> 400, never 500."""
+    raw = (source if source is not None else request.args).get(name, default)
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        raise BadRequest(f'{name} must be an integer')
+    if lo is not None and value < lo:
+        value = lo
+    if hi is not None and value > hi:
+        value = hi
+    return value
+
+
+class _SafeCsvWriter:
+    """csv.writer wrapper that neutralises spreadsheet formula injection.
+
+    Exports are opened in Excel or Sheets, where a cell starting with = + - @
+    (or a tab/CR) is evaluated. Every string column here is customer- or
+    attacker-supplied, so prefix such cells with a single quote.
+    """
+    _TRIGGERS = ('=', '+', '-', '@', '\t', '\r')
+
+    def __init__(self, writer):
+        self._writer = writer
+
+    def writerow(self, row):
+        self._writer.writerow([self._safe(v) for v in row])
+
+    @classmethod
+    def _safe(cls, value):
+        if isinstance(value, str) and value and value[0] in cls._TRIGGERS:
+            return "'" + value
+        return value
 
 
 # ============================================================================
@@ -70,8 +118,10 @@ def require_api_key(f):
 
         # --- Bearer token path (TullOps remote calls) ---
         if auth_header.startswith('Bearer '):
-            if auth_header[7:] != api_key:
+            # Constant-time compare: the key grants full remote admin access.
+            if not hmac.compare_digest(auth_header[7:], api_key):
                 return jsonify(error='Unauthorized'), 401
+            g.admin_auth = 'bearer'
             return f(*args, **kwargs)
 
         # --- Session path (browser-based dashboard) ---
@@ -83,6 +133,7 @@ def require_api_key(f):
                     validate_csrf(csrf_token)
                 except Exception:
                     return jsonify(error='CSRF validation failed'), 403
+            g.admin_auth = 'session'
             return f(*args, **kwargs)
 
         return jsonify(error='Unauthorized'), 401
@@ -206,11 +257,36 @@ def create_user():
     return jsonify(user.to_dict()), 201
 
 
+def _is_bootstrap_admin(user):
+    bootstrap_email = os.environ.get('ADMIN_BOOTSTRAP_EMAIL', 'admin')
+    return user.email == bootstrap_email and user.user_type == 'admin'
+
+
+def _refuse_disabling(user):
+    """Return an error response if this account must not be suspended,
+    deleted or demoted: the bootstrap admin (the recovery path), or the
+    admin making the request through their own browser session."""
+    if _is_bootstrap_admin(user):
+        return jsonify(error='Cannot suspend, delete or demote the primary admin account'), 403
+    # Only the browser session path has a "self"; a Bearer call from TullOps
+    # may target whichever account is logged into the same browser.
+    if g.get('admin_auth') == 'session' and current_user.id == user.id:
+        return jsonify(error='Cannot suspend, delete or demote your own account'), 403
+    return None
+
+
 @admin_api.route('/users/<int:uid>', methods=['PUT'])
 @require_api_key
 def update_user(uid):
     user = User.query.get_or_404(uid)
     data = request.get_json() or {}
+
+    disabling = (data.get('status') in ('suspended', 'deleted')
+                 or (data.get('user_type') and data['user_type'] != user.user_type))
+    if disabling:
+        refused = _refuse_disabling(user)
+        if refused:
+            return refused
 
     if 'status' in data and data['status'] in ('active', 'suspended', 'deleted'):
         user.status = data['status']
@@ -234,10 +310,9 @@ def update_user(uid):
 @require_api_key
 def delete_user(uid):
     user = User.query.get_or_404(uid)
-    # Protect the bootstrap admin from deletion
-    bootstrap_email = os.environ.get('ADMIN_BOOTSTRAP_EMAIL', 'admin')
-    if user.email == bootstrap_email and user.user_type == 'admin':
-        return jsonify(error='Cannot delete the primary admin account'), 403
+    refused = _refuse_disabling(user)
+    if refused:
+        return refused
     user.status = 'deleted'
     db.session.commit()
     _audit('user.delete', 'user', uid)
@@ -248,6 +323,9 @@ def delete_user(uid):
 @require_api_key
 def suspend_user(uid):
     user = User.query.get_or_404(uid)
+    refused = _refuse_disabling(user)
+    if refused:
+        return refused
     user.status = 'suspended'
     db.session.commit()
     _audit('user.suspend', 'user', uid)
@@ -297,7 +375,7 @@ def list_login_attempts():
         except ValueError:
             pass
 
-    limit = min(int(request.args.get('limit', 100)), 500)
+    limit = _int_arg('limit', 100, 1, 500)
     attempts = q.order_by(desc(LoginAttempt.timestamp)).limit(limit).all()
     return jsonify([a.to_dict() for a in attempts])
 
@@ -315,8 +393,8 @@ def list_customers():
         q = q.filter(
             Customer.email.contains(search) | Customer.name.contains(search)
         )
-    limit = min(int(request.args.get('limit', 50)), 200)
-    offset = int(request.args.get('offset', 0))
+    limit = _int_arg('limit', 50, 1, 200)
+    offset = _int_arg('offset', 0, 0)
     total = q.count()
     customers = q.order_by(desc(Customer.id)).offset(offset).limit(limit).all()
     counts = dict(
@@ -363,9 +441,8 @@ def list_purchases():
     if status:
         q = q.filter_by(pay_status=status)
 
-    customer_id = request.args.get('customer_id')
-    if customer_id:
-        q = q.filter_by(customer_id=int(customer_id))
+    if request.args.get('customer_id'):
+        q = q.filter_by(customer_id=_int_arg('customer_id', 0, 1))
 
     from_date = request.args.get('from')
     if from_date:
@@ -381,7 +458,7 @@ def list_purchases():
         except ValueError:
             pass
 
-    limit = min(int(request.args.get('limit', 50)), 200)
+    limit = _int_arg('limit', 50, 1, 200)
     purchases = q.order_by(desc(Purchase_info.id)).limit(limit).all()
 
     result = []
@@ -464,7 +541,7 @@ def delete_feedback(fid):
 @require_api_key
 def visitor_stats():
     """Aggregated visitor analytics."""
-    days = int(request.args.get('days', 7))
+    days = _int_arg('days', 7, 1, 365)
     since = datetime.now(timezone.utc) - timedelta(days=days)
 
     # Daily page views
@@ -514,7 +591,7 @@ def visitor_stats():
 @admin_api.route('/visitors/recent')
 @require_api_key
 def recent_visitors():
-    limit = min(int(request.args.get('limit', 100)), 500)
+    limit = _int_arg('limit', 100, 1, 500)
     visits = SiteVisit.query.order_by(desc(SiteVisit.timestamp)).limit(limit).all()
     return jsonify([v.to_dict() for v in visits])
 
@@ -596,7 +673,7 @@ def security_alerts():
 def export_csv(table):
     """Export table data as CSV."""
     output = io.StringIO()
-    writer = csv.writer(output)
+    writer = _SafeCsvWriter(csv.writer(output))
 
     if table == 'customers':
         writer.writerow(['ID', 'Email', 'Name', 'Created', 'Purchase Count'])
@@ -678,10 +755,10 @@ def ban_ip():
     if existing:
         return jsonify(error='IP is already banned'), 409
 
-    expires_hours = data.get('expires_hours')
     expires_at = None
-    if expires_hours:
-        expires_at = datetime.now(timezone.utc) + timedelta(hours=int(expires_hours))
+    if data.get('expires_hours'):
+        hours = _int_arg('expires_hours', 0, 1, 24 * 365, source=data)
+        expires_at = datetime.now(timezone.utc) + timedelta(hours=hours)
 
     ban = BannedIP(
         ip_address=ip_address,
@@ -714,7 +791,7 @@ def unban_ip(ban_id):
 @require_api_key
 def login_heatmap():
     """Login attempt distribution by hour of day."""
-    days = int(request.args.get('days', 7))
+    days = _int_arg('days', 7, 1, 365)
     since = datetime.now(timezone.utc) - timedelta(days=days)
 
     rows = db.session.query(
@@ -772,6 +849,11 @@ def resolve_geo():
                 else:
                     results[ip] = {'ip_address': ip, 'country': 'Unknown',
                                    'region': None, 'city': None, 'isp': None}
+            else:
+                # ip-api's free tier rate-limits (HTTP 429); say so rather
+                # than silently omitting the IP from the response.
+                results[ip] = {'ip_address': ip, 'country': 'Lookup failed',
+                               'region': None, 'city': None, 'isp': None}
         except Exception:
             results[ip] = {'ip_address': ip, 'country': 'Lookup failed',
                            'region': None, 'city': None, 'isp': None}
@@ -787,7 +869,7 @@ def resolve_geo():
 @require_api_key
 def audit_log():
     """Return recent admin API audit log entries."""
-    limit = min(int(request.args.get('limit', 50)), 200)
+    limit = _int_arg('limit', 50, 1, 200)
     logs = AdminAuditLog.query.order_by(desc(AdminAuditLog.timestamp)).limit(limit).all()
     return jsonify([entry.to_dict() for entry in logs])
 
@@ -805,7 +887,7 @@ def visitor_devices():
     except ImportError:
         return jsonify(error='user-agents package not installed'), 500
 
-    days = int(request.args.get('days', 7))
+    days = _int_arg('days', 7, 1, 365)
     since = datetime.now(timezone.utc) - timedelta(days=days)
 
     ua_counts = db.session.query(
@@ -842,7 +924,7 @@ def visitor_referrers():
     """Referrer source analysis grouped by domain."""
     from urllib.parse import urlparse
 
-    days = int(request.args.get('days', 7))
+    days = _int_arg('days', 7, 1, 365)
     since = datetime.now(timezone.utc) - timedelta(days=days)
     site_domain = os.environ.get('MAIN_DOMAIN', 'tullhydro.com').replace('https://', '').replace('http://', '').strip('/')
 
@@ -887,7 +969,7 @@ def visitor_referrers():
 @require_api_key
 def visitor_heatmap():
     """Visitor traffic distribution by hour of day."""
-    days = int(request.args.get('days', 7))
+    days = _int_arg('days', 7, 1, 365)
     since = datetime.now(timezone.utc) - timedelta(days=days)
 
     rows = db.session.query(
@@ -910,7 +992,7 @@ def visitor_heatmap():
 @require_api_key
 def visitor_pageflow():
     """Page flow patterns: entry pages, bounce rate, top sequences."""
-    days = int(request.args.get('days', 7))
+    days = _int_arg('days', 7, 1, 365)
     since = datetime.now(timezone.utc) - timedelta(days=days)
 
     visits = SiteVisit.query.filter(
@@ -1030,7 +1112,7 @@ def reply_feedback(fid):
 
     server_token = os.environ.get('POSTMARK_SERVER_TOKEN')
     sender_email = os.environ.get('POSTMARK_SENDER_EMAIL')
-    if not server_token:
+    if not server_token or not sender_email:
         return jsonify(error='Postmark not configured'), 503
 
     ref = f'TULL-{str(fb.id).zfill(4)}'
@@ -1076,7 +1158,9 @@ def reply_feedback(fid):
 
     db.session.commit()
     _audit('feedback.reply', 'feedback', fid, {'email_sent': email_ok, 'resolve': data.get('resolve', False)})
-    return jsonify(ok=True, email_sent=email_ok, feedback=fb.to_dict())
+    # The note and resolution are saved either way, but a reply that never
+    # reached the customer is not a success.
+    return jsonify(ok=email_ok, email_sent=email_ok, feedback=fb.to_dict()), (200 if email_ok else 502)
 
 
 # ============================================================================
@@ -1148,7 +1232,7 @@ def customer_geo():
 @require_api_key
 def purchase_stats():
     """Purchase analytics: orders over time and status breakdown."""
-    days = int(request.args.get('days', 30))
+    days = _int_arg('days', 30, 1, 365)
     since = datetime.now(timezone.utc) - timedelta(days=days)
 
     daily = db.session.query(
@@ -1203,7 +1287,7 @@ def purchase_geo():
 @require_api_key
 def purchase_funnel():
     """Conversion funnel: unique visitors -> sell page views -> purchases."""
-    days = int(request.args.get('days', 30))
+    days = _int_arg('days', 30, 1, 365)
     since = datetime.now(timezone.utc) - timedelta(days=days)
 
     unique_visitors = db.session.query(
