@@ -26,6 +26,7 @@ from . import db
 from .models import (User, Customer, Purchase_info, FeedBack, LoginAttempt,
                      SiteVisit, BannedIP, GeoIPCache, AdminAuditLog)
 from .email_templates import feedback_reply_html
+from .timeutil import as_utc
 
 
 admin_api = Blueprint('admin_api', __name__, url_prefix='/api/admin')
@@ -424,7 +425,7 @@ def update_feedback(fid):
         if fb.resolved:
             fb.resolved_date = datetime.now(timezone.utc)
             if fb.date:
-                delta = fb.resolved_date - fb.date
+                delta = fb.resolved_date - as_utc(fb.date)
                 fb.resolution_time_hours = max(1, int(delta.total_seconds() / 3600))
         else:
             fb.resolved_date = None
@@ -987,7 +988,7 @@ def feedback_stats():
     buckets = {'under_3d': 0, '3_to_7d': 0, '7_to_14d': 0, 'over_14d': 0}
     for fb in unresolved:
         if fb.date:
-            age_days = (now - fb.date).total_seconds() / 86400
+            age_days = (now - as_utc(fb.date)).total_seconds() / 86400
             if age_days < 3:
                 buckets['under_3d'] += 1
             elif age_days < 7:
@@ -1060,7 +1061,7 @@ def reply_feedback(fid):
         fb.resolved = True
         fb.resolved_date = datetime.now(timezone.utc)
         if fb.date:
-            delta = fb.resolved_date - fb.date
+            delta = fb.resolved_date - as_utc(fb.date)
             fb.resolution_time_hours = max(1, int(delta.total_seconds() / 3600))
 
     db.session.commit()

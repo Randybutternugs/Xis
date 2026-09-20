@@ -25,6 +25,7 @@ from functools import wraps
 
 from . import db
 from .models import Customer, FeedBack, Purchase_info, User
+from .timeutil import as_utc
 
 # Create Blueprint
 auth = Blueprint('auth', __name__)
@@ -109,7 +110,7 @@ def login():
                 ip_address=client_ip, active=True
             ).first()
             if active_ban:
-                if active_ban.expires_at and active_ban.expires_at < datetime.now(timezone.utc):
+                if active_ban.expires_at and as_utc(active_ban.expires_at) < datetime.now(timezone.utc):
                     active_ban.active = False
                     db.session.commit()
                 else:
@@ -155,8 +156,8 @@ def login():
             flash('Account suspended. Contact your administrator.', 'error')
         elif user.status == 'deleted':
             failure_reason = 'unknown_user'
-        elif not is_admin and user.locked_until and user.locked_until > datetime.now(timezone.utc):
-            remaining = int((user.locked_until - datetime.now(timezone.utc)).total_seconds() / 60) + 1
+        elif not is_admin and user.locked_until and as_utc(user.locked_until) > datetime.now(timezone.utc):
+            remaining = int((as_utc(user.locked_until) - datetime.now(timezone.utc)).total_seconds() / 60) + 1
             failure_reason = 'account_locked'
             flash(f'Account temporarily locked. Try again in {remaining} minutes.', 'error')
         elif not check_password_hash(user.password, password):
