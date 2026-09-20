@@ -119,3 +119,50 @@ def test_employee_session_cannot_use_admin_ops_api(client, db):
     client.post('/login', data={'username': 'emp', 'password': 'password1234'})
     assert client.get('/api/admin/ops/items').status_code == 401
     assert client.put('/api/admin/ops/items/x', json={'kind': 'task', 'title': 't'}).status_code == 401
+
+
+def _event(db, item, user, action, n=1):
+    from xissite.models import OpsEvent
+    for _ in range(n):
+        db.session.add(OpsEvent(item_id=item.id, item_ref=item.ref, user_id=user.id,
+                                username=user.email, action=action))
+    db.session.commit()
+
+
+def test_events_feed_orders_by_id_and_advances_cursor(client, db):
+    from xissite.models import OpsItem
+    emp = _user(db, 'emp')
+    _push(client, 'e:1', kind='task', title='t')
+    item = OpsItem.query.filter_by(ref='e:1').one()
+    _event(db, item, emp, 'complete')
+    _event(db, item, emp, 'reopen')
+    _event(db, item, emp, 'complete')
+
+    d = client.get('/api/admin/ops/events', headers=API).get_json()
+    assert [e['action'] for e in d['events']] == ['complete', 'reopen', 'complete']
+    assert d['reset'] is False and d['next_after'] == d['events'][-1]['id']
+
+    d2 = client.get(f"/api/admin/ops/events?after={d['next_after']}", headers=API).get_json()
+    assert d2['events'] == [] and d2['next_after'] == d['next_after'] and d2['reset'] is False
+
+    d3 = client.get('/api/admin/ops/events?after=1&limit=1', headers=API).get_json()
+    assert len(d3['events']) == 1 and d3['events'][0]['id'] == 2 and d3['next_after'] == 2
+
+
+def test_events_feed_signals_reset_when_cursor_is_ahead_of_data(client, db):
+    from xissite.models import OpsItem
+    emp = _user(db, 'emp')
+    _push(client, 'e:2', kind='notice', title='t')
+    item = OpsItem.query.filter_by(ref='e:2').one()
+    _event(db, item, emp, 'ack')
+    # TullOps remembers cursor 999 from before the database was wiped.
+    d = client.get('/api/admin/ops/events?after=999', headers=API).get_json()
+    assert d['reset'] is True
+    assert [e['action'] for e in d['events']] == ['ack']
+    assert d['next_after'] == d['events'][-1]['id']
+
+
+def test_events_feed_with_no_events_and_stale_cursor(client, db):
+    d = client.get('/api/admin/ops/events?after=5', headers=API).get_json()
+    assert d == {'events': [], 'next_after': 0, 'reset': True}
+    assert client.get('/api/admin/ops/events?after=x', headers=API).status_code == 400

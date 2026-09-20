@@ -184,3 +184,25 @@ def archive_item(ref):
     db.session.commit()
     _audit('ops.archive', 'ops_item', item.id, {'ref': ref})
     return jsonify(ok=True)
+
+
+# ============================================================================
+# ADMIN: EVENTS FEED (TullOps polls this)
+# ============================================================================
+
+@ops_admin.route('/events')
+@require_api_key
+def list_events():
+    """Events with id > after, ascending. If `after` is beyond the newest id
+    the database has been reset since the caller last polled: start over and
+    say so, so the caller re-pushes its open items."""
+    after = int_arg('after', 0, 0)
+    limit = int_arg('limit', 200, 1, MAX_EVENTS)
+    newest = db.session.query(func.max(OpsEvent.id)).scalar() or 0
+    reset = after > newest
+    if reset:
+        after = 0
+    events = (OpsEvent.query.filter(OpsEvent.id > after)
+              .order_by(OpsEvent.id).limit(limit).all())
+    next_after = events[-1].id if events else after
+    return jsonify(events=[e.to_dict() for e in events], next_after=next_after, reset=reset)
