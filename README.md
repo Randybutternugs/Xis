@@ -55,7 +55,7 @@ python -m xissite.manage_db reset       # Back up, then delete the local SQLite 
 
 Three ways to look at the site's data, all backed by the same `/api/admin` API:
 
-- **`/admin`** on the site itself: log in as an admin from anywhere. A single-page dashboard for users, logins, customers, orders, feedback, visitors and security.
+- **`/admin`** on the site itself: log in as an admin from anywhere. A single-page dashboard for users, logins, customers, orders, feedback, visitors and security, and an Ops section listing what TullOps has pushed to each employee.
 - **Local admin panel** (`admin_panel/`): runs on a trusted PC only, never deployed. See [admin_panel/README.md](admin_panel/README.md).
 - **TullOps**: calls the API directly with the Bearer key to manage accounts.
 
@@ -272,6 +272,7 @@ The auth system uses database-backed accounts managed by TullOps via the admin A
 - `GET /logout`
 - `GET /admin` - Admin dashboard (admin role)
 - `GET /ops` - Employee operations page (employee or admin role)
+- `GET /api/ops/me`, `POST /api/ops/items/<id>/events` - Employee's pushed items and actions (session + CSRF header)
 
 ### Admin API - `/api/admin`
 Accepts either `Authorization: Bearer <ADMIN_API_KEY>` or an admin browser session with an `X-CSRFToken` header on mutations. `GET /api/admin/health` is public.
@@ -288,6 +289,7 @@ Accepts either `Authorization: Bearer <ADMIN_API_KEY>` or an admin browser sessi
 | Security | `GET /security/alerts` · `GET /security/login-heatmap` · `POST /security/resolve-geo` · `GET /security/audit-log` |
 | Bans | `GET,POST /banned-ips` · `DELETE /banned-ips/<id>` |
 | Export | `GET /export/<customers|purchases|feedback|logins>` (CSV) |
+| Ops content | `PUT /ops/items/<ref>` · `GET /ops/items` · `DELETE /ops/items/<ref>` · `GET /ops/events?after=` (see `docs/ops-content-push.md`) |
 
 The bootstrap admin (from `ADMIN_BOOTSTRAP_EMAIL`) can never be suspended, deleted or demoted, and a browser session cannot disable its own account.
 

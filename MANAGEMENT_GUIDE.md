@@ -120,6 +120,15 @@ curl -X POST http://tullhydro.com/api/admin/users/1/suspend -H "Authorization: B
 curl -X POST http://tullhydro.com/api/admin/users/1/activate -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
+### Pushing work to employees
+
+TullOps pushes tasks, checklists and notices to employees through
+`/api/admin/ops` and polls their actions back from `/api/admin/ops/events`.
+Employees see their items at `/ops`. The contract is in
+`docs/ops-content-push.md`. Until the site moves to Cloud SQL, a deploy or
+restart empties pushed content; TullOps re-pushes on the `reset` signal and
+on a schedule.
+
 ### Password Policy
 
 - Minimum 10 characters
