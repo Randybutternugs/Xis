@@ -413,6 +413,11 @@ class Purchase_info(db.Model):
     postal_code = db.Column(db.String(150))
     state = db.Column(db.String(150))
     pay_status = db.Column(db.String(150))
+    # What Stripe charged: minor units (cents) and ISO currency code, from
+    # the Checkout session's amount_total / currency. Null for rows created
+    # before these columns existed or from events without an amount.
+    amount_cents = db.Column(db.Integer, nullable=True)
+    currency = db.Column(db.String(3), nullable=True)
     purchase_date = db.Column(db.DateTime(timezone=True), default=func.now())
     customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'))
 
@@ -427,6 +432,8 @@ class Purchase_info(db.Model):
             'postal_code': self.postal_code,
             'state': self.state,
             'pay_status': self.pay_status,
+            'amount_cents': self.amount_cents,
+            'currency': self.currency,
             'purchase_date': self.purchase_date.isoformat() if self.purchase_date else None,
             'customer_id': self.customer_id,
         }

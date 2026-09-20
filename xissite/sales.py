@@ -53,6 +53,25 @@ CURRENT_PRODUCT = "Tull Tower V1"
 ALLOWED_SHIPPING_COUNTRIES = ['US', 'CA']
 
 
+def _charged(session):
+    """(amount_cents, currency) from a Checkout session, or (None, None)."""
+    amount = session.get('amount_total') if hasattr(session, 'get') else getattr(session, 'amount_total', None)
+    currency = session.get('currency') if hasattr(session, 'get') else getattr(session, 'currency', None)
+    if amount is None:
+        return None, None
+    return int(amount), (currency or '').lower() or None
+
+
+def format_total(amount_cents, currency):
+    """'$1,500.00' for USD, '1,999.99 CAD' otherwise; None when unknown."""
+    if amount_cents is None:
+        return None
+    value = f"{amount_cents / 100:,.2f}"
+    if (currency or 'usd') == 'usd':
+        return f"${value}"
+    return f"{value} {currency.upper()}"
+
+
 # ============================================================================
 # CHECKOUT ROUTES
 # ============================================================================
@@ -208,6 +227,7 @@ def create_order(session):
         customer_name = session["customer_details"]["name"]
         customer_ship_address = session["customer_details"]["address"]
         payment_status = session["payment_status"]
+        amount_cents, currency = _charged(session)
         
         # Extract address components
         address_data = {
@@ -228,6 +248,8 @@ def create_order(session):
             new_purchase = Purchase_info(
                 product_name=CURRENT_PRODUCT,
                 pay_status=payment_status,
+                amount_cents=amount_cents,
+                currency=currency,
                 customer_id=existing_customer.id,
                 **address_data
             )
@@ -245,6 +267,8 @@ def create_order(session):
             new_purchase = Purchase_info(
                 product_name=CURRENT_PRODUCT,
                 pay_status=payment_status,
+                amount_cents=amount_cents,
+                currency=currency,
                 customer_id=new_customer.id,
                 **address_data
             )
@@ -290,7 +314,8 @@ def fulfill_order(session):
                 'From': sender_email,
                 'To': customer_email,
                 'Subject': 'Order Confirmation - Tull Hydroponics',
-                'HtmlBody': order_confirmation_html(customer_name, CURRENT_PRODUCT, '$200'),
+                'HtmlBody': order_confirmation_html(customer_name, CURRENT_PRODUCT,
+                                                    format_total(*_charged(session))),
             },
         )
 

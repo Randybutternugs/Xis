@@ -141,6 +141,21 @@ def admin_notification_html(feedback, ref_number, site_url=''):
 
 
 def order_confirmation_html(customer_name, product, total):
+    """`total` is the formatted charged amount, or None when the webhook
+    payload carried no amount (the Stripe receipt is then the reference)."""
+    total_row = (
+        f"""
+  <tr>
+    <td style="padding:4px 0;font-size:14px;color:#999999;">Total</td>
+    <td style="padding:4px 0;font-size:14px;color:#333333;font-weight:600;">{html.escape(total)}</td>
+  </tr>"""
+        if total else
+        """
+  <tr>
+    <td style="padding:4px 0;font-size:14px;color:#999999;">Total</td>
+    <td style="padding:4px 0;font-size:14px;color:#333333;">see your Stripe receipt</td>
+  </tr>"""
+    )
     body = f"""\
 <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#333333;">
   Hi {html.escape(customer_name)},
@@ -152,11 +167,7 @@ def order_confirmation_html(customer_name, product, total):
   <tr>
     <td style="padding:4px 0;font-size:14px;color:#999999;width:100px;">Product</td>
     <td style="padding:4px 0;font-size:14px;color:#333333;">{html.escape(product)}</td>
-  </tr>
-  <tr>
-    <td style="padding:4px 0;font-size:14px;color:#999999;">Total</td>
-    <td style="padding:4px 0;font-size:14px;color:#333333;font-weight:600;">{html.escape(total)}</td>
-  </tr>
+  </tr>{total_row}
 </table>
 <p style="margin:0;font-size:14px;line-height:1.6;color:#666666;">
   We'll follow up with shipping details soon.

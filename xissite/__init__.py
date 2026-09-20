@@ -424,6 +424,16 @@ def run_migrations():
             'migrate': "ALTER TABLE feed_back ADD COLUMN resolved_date DATETIME"
         },
         {
+            'name': 'add_purchase_amount_cents',
+            'check': "SELECT * FROM pragma_table_info('purchase_info') WHERE name='amount_cents'",
+            'migrate': "ALTER TABLE purchase_info ADD COLUMN amount_cents INTEGER"
+        },
+        {
+            'name': 'add_purchase_currency',
+            'check': "SELECT * FROM pragma_table_info('purchase_info') WHERE name='currency'",
+            'migrate': "ALTER TABLE purchase_info ADD COLUMN currency VARCHAR(3)"
+        },
+        {
             'name': 'add_feedback_resolution_time_hours',
             'check': "SELECT * FROM pragma_table_info('feed_back') WHERE name='resolution_time_hours'",
             'migrate': "ALTER TABLE feed_back ADD COLUMN resolution_time_hours INTEGER"
