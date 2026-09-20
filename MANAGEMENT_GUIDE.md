@@ -78,7 +78,10 @@ For production, all environment variables are set in `app.yaml`. The app automat
 | `STRIPE_WEBHOOK_SECRET` | Yes | Stripe webhook signing secret |
 | `HP_PRICE_ID` | Yes | Stripe Price ID for your product |
 | `POSTMARK_SERVER_TOKEN` | Yes | Postmark API key for transactional emails |
+| `POSTMARK_SENDER_EMAIL` | Yes | Verified Postmark sender; email is skipped when either Postmark value is unset |
 | `MAIN_DOMAIN` | Yes | Your domain (e.g., https://tullhydro.com) |
+| `DATABASE_URL` | No | SQLAlchemy URL (e.g. Cloud SQL); when unset the app uses SQLite |
+| `BRUTE_FORCE_THRESHOLD` / `SUSPICIOUS_THRESHOLD` | No | Security-alert thresholds (default: 5 per hour, 3 per day) |
 
 ---
 
@@ -141,143 +144,104 @@ curl -X POST http://tullhydro.com/api/admin/users/1/activate -H "Authorization: 
 | Google Cloud (SQLite) | `/tmp/tullhydro.db` | Ephemeral (resets on deploy) |
 | Google Cloud (Cloud SQL) | Cloud SQL instance | Permanent |
 
-### Viewing the Database (Local)
+### Viewing the Database
 
-#### Using Python
+#### Admin dashboard and panel
 
-```python
-import sqlite3
+Log in as an admin at `/login` and you land on `/admin`: users, login attempts, customers, orders, feedback, visitors and security alerts on one page. The same data is available in the local admin panel (`admin_panel/`, see its README) and through the `/api/admin` API.
 
-conn = sqlite3.connect('tullhydro.db')
-cursor = conn.cursor()
+#### Command line (local)
 
-# List all tables
-cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
-print(cursor.fetchall())
-
-# View all customers
-cursor.execute("SELECT * FROM customer")
-for row in cursor.fetchall():
-    print(row)
-
-# View all purchases
-cursor.execute("SELECT * FROM purchase__info")
-for row in cursor.fetchall():
-    print(row)
-
-# View all feedback
-cursor.execute("SELECT * FROM feed_back")
-for row in cursor.fetchall():
-    print(row)
-
-# View all users
-cursor.execute("SELECT * FROM user")
-for row in cursor.fetchall():
-    print(row)
-
-conn.close()
+```bash
+python -m xissite.manage_db status      # Row counts for every table
+python -m xissite.manage_db customers
+python -m xissite.manage_db purchases
+python -m xissite.manage_db feedback
+python -m xissite.manage_db users
+python -m xissite.manage_db export --out ./export   # CSV files
 ```
 
-#### Using DB Browser for SQLite
+The CLI runs on the app's models, so it follows the current schema and whatever database `DATABASE_URL` (or the local SQLite file) points at.
 
-1. Download [DB Browser for SQLite](https://sqlitebrowser.org/)
-2. Open `tullhydro.db`
-3. Browse tables visually
+#### DB Browser for SQLite
 
-#### Using the Admin Panel
-
-Login as admin at `/login` to access:
-- `/viewdb` - Customer list with search
-- `/viewdb/<id>` - Customer details and purchase history
-- `/viewdb/feedbackview` - All feedback submissions
+Open `tullhydro.db` in [DB Browser for SQLite](https://sqlitebrowser.org/) to browse the local file directly.
 
 ### Database Schema
 
+Nine tables. Only `purchase_info.customer_id` is a declared foreign key; the security and analytics tables relate by IP address value. All `DATETIME` columns are written as UTC and come back from SQLite without a timezone (see `xissite/timeutil.py`).
+
 ```
-customer
-├── id (INTEGER, PRIMARY KEY)
-├── email (VARCHAR 150, UNIQUE)
-├── first_name (VARCHAR 150)
-├── last_name (VARCHAR 150)
-└── creation_date (DATETIME)
+customer                          purchase_info
+├── id                            ├── id                 (used as the order number)
+├── email                         ├── product_name
+├── name                          ├── city, state, country, line1, line2, postal_code
+└── creation_date                 ├── pay_status         ('paid', 'unpaid', ...) from Stripe
+                                  ├── purchase_date
+                                  └── customer_id  -> customer.id
 
-purchase__info
-├── id (INTEGER, PRIMARY KEY)
-├── customer_id (INTEGER, FOREIGN KEY -> customer.id)
-├── product_name (VARCHAR 100)
-├── purchase_date (DATETIME)
-├── address (VARCHAR 10000)
-└── paid (BOOLEAN)
+feed_back                         user
+├── id                (TULL-nnnnn)├── id
+├── feedbackmail                  ├── email              (login name, unique)
+├── feedbacktype                  ├── password           (scrypt hash)
+├── feedbackorderid               ├── user_type          ('admin' | 'employee')
+├── feedbackfullfield             ├── status             ('active' | 'suspended' | 'deleted')
+├── date                          ├── display_name, notes
+├── submitter_ip                  ├── last_login
+├── resolved, admin_notes         ├── failed_attempts, locked_until
+├── serial_number                 └── created_at
+├── first_response_date
+├── resolved_date
+└── resolution_time_hours
 
-feed_back
-├── id (INTEGER, PRIMARY KEY)
-├── feedbackmail (VARCHAR 150)
-├── feedbacktype (VARCHAR 50)
-├── feedbackorderid (VARCHAR 100)
-└── feedbackfullfield (VARCHAR 10000)
+login_attempt                     banned_ip
+├── id                            ├── id
+├── ip_address                    ├── ip_address
+├── user_agent                    ├── reason
+├── username_attempted            ├── banned_by          ('auto' | 'admin')
+├── success, failure_reason       ├── active
+├── user_type_matched             ├── created_date
+└── timestamp                     └── expires_at         (null = permanent)
 
-user
-├── id (INTEGER, PRIMARY KEY)
-├── email (VARCHAR 150)
-├── password (VARCHAR 150)
-└── user_type (VARCHAR 50)
+site_visit                        geo_ip_cache                 admin_audit_log
+├── id                            ├── id                       ├── id
+├── ip_address                    ├── ip_address (unique)      ├── action        (e.g. user.create)
+├── path, referrer                ├── country, region, city    ├── target_type, target_id
+├── user_agent                    ├── isp                      ├── details       (JSON)
+└── timestamp                     └── cached_at                ├── admin_ip
+                                                               └── timestamp
 ```
 
 ### Backing Up the Database (Local)
 
 ```bash
-# Simple copy
-cp tullhydro.db tullhydro_backup_$(date +%Y%m%d).db
-
-# With SQLite tools
-sqlite3 tullhydro.db ".backup 'backup.db'"
+python -m xissite.manage_db backup      # writes tullhydro_backup_<timestamp>.db next to the file
 ```
 
-### Resetting the Database
+Backup and reset only work when the app is using a SQLite file. For Cloud SQL, use Google's backup tooling.
+
+### Resetting the Database (Local)
 
 ```bash
-# Delete the database file
-rm tullhydro.db  # Linux/Mac
-del tullhydro.db # Windows
-
-# Restart the application - tables will be recreated
-python main.py
+python -m xissite.manage_db reset       # takes a backup, asks for confirmation, deletes the file
+python main.py                          # recreates the tables and the bootstrap admin
 ```
 
 ### Exporting Data to CSV
 
-```python
-import sqlite3
-import csv
-
-conn = sqlite3.connect('tullhydro.db')
-cursor = conn.cursor()
-
-# Export customers
-cursor.execute("SELECT * FROM customer")
-with open('customers.csv', 'w', newline='') as f:
-    writer = csv.writer(f)
-    writer.writerow(['id', 'email', 'first_name', 'last_name', 'creation_date'])
-    writer.writerows(cursor.fetchall())
-
-# Export purchases
-cursor.execute("SELECT * FROM purchase__info")
-with open('purchases.csv', 'w', newline='') as f:
-    writer = csv.writer(f)
-    writer.writerow(['id', 'customer_id', 'product_name', 'purchase_date', 'address', 'paid'])
-    writer.writerows(cursor.fetchall())
-
-conn.close()
-print("Exported to customers.csv and purchases.csv")
+```bash
+python -m xissite.manage_db export --out ./export
 ```
+
+Writes `customers.csv`, `purchases.csv` and `feedback.csv` with the current column names. The admin API's `/api/admin/export/<table>` returns the same tables (plus `logins`) with spreadsheet-formula characters neutralised.
 
 ### Database Migrations
 
-The app automatically handles migrations when you update the code. Current migrations:
-- `add_user_type_column` - Adds user_type to existing user tables
-- `add_product_name_column` - Adds product_name to existing purchase tables
+On every start, `create_database()` runs `db.create_all()` and then a list of idempotent "add column if missing" migrations in `xissite/__init__.py` (sixteen today, covering the `user`, `feed_back` and `purchase_info` columns added since the first schema). A fresh database gets the full schema from the models; an older file gets the missing columns added. No action is needed on upgrade.
 
-Migrations run automatically on startup if needed.
+### Persistence on App Engine
+
+With SQLite in `/tmp`, **every deploy and every instance restart erases the database**: users (except the bootstrap admin, which is recreated from environment variables), customers, purchases, feedback and all login and visitor history. Until the site moves to Cloud SQL, treat App Engine data as disposable and export anything you need to keep.
 
 ---
 
@@ -424,9 +388,9 @@ Use any future expiry date and any 3-digit CVC.
 - If the database already had users, the bootstrap won't run — manage accounts via the admin API
 - For locked accounts: use `POST /api/admin/users/<id>/activate` to unlock
 
-#### "no such column: user.user_type"
-- Your database is from an older version
-- **Fix:** Delete `tullhydro.db` and restart, OR the app will auto-migrate
+#### "no such column" errors
+- The database file predates a schema change and the startup migration did not run
+- **Fix:** restart the app (migrations run at startup); if it persists, `python -m xissite.manage_db reset`
 
 #### Static files not loading (404)
 - Check that files exist in `xissite/static/`
@@ -478,7 +442,7 @@ Before going to production:
 - [ ] Change all default passwords
 - [ ] Use strong, unique `FLASK_SECRET_KEY`
 - [ ] Use Stripe Live mode keys
-- [ ] Set up proper Mailgun domain
+- [ ] Verify the Postmark sender signature / domain
 - [ ] Configure custom domain with HTTPS
 - [ ] Consider Cloud SQL for persistent storage
 - [ ] Remove or restrict debug mode
@@ -504,8 +468,18 @@ tull-website/
     ├── __init__.py        # App factory & database config
     ├── models.py          # Database models
     ├── views.py           # Public routes
-    ├── auth.py            # Authentication & admin routes
+    ├── auth.py            # Login, /admin, /ops
     ├── sales.py           # Stripe integration
+    ├── admin_api.py       # /api/admin REST API
+    ├── spam_guard.py      # Contact-form anti-spam
+    ├── email_templates.py # Postmark HTML emails
+    ├── timeutil.py        # UTC normalisation for SQLite datetimes
+    ├── clientip.py        # Client address rule
+    ├── manage_db.py       # Database CLI
     ├── templates/         # HTML templates
     └── static/            # CSS, JS, images, fonts
+
+admin_panel/               # Local admin panel (never deployed)
+docs/architecture/         # Visual architecture map
+tests/                     # python -m pytest tests/
 ```

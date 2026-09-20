@@ -128,7 +128,7 @@ instance_class: F1
 # 1. BEFORE FIRST DEPLOY:
 #    - Replace ALL placeholder values above
 #    - Set up Stripe account and create products
-#    - Set up Mailgun account and verify domain
+#    - Set up Postmark server token and verified sender
 #    - Generate secure admin credentials
 #
 # 2. DATABASE:

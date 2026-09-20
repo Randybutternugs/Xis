@@ -37,58 +37,71 @@ python main.py
 ## Management Scripts
 
 ```bash
-# Generate login credentials
+# Generate a vars.env with a bootstrap admin and fresh keys (interactive)
 python setup_credentials.py
 
-# Database management
-python manage_db.py status     # Show database status
-python manage_db.py customers  # List customers
-python manage_db.py purchases  # List purchases
-python manage_db.py export     # Export to CSV
-python manage_db.py backup     # Create backup
+# Database CLI (runs on the app's models; honours DATABASE_URL)
+python -m xissite.manage_db status      # Row counts for every table
+python -m xissite.manage_db customers   # Customers with purchase counts
+python -m xissite.manage_db purchases   # Purchases with customer email
+python -m xissite.manage_db feedback    # Feedback submissions
+python -m xissite.manage_db users       # Accounts (never passwords)
+python -m xissite.manage_db export      # customers/purchases/feedback CSV  [--out DIR]
+python -m xissite.manage_db backup      # Copy the local SQLite file
+python -m xissite.manage_db reset       # Back up, then delete the local SQLite file
 ```
+
+## Admin Tools
+
+Three ways to look at the site's data, all backed by the same `/api/admin` API:
+
+- **`/admin`** on the site itself: log in as an admin from anywhere. A single-page dashboard for users, logins, customers, orders, feedback, visitors and security.
+- **Local admin panel** (`admin_panel/`): runs on a trusted PC only, never deployed. See [admin_panel/README.md](admin_panel/README.md).
+- **TullOps**: calls the API directly with the Bearer key to manage accounts.
+
+Employees log in at the same `/login` and land on `/ops`.
 
 ## Project Structure
 
 ```
 tull-website/
-├── main.py                 # Application entry point
+├── main.py                 # Application entry point (gunicorn main:app)
 ├── requirements.txt        # Python dependencies
-├── app.yaml               # Google Cloud App Engine config
-├── vars.env               # Local environment (DO NOT COMMIT)
-├── vars.env.example       # Environment template
-├── setup_credentials.py   # Credential generator
-├── manage_db.py           # Database management CLI
-├── MANAGEMENT_GUIDE.md    # Complete management guide
+├── app.yaml               # Google Cloud App Engine config (gitignored; see app.yaml.example)
+├── vars.env               # Local environment (gitignored; see vars.env.example)
+├── setup_credentials.py   # Writes vars.env for local development
+├── seed_users.py          # Wipes and recreates two named local accounts
+├── MANAGEMENT_GUIDE.md    # Database, users, deployment
 ├── README.md              # This file
+├── docs/architecture/     # Visual architecture map (open the .html in a browser)
+├── admin_panel/           # Local admin panel (excluded from App Engine by .gcloudignore)
+├── tests/                 # Site tests: python -m pytest tests/
 │
 └── xissite/               # Flask application package
-    ├── __init__.py        # App factory (auto-detects environment)
-    ├── models.py          # Database models
-    ├── views.py           # Public routes (home, about, contact)
-    ├── auth.py            # Authentication & admin routes
-    ├── sales.py           # Stripe checkout & webhooks
+    ├── __init__.py        # App factory, environment detection, migrations, bootstrap admin
+    ├── models.py          # Nine SQLAlchemy models
+    ├── views.py           # Public pages and the contact form
+    ├── auth.py            # Login, /admin, /ops
+    ├── sales.py           # Stripe checkout and webhook
+    ├── admin_api.py       # /api/admin REST API (Bearer key or admin session)
+    ├── spam_guard.py      # Contact-form anti-spam checks
+    ├── email_templates.py # Postmark HTML emails
+    ├── timeutil.py        # UTC normalisation for datetimes read from SQLite
+    ├── clientip.py        # The one rule for a request's client address
+    ├── manage_db.py       # Database CLI (see above)
     │
     ├── templates/         # Jinja2 templates
     │   ├── base.html
-    │   ├── home.html
-    │   ├── about.html
-    │   ├── contact.html
-    │   ├── sell.html
-    │   ├── success.html
-    │   ├── cancel.html
+    │   ├── home.html, about.html, contact.html, sell.html
+    │   ├── success.html, cancel.html
     │   ├── loginpage.html
-    │   ├── show.html          # Customer list
-    │   ├── showmore.html      # Customer detail
-    │   ├── feedbackview.html  # Feedback list
-    │   └── dataviz.html
+    │   ├── admin_dashboard.html   # /admin shell; data via static/js/admin_dashboard.js
+    │   └── employee_ops.html      # /ops (placeholder content today)
     │
     └── static/
-        ├── css/main.css
-        ├── icons/*.svg
-        ├── images/
-        ├── fonts/
-        └── scripts/
+        ├── css/main.css, css/dashboard.css
+        ├── js/admin_dashboard.js
+        ├── icons/, images/, fonts/, scripts/
 ```
 
 ## Deployment
@@ -243,28 +256,40 @@ The auth system uses database-backed accounts managed by TullOps via the admin A
 - Mobile: `max-width: 600px`
 - Desktop: `min-width: 601px`
 
-## API Endpoints
+## Routes
 
 ### Public
 - `GET /` - Home page
 - `GET /about` - About page
-- `GET /contact` - Contact form
-- `POST /contact` - Submit feedback
-- `GET /sell` - Product page
-- `POST /create-checkout-session` - Start Stripe checkout
-- `GET /success` - Payment success
-- `GET /cancel` - Payment cancelled
+- `GET /sell` - Product page (currently a "coming soon" layout; no checkout button yet)
+- `GET|POST /contact` - Contact form with anti-spam checks; sends confirmation and admin-notification emails
+- `POST /create-checkout-session` - Start Stripe Checkout (route is live; nothing links to it while /sell is coming soon)
+- `GET /success`, `GET /cancel` - Pages Stripe redirects back to
+- `POST /webhook` - Stripe webhook (signature-verified); writes customer and purchase rows
 
-### Protected (require login)
-- `GET /login` - Login page
-- `POST /login` - Authenticate
-- `GET /logout` - Logout
-- `GET /viewdb` - Customer list
-- `GET /viewdb/<id>` - Customer detail
-- `GET /viewdb/feedbackview` - Feedback list
+### Login required
+- `GET|POST /login` - Admin and employee login (IP bans, rate limits, lockouts; CSRF-checked)
+- `GET /logout`
+- `GET /admin` - Admin dashboard (admin role)
+- `GET /ops` - Employee operations page (employee or admin role)
 
-### Webhooks
-- `POST /webhook` - Stripe webhook handler
+### Admin API - `/api/admin`
+Accepts either `Authorization: Bearer <ADMIN_API_KEY>` or an admin browser session with an `X-CSRFToken` header on mutations. `GET /api/admin/health` is public.
+
+| Group | Endpoints |
+|---|---|
+| Stats | `GET /stats` |
+| Users | `GET,POST /users` · `PUT,DELETE /users/<id>` · `POST /users/<id>/suspend` · `POST /users/<id>/activate` |
+| Logins | `GET /login-attempts` |
+| Customers | `GET /customers` · `GET,DELETE /customers/<id>` · `GET /customers/stats` · `GET /customers/geo` |
+| Purchases | `GET /purchases` · `GET /purchases/stats` · `GET /purchases/geo` · `GET /purchases/funnel` |
+| Feedback | `GET /feedback` · `GET /feedback/stats` · `PUT,DELETE /feedback/<id>` · `POST /feedback/<id>/reply` |
+| Visitors | `GET /visitors` · `/visitors/recent` · `/visitors/devices` · `/visitors/referrers` · `/visitors/heatmap` · `/visitors/pageflow` |
+| Security | `GET /security/alerts` · `GET /security/login-heatmap` · `POST /security/resolve-geo` · `GET /security/audit-log` |
+| Bans | `GET,POST /banned-ips` · `DELETE /banned-ips/<id>` |
+| Export | `GET /export/<customers|purchases|feedback|logins>` (CSV) |
+
+The bootstrap admin (from `ADMIN_BOOTSTRAP_EMAIL`) can never be suspended, deleted or demoted, and a browser session cannot disable its own account.
 
 ## License
 
