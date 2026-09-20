@@ -23,3 +23,13 @@ def test_ops_page_is_driven_by_the_api(client, db):
         assert anchor in html
     for placeholder in ('Tower 7', 'Morning Startup Checklist', 'End of Day Shutdown', 'Reservoir B'):
         assert placeholder not in html
+
+
+def test_ops_js_never_inlines_api_strings_into_event_handlers():
+    """HTML-entity escaping is undone before an inline handler's JS is parsed, so
+    API strings must reach handlers via data-* attributes, never on*= text."""
+    import re
+    from pathlib import Path
+    src = Path('xissite/static/js/ops.js').read_text(encoding='utf-8')
+    for m in re.finditer(r'on(click|change)="[^"]*"', src):
+        assert 'esc(' not in m.group(0), m.group(0)

@@ -48,7 +48,7 @@
       item.steps.forEach(function(step){
         var on=!!ticked[step.key],by=on?' title="'+esc(ticked[step.key].by)+' '+esc(when(ticked[step.key].at))+'"':'';
         html+='<label class="ops-checklist-item'+(on?' checked':'')+'"'+by+'><input type="checkbox"'+(on?' checked':'')+(done?' disabled':'')+
-          ' onchange="opsAct('+item.id+',this.checked?\'tick\':\'untick\',\''+esc(step.key)+'\')">'+esc(step.label)+'</label>';
+          ' data-item-id="'+item.id+'" data-step-key="'+esc(step.key)+'">'+esc(step.label)+'</label>';
       });
       html+='<div class="ops-checklist-progress">'+doneN+' / '+total+' complete'+(item.due_at?' &middot; '+due(item.due_at):'')+'</div>'+
         '<div class="ops-actions">'+(done?'<button class="btn btn-sm btn-outline" onclick="opsAct('+item.id+',\'reopen\')">Reopen</button>':
@@ -87,6 +87,12 @@
       body:JSON.stringify({action:action,step_key:stepKey||null})})
       .then(checked).then(function(){toast('Saved');load()}).catch(function(e){toast('Error: '+e.message,true);load()});
   };
+
+  els.checklists.addEventListener('change', function(e){
+    var box = e.target;
+    if (!box.matches('input[type="checkbox"][data-step-key]')) return;
+    opsAct(parseInt(box.getAttribute('data-item-id'), 10), box.checked ? 'tick' : 'untick', box.getAttribute('data-step-key'));
+  });
 
   load();
   setInterval(load,60000);
