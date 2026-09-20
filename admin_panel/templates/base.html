@@ -74,6 +74,25 @@ td{padding:8px;border-bottom:1px solid #1a1a1a}
   </div>
 </nav>
 <div class="container">{% block content %}{% endblock %}</div>
+<script>
+// Every same-origin fetch() carries X-Requested-With. The passthrough refuses
+// mutating requests without it, which blocks cross-site POSTs from other tabs
+// (see admin_panel/api.py refuse_cross_site_mutations).
+(function(){
+  var native=window.fetch;
+  window.fetch=function(input,init){
+    init=init||{};
+    var url=typeof input==='string'?input:(input&&input.url)||'';
+    var sameOrigin=url.charAt(0)==='/'||url.indexOf(location.origin)===0;
+    if(sameOrigin){
+      var h=new Headers(init.headers||(input&&input.headers)||undefined);
+      h.set('X-Requested-With','XMLHttpRequest');
+      init.headers=h;
+    }
+    return native.call(window,input,init);
+  };
+})();
+</script>
 {% block scripts %}{% endblock %}
 </body>
 </html>

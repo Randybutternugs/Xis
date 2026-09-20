@@ -16,6 +16,27 @@ bp = Blueprint("api", __name__)
 
 TIMEOUT = 10
 FORWARD_METHODS = ["GET", "POST", "PUT", "DELETE"]
+MUTATING = {"POST", "PUT", "DELETE"}
+
+
+@bp.before_request
+def refuse_cross_site_mutations():
+    """The panel has no login, so a page in another browser tab could POST
+    here and have the request forwarded with the real Bearer key.
+
+    A custom header cannot be set by a cross-origin form or a "simple"
+    fetch without a CORS preflight, and this app sends no CORS headers, so
+    the preflight fails. base.html adds the header to every fetch(). The
+    Origin check catches anything that somehow gets past that.
+    """
+    if request.method not in MUTATING:
+        return None
+    if request.headers.get("X-Requested-With") != "XMLHttpRequest":
+        return jsonify(error="Cross-site request refused"), 403
+    origin = request.headers.get("Origin")
+    if origin and origin.rstrip("/") != request.host_url.rstrip("/"):
+        return jsonify(error="Cross-site request refused"), 403
+    return None
 
 
 def _upstream(path):

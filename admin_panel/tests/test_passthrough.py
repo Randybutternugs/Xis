@@ -27,14 +27,19 @@ def test_query_params_forwarded(client, capture_upstream):
     assert capture_upstream["params"]["user_type"] == "admin"
 
 
+# Mutations must carry the same-origin marker header that base.html adds to
+# every fetch(); see test_csrf_guard.py.
+XHR = {"X-Requested-With": "XMLHttpRequest"}
+
+
 def test_json_body_forwarded(client, capture_upstream):
-    client.post("/api/site-admin/users", json={"email": "a@b.c"})
+    client.post("/api/site-admin/users", json={"email": "a@b.c"}, headers=XHR)
     assert capture_upstream["json"] == {"email": "a@b.c"}
 
 
 def test_put_and_delete_allowed(client, capture_upstream):
-    assert client.put("/api/site-admin/users/1", json={}).status_code == 200
-    assert client.delete("/api/site-admin/users/1").status_code == 200
+    assert client.put("/api/site-admin/users/1", json={}, headers=XHR).status_code == 200
+    assert client.delete("/api/site-admin/users/1", headers=XHR).status_code == 200
 
 
 def test_timeout_is_ten_seconds(client, capture_upstream):
