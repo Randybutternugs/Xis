@@ -226,7 +226,7 @@ def create_app():
     
     from .models import (Customer, Purchase_info, User, FeedBack,
                          LoginAttempt, SiteVisit, BannedIP, GeoIPCache,
-                         AdminAuditLog)
+                         AdminAuditLog, OpsItem, OpsEvent)
     create_database(app)
     
     # ========================================================================

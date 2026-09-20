@@ -22,6 +22,8 @@ from . import db
 from flask_login import UserMixin
 from sqlalchemy.sql import func
 import os
+import json
+from .timeutil import as_utc
 
 # ============================================================================
 # FEEDBACK MODEL
@@ -440,3 +442,118 @@ class Purchase_info(db.Model):
 
     def __repr__(self):
         return f'<Purchase {self.id} - {self.product_name}>'
+
+
+# ============================================================================
+# OPS CONTENT (pushed by TullOps, acted on by employees)
+# ============================================================================
+class OpsItem(db.Model):
+    """One task, checklist or notice pushed by TullOps.
+
+    `ref` is TullOps's own identifier and the upsert key. `assignee_id` null
+    means everyone sees it. `steps` and `state` are JSON text columns; use
+    the get_/set_ accessors. `state` is derived from OpsEvent rows and kept
+    here so pages can render without replaying events.
+    """
+    __tablename__ = 'ops_item'
+
+    KINDS = ('task', 'checklist', 'notice')
+    PRIORITIES = ('low', 'normal', 'high', 'critical')
+    STATUSES = ('open', 'done', 'archived')
+
+    id = db.Column(db.Integer, primary_key=True)
+    ref = db.Column(db.String(200), unique=True, nullable=False, index=True)
+    kind = db.Column(db.String(20), nullable=False)
+    title = db.Column(db.String(200), nullable=False)
+    body = db.Column(db.Text, nullable=True)
+    steps = db.Column(db.Text, nullable=True)
+    assignee_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, index=True)
+    priority = db.Column(db.String(10), default='normal')
+    due_at = db.Column(db.DateTime, nullable=True)
+    status = db.Column(db.String(10), default='open', index=True)
+    state = db.Column(db.Text, nullable=True)
+    pushed_at = db.Column(db.DateTime(timezone=True), default=func.now())
+    created_at = db.Column(db.DateTime(timezone=True), default=func.now())
+    updated_at = db.Column(db.DateTime(timezone=True), default=func.now(), onupdate=func.now())
+
+    assignee = db.relationship('User', foreign_keys=[assignee_id])
+
+    @staticmethod
+    def empty_state():
+        return {'done_by': None, 'done_at': None, 'steps': {}, 'acks': {}}
+
+    def get_steps(self):
+        return json.loads(self.steps) if self.steps else []
+
+    def set_steps(self, steps):
+        self.steps = json.dumps(steps) if steps else None
+
+    def get_state(self):
+        state = self.empty_state()
+        if self.state:
+            state.update(json.loads(self.state))
+        return state
+
+    def set_state(self, state):
+        self.state = json.dumps(state if state is not None else self.empty_state())
+
+    @staticmethod
+    def _iso(dt):
+        return as_utc(dt).isoformat() if dt else None
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'ref': self.ref,
+            'kind': self.kind,
+            'title': self.title,
+            'body': self.body,
+            'steps': self.get_steps(),
+            'assignee': self.assignee.email if self.assignee else None,
+            'priority': self.priority,
+            'due_at': self._iso(self.due_at),
+            'status': self.status,
+            'state': self.get_state(),
+            'pushed_at': self._iso(self.pushed_at),
+            'created_at': self._iso(self.created_at),
+            'updated_at': self._iso(self.updated_at),
+        }
+
+    def __repr__(self):
+        return f'<OpsItem {self.ref} {self.kind} {self.status}>'
+
+
+class OpsEvent(db.Model):
+    """Append-only record of what an employee did to an OpsItem.
+
+    The auto-increment id is the cursor TullOps polls with. item_ref and
+    username are copied in so the feed needs no joins and survives archives.
+    """
+    __tablename__ = 'ops_event'
+
+    ACTIONS = ('complete', 'reopen', 'tick', 'untick', 'ack')
+
+    id = db.Column(db.Integer, primary_key=True)
+    item_id = db.Column(db.Integer, db.ForeignKey('ops_item.id'), nullable=False, index=True)
+    item_ref = db.Column(db.String(200), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    username = db.Column(db.String(150), nullable=False)
+    action = db.Column(db.String(20), nullable=False)
+    step_key = db.Column(db.String(100), nullable=True)
+    note = db.Column(db.String(500), nullable=True)
+    created_at = db.Column(db.DateTime(timezone=True), default=func.now())
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'item_id': self.item_id,
+            'item_ref': self.item_ref,
+            'username': self.username,
+            'action': self.action,
+            'step_key': self.step_key,
+            'note': self.note,
+            'created_at': as_utc(self.created_at).isoformat() if self.created_at else None,
+        }
+
+    def __repr__(self):
+        return f'<OpsEvent {self.id} {self.item_ref} {self.action} by {self.username}>'
