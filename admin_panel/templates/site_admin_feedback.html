@@ -83,24 +83,24 @@
       <label>Type</label>
       <select id="filter-type">
         <option value="">All Types</option>
-        <option value="general">General</option>
-        <option value="technical">Technical</option>
-        <option value="order">Order</option>
-        <option value="feature">Feature</option>
+        <option value="General">General</option>
+        <option value="Technical">Technical</option>
+        <option value="Order">Order</option>
+        <option value="Feature">Feature</option>
       </select>
     </div>
     <div class="filter-group">
       <label>Status</label>
       <select id="filter-status">
         <option value="">All Status</option>
-        <option value="unresolved">Unresolved</option>
-        <option value="resolved">Resolved</option>
+        <option value="false">Unresolved</option>
+        <option value="true">Resolved</option>
       </select>
     </div>
     <div class="filter-group" style="justify-content:flex-end;margin-top:auto">
       <div style="display:flex;gap:6px">
         <button class="btn btn-primary btn-sm" onclick="applyFilters()">Apply</button>
-        <button class="btn btn-outline btn-sm" onclick="exportCSV()">Export CSV</button>
+        <button class="btn btn-outline btn-sm" onclick="exportCSV()" title="Exports every row; filters do not apply">Export all CSV</button>
       </div>
     </div>
   </div>
@@ -135,10 +135,9 @@
 {% block scripts %}
 <script>
 (function(){
+  // Field names follow FeedBack.to_dict() in xissite/models.py. The contract
+  // test in tests/test_panel_contract.py fails if this drifts from the API.
   var API = '/api/site-admin/feedback';
-  var _items = [];
-
-  // --- Utilities ---
 
   function showToast(msg, isError) {
     var t = document.getElementById('toast');
@@ -149,97 +148,69 @@
     t.classList.add('show');
     setTimeout(function(){ t.classList.remove('show'); }, 3000);
   }
-
   function esc(str) {
-    var d = document.createElement('div');
-    d.textContent = str || '';
-    return d.innerHTML;
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
-
   function fmtRef(id) {
     var s = String(id);
-    while (s.length < 4) s = '0' + s;
+    while (s.length < 5) s = '0' + s;
     return 'TULL-' + s;
   }
-
   function fmtDate(iso) {
     if (!iso) return '--';
     var d = new Date(iso);
-    return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
   }
-
   function typeBadge(type) {
-    var t = (type || 'general').toLowerCase();
+    var t = (type || 'General').toLowerCase();
     var cls = 'badge badge-general';
     if (t === 'technical') cls = 'badge badge-technical';
     else if (t === 'order') cls = 'badge badge-order';
     else if (t === 'feature') cls = 'badge badge-feature';
-    return '<span class="' + cls + '">' + esc(t) + '</span>';
+    return '<span class="' + cls + '">' + esc(type || 'General') + '</span>';
+  }
+  function statusBadge(resolved) {
+    return resolved ? '<span class="badge badge-ok">Resolved</span>'
+                    : '<span class="badge badge-warn">Open</span>';
   }
 
-  function statusBadge(status) {
-    var resolved = status === 'resolved';
-    if (resolved) return '<span class="badge badge-ok">Resolved</span>';
-    return '<span class="badge badge-warn">Open</span>';
-  }
-
-  // --- Filter params ---
-
+  // Query params the API reads: type (exact match on 'General' etc.) and
+  // resolved=true|false. See list_feedback in xissite/admin_api.py.
   function getFilterParams() {
     var params = new URLSearchParams();
     var type = document.getElementById('filter-type').value;
-    var status = document.getElementById('filter-status').value;
+    var resolved = document.getElementById('filter-status').value;
     if (type) params.set('type', type);
-    if (status) params.set('status', status);
+    if (resolved) params.set('resolved', resolved);
     return params.toString();
   }
 
-  // --- Stats ---
-
   function fetchStats() {
     fetch('/api/site-admin/stats')
-      .then(function(r) {
-        if (!r.ok) throw new Error('Stats fetch failed');
-        return r.json();
-      })
-      .then(function(data) {
-        var total = data.total_feedback || data.feedback_total || 0;
-        var unresolved = data.pending_feedback || data.feedback_unresolved || 0;
-        var resolved = total - unresolved;
-
+      .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function(stats) {
+        var total = stats.feedback_total || 0;
+        var unresolved = stats.feedback_unresolved || 0;
         var totalEl = document.getElementById('stat-total');
         totalEl.textContent = total;
-        totalEl.className = 'val';
-
         var unresolvedEl = document.getElementById('stat-unresolved');
         unresolvedEl.textContent = unresolved;
         unresolvedEl.className = 'val' + (unresolved > 0 ? ' warn' : '');
-
         var resolvedEl = document.getElementById('stat-resolved');
-        resolvedEl.textContent = resolved;
+        resolvedEl.textContent = total - unresolved;
         resolvedEl.className = 'val ok';
       })
-      .catch(function(e) {
-        console.error('Stats error:', e);
-      });
+      .catch(function(e) { showToast('Stats failed: ' + e.message, true); });
   }
-
-  // --- Feedback list ---
 
   function fetchFeedback() {
     var qs = getFilterParams();
-    var url = API + (qs ? '?' + qs : '');
-    fetch(url)
-      .then(function(r) {
-        if (!r.ok) throw new Error('Feedback fetch failed');
-        return r.json();
-      })
-      .then(function(data) {
-        _items = Array.isArray(data) ? data : (data.feedback || data.items || []);
-        renderTable(_items);
-      })
+    fetch(API + (qs ? '?' + qs : ''))
+      .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function(items) { renderTable(items); })
       .catch(function(e) {
-        console.error('Feedback error:', e);
         showToast('Failed to load feedback: ' + e.message, true);
         document.getElementById('feedback-body').innerHTML =
           '<tr><td colspan="7" class="empty-state">Failed to load feedback</td></tr>';
@@ -252,155 +223,87 @@
       tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No feedback found</td></tr>';
       return;
     }
-
     var html = '';
     for (var i = 0; i < items.length; i++) {
       var fb = items[i];
       var id = fb.id;
-      var resolved = fb.status === 'resolved';
-
-      // Main row
       html += '<tr id="row-' + id + '">';
       html += '<td style="font-family:monospace;font-weight:700">' + esc(fmtRef(id)) + '</td>';
-      html += '<td>' + esc(fb.email || '--') + '</td>';
-      html += '<td>' + typeBadge(fb.type || fb.feedback_type) + '</td>';
-      html += '<td style="font-family:monospace">' + esc(fb.order_id || '--') + '</td>';
-      html += '<td style="font-family:monospace;font-size:.85em">' + esc(fmtDate(fb.created_at || fb.date)) + '</td>';
-      html += '<td>' + statusBadge(fb.status) + '</td>';
-      html += '<td>';
-      html += '<div style="display:flex;gap:4px">';
+      html += '<td>' + esc(fb.feedbackmail || '--') + '</td>';
+      html += '<td>' + typeBadge(fb.feedbacktype) + '</td>';
+      html += '<td style="font-family:monospace">' + esc(fb.feedbackorderid || '--') + '</td>';
+      html += '<td style="font-family:monospace;font-size:.85em">' + esc(fmtDate(fb.date)) + '</td>';
+      html += '<td>' + statusBadge(fb.resolved) + '</td>';
+      html += '<td><div style="display:flex;gap:4px">';
       html += '<button class="btn btn-sm btn-outline" onclick="toggleDetail(' + id + ')">Expand</button>';
       html += '<button class="btn btn-sm btn-danger" onclick="deleteFeedback(' + id + ')">Delete</button>';
-      html += '</div>';
-      html += '</td>';
-      html += '</tr>';
+      html += '</div></td></tr>';
 
-      // Detail row (hidden by default)
-      html += '<tr class="detail-row" id="detail-' + id + '">';
-      html += '<td colspan="7">';
-      html += '<div class="detail-inner">';
-
-      // Message
-      html += '<div>';
-      html += '<div class="field-label">Message</div>';
-      html += '<div class="message-text">' + esc(fb.message || fb.feedback_text || 'No message provided') + '</div>';
-      html += '</div>';
-
-      // Serial number
-      if (fb.serial_number || fb.serial) {
-        html += '<div>';
-        html += '<div class="field-label">Serial Number</div>';
-        html += '<div style="font-family:monospace;font-size:.9em">' + esc(fb.serial_number || fb.serial) + '</div>';
-        html += '</div>';
+      html += '<tr class="detail-row" id="detail-' + id + '"><td colspan="7"><div class="detail-inner">';
+      html += '<div><div class="field-label">Message</div>';
+      html += '<div class="message-text">' + esc(fb.feedbackfullfield || 'No message provided') + '</div></div>';
+      if (fb.serial_number) {
+        html += '<div><div class="field-label">Serial Number</div>';
+        html += '<div style="font-family:monospace;font-size:.9em">' + esc(fb.serial_number) + '</div></div>';
       }
-
-      // Admin notes
-      html += '<div>';
-      html += '<div class="field-label">Admin Notes</div>';
-      html += '<textarea id="notes-' + id + '" placeholder="Add admin notes...">' + esc(fb.admin_notes || fb.notes || '') + '</textarea>';
-      html += '</div>';
-
-      // Actions
+      if (fb.submitter_ip) {
+        html += '<div><div class="field-label">Submitted from</div>';
+        html += '<div style="font-family:monospace;font-size:.9em">' + esc(fb.submitter_ip) + '</div></div>';
+      }
+      html += '<div><div class="field-label">Admin Notes</div>';
+      html += '<textarea id="notes-' + id + '" placeholder="Add admin notes...">' + esc(fb.admin_notes || '') + '</textarea></div>';
       html += '<div class="detail-actions">';
-      if (resolved) {
-        html += '<button class="btn btn-sm btn-outline" onclick="toggleStatus(' + id + ',\'unresolved\')">Mark Open</button>';
+      if (fb.resolved) {
+        html += '<button class="btn btn-sm btn-outline" onclick="setResolved(' + id + ',false)">Mark Open</button>';
       } else {
-        html += '<button class="btn btn-sm btn-primary" onclick="toggleStatus(' + id + ',\'resolved\')">Mark Resolved</button>';
+        html += '<button class="btn btn-sm btn-primary" onclick="setResolved(' + id + ',true)">Mark Resolved</button>';
       }
       html += '<button class="btn btn-sm btn-primary" onclick="saveNotes(' + id + ')">Save Notes</button>';
-      html += '</div>';
-
-      html += '</div>';
-      html += '</td>';
-      html += '</tr>';
+      html += '</div></div></td></tr>';
     }
     tbody.innerHTML = html;
   }
 
-  // --- Actions ---
-
+  // Every mutation checks the response: a 4xx/5xx must never show success.
+  function put(id, body, okMsg) {
+    return fetch(API + '/' + id, {
+      method: 'PUT',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body)
+    })
+    .then(function(r) { return r.json().then(function(d) { if (!r.ok) throw new Error(d.error || ('HTTP ' + r.status)); return d; }); })
+    .then(function() { showToast(okMsg); fetchFeedback(); fetchStats(); })
+    .catch(function(e) { showToast('Error: ' + e.message, true); });
+  }
   function toggleDetail(id) {
     var row = document.getElementById('detail-' + id);
     if (row) row.classList.toggle('show');
   }
-
-  function toggleStatus(id, newStatus) {
-    fetch(API + '/' + id, {
-      method: 'PUT',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({status: newStatus})
-    })
-    .then(function(r) {
-      if (!r.ok) throw new Error('Update failed');
-      return r.json();
-    })
-    .then(function() {
-      showToast('Feedback ' + (newStatus === 'resolved' ? 'resolved' : 'reopened'));
-      fetchFeedback();
-      fetchStats();
-    })
-    .catch(function(e) {
-      showToast('Error: ' + e.message, true);
-    });
+  function setResolved(id, resolved) {
+    put(id, {resolved: resolved}, resolved ? 'Feedback resolved' : 'Feedback reopened');
   }
-
   function saveNotes(id) {
     var textarea = document.getElementById('notes-' + id);
-    var notes = textarea ? textarea.value : '';
-    fetch(API + '/' + id, {
-      method: 'PUT',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({admin_notes: notes})
-    })
-    .then(function(r) {
-      if (!r.ok) throw new Error('Save failed');
-      return r.json();
-    })
-    .then(function() {
-      showToast('Notes saved');
-    })
-    .catch(function(e) {
-      showToast('Error: ' + e.message, true);
-    });
+    put(id, {admin_notes: textarea ? textarea.value : ''}, 'Notes saved');
   }
-
   function deleteFeedback(id) {
     if (!confirm('Delete feedback ' + fmtRef(id) + '? This cannot be undone.')) return;
     fetch(API + '/' + id, {method: 'DELETE'})
-      .then(function(r) {
-        if (!r.ok) throw new Error('Delete failed');
-        return r.json();
-      })
-      .then(function() {
-        showToast('Feedback deleted');
-        fetchFeedback();
-        fetchStats();
-      })
-      .catch(function(e) {
-        showToast('Error: ' + e.message, true);
-      });
+      .then(function(r) { return r.json().then(function(d) { if (!r.ok) throw new Error(d.error || ('HTTP ' + r.status)); }); })
+      .then(function() { showToast('Feedback deleted'); fetchFeedback(); fetchStats(); })
+      .catch(function(e) { showToast('Error: ' + e.message, true); });
   }
+  function applyFilters() { fetchFeedback(); }
+  // The export endpoint takes no filters; it always returns every row.
+  function exportCSV() { window.location.href = '/api/site-admin/export/feedback'; }
 
-  function applyFilters() {
-    fetchFeedback();
-    showToast('Filters applied');
-  }
-
-  function exportCSV() {
-    var qs = getFilterParams();
-    var url = '/api/site-admin/export/feedback' + (qs ? '?' + qs : '');
-    window.location.href = url;
-  }
-
-  // Expose to onclick handlers
   window.toggleDetail = toggleDetail;
-  window.toggleStatus = toggleStatus;
+  window.setResolved = setResolved;
   window.saveNotes = saveNotes;
   window.deleteFeedback = deleteFeedback;
   window.applyFilters = applyFilters;
   window.exportCSV = exportCSV;
 
-  // Initial load
   fetchStats();
   fetchFeedback();
 })();

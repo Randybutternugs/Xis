@@ -137,34 +137,29 @@
 {% block scripts %}
 <script>
 (function(){
+  // Field names follow security_alerts and /stats in xissite/admin_api.py.
+  // The contract test in tests/test_panel_contract.py fails if this drifts.
   var API_BASE = '/api/site-admin';
   var REFRESH_INTERVAL = 30;
   var refreshTimer = null;
-
   var BOT_USERNAMES = ['admin','root','test','administrator','user','guest','info','mysql',
     'postgres','oracle','ftp','www','ubuntu','deploy','git','support','demo'];
 
-  // DOM refs
   var threatBanner = document.getElementById('threat-banner');
   var threatIcon = document.getElementById('threat-icon');
   var threatText = document.getElementById('threat-text');
-
   var statTotal = document.getElementById('stat-total');
   var statSuccess = document.getElementById('stat-success');
   var statFailed = document.getElementById('stat-failed');
-
   var bruteContainer = document.getElementById('brute-force-container');
   var bruteEmpty = document.getElementById('brute-empty');
-
   var suspiciousTable = document.getElementById('suspicious-table');
   var suspiciousBody = document.getElementById('suspicious-body');
   var suspiciousEmpty = document.getElementById('suspicious-empty');
-
   var usernamesTable = document.getElementById('usernames-table');
   var usernamesBody = document.getElementById('usernames-body');
   var usernamesEmpty = document.getElementById('usernames-empty');
 
-  // Toast
   function showToast(msg, isError) {
     var t = document.getElementById('toast');
     t.textContent = msg;
@@ -172,48 +167,34 @@
     t.classList.add('show');
     setTimeout(function(){ t.classList.remove('show'); }, 3000);
   }
-
-  // Relative time
   function relTime(ts) {
     if (!ts) return '--';
-    var now = Date.now();
-    var then = new Date(ts).getTime();
-    var diff = Math.max(0, Math.floor((now - then) / 1000));
+    var diff = Math.max(0, Math.floor((Date.now() - new Date(ts).getTime()) / 1000));
     if (diff < 60) return diff + 's ago';
     if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
     if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
     return Math.floor(diff / 86400) + 'd ago';
   }
-
-  // HTML escape
+  // IPs, user agents and usernames tried are attacker-controlled strings.
   function esc(str) {
-    var d = document.createElement('div');
-    d.textContent = str || '';
-    return d.innerHTML;
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
-
-  // Truncate string
   function truncate(str, len) {
     if (!str) return '';
     return str.length > len ? str.substring(0, len) + '...' : str;
   }
-
-  // Check if username is a common bot target
   function isBotUsername(name) {
-    if (!name) return false;
-    return BOT_USERNAMES.indexOf(name.toLowerCase()) !== -1;
+    return !!name && BOT_USERNAMES.indexOf(name.toLowerCase()) !== -1;
   }
 
-  // Update threat banner based on data
   function updateThreatLevel(bruteForce, suspiciousIps) {
-    var hasBrute = bruteForce && bruteForce.length > 0;
-    var hasSuspicious = suspiciousIps && suspiciousIps.length > 0;
-
-    if (hasBrute) {
+    if (bruteForce.length) {
       threatBanner.className = 'threat-banner threat-crit';
       threatIcon.innerHTML = '&#9888;';
       threatText.textContent = 'ACTIVE THREATS DETECTED - ' + bruteForce.length + ' brute force alert(s)';
-    } else if (hasSuspicious) {
+    } else if (suspiciousIps.length) {
       threatBanner.className = 'threat-banner threat-warn';
       threatIcon.innerHTML = '&#9888;';
       threatText.textContent = 'Suspicious Activity - ' + suspiciousIps.length + ' flagged IP(s)';
@@ -224,46 +205,36 @@
     }
   }
 
-  // Render brute force alerts
+  // brute_force items: ip, attempts, latest, severity ('critical').
   function renderBruteForce(alerts) {
-    // Remove existing items
     var items = bruteContainer.querySelectorAll('.alert-row');
     for (var i = 0; i < items.length; i++) items[i].remove();
-
-    if (!alerts || alerts.length === 0) {
+    if (!alerts.length) {
       bruteEmpty.textContent = 'No brute force activity detected';
       bruteEmpty.style.display = 'block';
       return;
     }
     bruteEmpty.style.display = 'none';
-
     for (var j = 0; j < alerts.length; j++) {
-      var a = alerts[j];
-      var severity = (a.severity || 'medium').toLowerCase();
-      var badgeClass = 'badge-off';
-      if (severity === 'critical' || severity === 'high') badgeClass = 'badge-crit';
-      else if (severity === 'medium' || severity === 'warning') badgeClass = 'badge-warn';
-      else if (severity === 'low') badgeClass = 'badge-ok';
-
+      var bf = alerts[j];
       var row = document.createElement('div');
       row.className = 'alert-row';
       row.style.cssText = 'background:#0a0a0a;border:1px solid #1a1a1a;padding:10px 14px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:.85em';
       row.innerHTML =
         '<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">' +
-          '<span class="mono" style="font-weight:700">' + esc(a.ip || a.ip_address || '--') + '</span>' +
-          '<span class="attempts-red">' + (a.attempts || a.attempt_count || 0) + ' attempts</span>' +
-          '<span class="mono" style="color:var(--mut);font-size:.9em">' + relTime(a.last_seen || a.last_attempt) + '</span>' +
+          '<span class="mono" style="font-weight:700">' + esc(bf.ip || '--') + '</span>' +
+          '<span class="attempts-red">' + (bf.attempts || 0) + ' attempts in the last hour</span>' +
+          '<span class="mono" style="color:var(--mut);font-size:.9em">' + relTime(bf.latest) + '</span>' +
         '</div>' +
-        '<span class="badge ' + badgeClass + '">' + esc(severity) + '</span>';
-
+        '<span class="badge badge-crit">' + esc(bf.severity || 'critical') + '</span>';
       bruteContainer.insertBefore(row, bruteEmpty);
     }
   }
 
-  // Render suspicious IPs
+  // suspicious_ips items: ip, attempts, latest, user_agent, severity ('warning').
   function renderSuspicious(ips) {
     suspiciousBody.innerHTML = '';
-    if (!ips || ips.length === 0) {
+    if (!ips.length) {
       suspiciousTable.style.display = 'none';
       suspiciousEmpty.textContent = 'No suspicious activity detected';
       suspiciousEmpty.style.display = 'block';
@@ -271,28 +242,25 @@
     }
     suspiciousEmpty.style.display = 'none';
     suspiciousTable.style.display = 'table';
-
     for (var i = 0; i < ips.length; i++) {
-      var s = ips[i];
-      var count = s.failed_attempts || s.attempt_count || s.count || 0;
-      var badgeClass = count >= 5 ? 'badge-crit' : (count >= 3 ? 'badge-warn' : 'badge-off');
-      var badgeLabel = count >= 5 ? 'Critical' : (count >= 3 ? 'Warning' : 'Low');
-
+      var susp = ips[i];
+      var count = susp.attempts || 0;
+      var badgeClass = count >= 5 ? 'badge-crit' : 'badge-warn';
       var tr = document.createElement('tr');
       tr.innerHTML =
-        '<td class="mono">' + esc(s.ip || s.ip_address || '--') + '</td>' +
+        '<td class="mono">' + esc(susp.ip || '--') + '</td>' +
         '<td class="attempts-red">' + count + '</td>' +
-        '<td class="mono" style="color:var(--mut)">' + relTime(s.last_attempt || s.last_seen) + '</td>' +
-        '<td class="ua-cell" title="' + esc(s.user_agent || '') + '">' + esc(truncate(s.user_agent, 40)) + '</td>' +
-        '<td><span class="badge ' + badgeClass + '">' + badgeLabel + '</span></td>';
+        '<td class="mono" style="color:var(--mut)">' + relTime(susp.latest) + '</td>' +
+        '<td class="ua-cell" title="' + esc(susp.user_agent || '') + '">' + esc(truncate(susp.user_agent, 40)) + '</td>' +
+        '<td><span class="badge ' + badgeClass + '">' + esc(susp.severity || 'warning') + '</span></td>';
       suspiciousBody.appendChild(tr);
     }
   }
 
-  // Render failed usernames
+  // failed_usernames items: username, attempts.
   function renderUsernames(usernames) {
     usernamesBody.innerHTML = '';
-    if (!usernames || usernames.length === 0) {
+    if (!usernames.length) {
       usernamesTable.style.display = 'none';
       usernamesEmpty.textContent = 'No failed login usernames recorded';
       usernamesEmpty.style.display = 'block';
@@ -300,99 +268,59 @@
     }
     usernamesEmpty.style.display = 'none';
     usernamesTable.style.display = 'table';
-
     for (var i = 0; i < usernames.length; i++) {
-      var u = usernames[i];
-      var name = u.username || u.name || '--';
-      var count = u.count || u.attempts || u.attempt_count || 0;
+      var fu = usernames[i];
+      var name = fu.username || '--';
       var isBot = isBotUsername(name);
-
       var tr = document.createElement('tr');
       tr.innerHTML =
         '<td class="mono' + (isBot ? ' bot-name' : '') + '">' + esc(name) +
           (isBot ? ' <span class="badge badge-crit" style="margin-left:6px">bot target</span>' : '') +
         '</td>' +
-        '<td class="mono">' + count + '</td>';
+        '<td class="mono">' + (fu.attempts || 0) + '</td>';
       usernamesBody.appendChild(tr);
     }
   }
 
-  // Update login stats
-  function updateStats(data) {
-    var s = data.login_24h || {};
-    statTotal.textContent = s.total != null ? s.total : '--';
-
-    var success = s.success != null ? s.success : null;
-    statSuccess.textContent = success != null ? success : '--';
-
-    var failed = s.failed != null ? s.failed : null;
-    statFailed.textContent = failed != null ? failed : '--';
+  function updateStats(stats) {
+    var l24 = stats.login_24h || {};
+    statTotal.textContent = l24.total != null ? l24.total : '--';
+    statSuccess.textContent = l24.successful != null ? l24.successful : '--';
+    statFailed.textContent = l24.failed != null ? l24.failed : '--';
   }
 
-  // Export login report
-  function exportLogins() {
-    window.location.href = API_BASE + '/export/logins';
-  }
+  function exportLogins() { window.location.href = API_BASE + '/export/logins'; }
 
-  // Fetch security alerts
   function fetchAlerts() {
     fetch(API_BASE + '/security/alerts')
-      .then(function(r) {
-        if (!r.ok) throw new Error('API error ' + r.status);
-        return r.json();
-      })
+      .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then(function(data) {
         var bruteForce = data.brute_force || [];
         var suspiciousIps = data.suspicious_ips || [];
-        var failedUsernames = data.failed_usernames || [];
-
         updateThreatLevel(bruteForce, suspiciousIps);
         renderBruteForce(bruteForce);
         renderSuspicious(suspiciousIps);
-        renderUsernames(failedUsernames);
+        renderUsernames(data.failed_usernames || []);
       })
       .catch(function(err) {
-        console.error('Security alerts error:', err);
         showToast('Failed to load security alerts: ' + err.message, true);
-        updateThreatLevel([], []);
-        renderBruteForce([]);
-        renderSuspicious([]);
-        renderUsernames([]);
+        updateThreatLevel([], []); renderBruteForce([]); renderSuspicious([]); renderUsernames([]);
       });
   }
-
-  // Fetch stats
   function fetchStats() {
     fetch(API_BASE + '/stats')
-      .then(function(r) {
-        if (!r.ok) throw new Error('API error ' + r.status);
-        return r.json();
-      })
-      .then(function(data) {
-        updateStats(data);
-      })
+      .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(updateStats)
       .catch(function(err) {
-        console.error('Stats error:', err);
-        statTotal.textContent = '--';
-        statSuccess.textContent = '--';
-        statFailed.textContent = '--';
+        showToast('Stats failed: ' + err.message, true);
+        statTotal.textContent = statSuccess.textContent = statFailed.textContent = '--';
       });
   }
+  function refreshAll() { fetchAlerts(); fetchStats(); }
 
-  // Refresh all data
-  function refreshAll() {
-    fetchAlerts();
-    fetchStats();
-  }
-
-  // Expose to onclick handlers
   window.refreshAll = refreshAll;
   window.exportLogins = exportLogins;
-
-  // Initial load
   refreshAll();
-
-  // Auto-refresh every 30 seconds
   refreshTimer = setInterval(refreshAll, REFRESH_INTERVAL * 1000);
 })();
 </script>

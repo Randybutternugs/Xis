@@ -30,5 +30,8 @@ python-dotenv==1.0.0
 # Production WSGI Server (for Google Cloud)
 gunicorn==22.0.0
 
+# User-agent parsing (admin API visitors/devices)
+user-agents==2.2.0
+
 # Testing
 pytest==8.0.0

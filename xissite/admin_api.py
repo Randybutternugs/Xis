@@ -319,7 +319,17 @@ def list_customers():
     offset = int(request.args.get('offset', 0))
     total = q.count()
     customers = q.order_by(desc(Customer.id)).offset(offset).limit(limit).all()
-    return jsonify(customers=[c.to_dict() for c in customers], total=total)
+    counts = dict(
+        db.session.query(Purchase_info.customer_id, func.count(Purchase_info.id))
+        .filter(Purchase_info.customer_id.in_([c.id for c in customers]))
+        .group_by(Purchase_info.customer_id).all()
+    ) if customers else {}
+    rows = []
+    for c in customers:
+        d = c.to_dict()
+        d['purchase_count'] = counts.get(c.id, 0)
+        rows.append(d)
+    return jsonify(customers=rows, total=total)
 
 
 @admin_api.route('/customers/<int:cid>')

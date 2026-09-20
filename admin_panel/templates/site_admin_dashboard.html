@@ -231,7 +231,7 @@ tr.expandable:hover{background:rgba(106,189,69,.04)}
     <h2><span class="sec-actions"><button class="btn btn-primary btn-sm" onclick="openCreateUser()">+ Create User</button></span>// User Management <span class="sec-count" id="user-count"></span></h2>
     <div class="table-scroll">
       <table class="table" id="users-table" style="display:none">
-        <thead><tr><th>ID</th><th>Type</th><th>Status</th><th>Last Login</th><th>Logins</th><th>Notes</th><th>Actions</th></tr></thead>
+        <thead><tr><th>ID</th><th>Username</th><th>Type</th><th>Status</th><th>Last Login</th><th>Notes</th><th>Actions</th></tr></thead>
         <tbody id="users-body"></tbody>
       </table>
     </div>
@@ -292,7 +292,7 @@ tr.expandable:hover{background:rgba(106,189,69,.04)}
     </div>
     <div class="table-scroll">
       <table class="table" id="cust-table" style="display:none">
-        <thead><tr><th>ID</th><th>Email</th><th>Name</th><th>Created</th><th>Orders</th><th>Tags</th><th>Actions</th></tr></thead>
+        <thead><tr><th>ID</th><th>Email</th><th>Name</th><th>Created</th><th>Orders</th><th>Actions</th></tr></thead>
         <tbody id="cust-body"></tbody>
       </table>
     </div>
@@ -312,8 +312,6 @@ tr.expandable:hover{background:rgba(106,189,69,.04)}
       <button class="btn btn-sm btn-outline" onclick="window.location='/api/site-admin/export/purchases'">Export CSV</button>
     </div>
     <div class="inline-stats" id="purch-stats-row" style="display:none">
-      <div class="inline-stat"><span class="is-val" id="ps-revenue">$0</span> <span class="is-label">revenue</span></div>
-      <div class="inline-stat"><span class="is-val" id="ps-avg">$0</span> <span class="is-label">avg order</span></div>
       <div class="inline-stat"><span class="is-val" id="ps-period-count">0</span> <span class="is-label">period orders</span></div>
       <div class="inline-stat"><span class="is-val" id="ps-paid-rate">--</span> <span class="is-label">paid rate</span></div>
     </div>
@@ -494,7 +492,7 @@ tr.expandable:hover{background:rgba(106,189,69,.04)}
     <label>Password</label>
     <input type="password" id="cu-pass" placeholder="Strong password...">
     <label>User Type</label>
-    <select id="cu-type"><option value="admin">Admin</option><option value="investor">Investor</option></select>
+    <select id="cu-type"><option value="employee">Employee</option><option value="admin">Admin</option></select>
     <label>Notes</label>
     <textarea id="cu-notes" placeholder="Optional notes..."></textarea>
     <div class="modal-btns">
@@ -510,7 +508,7 @@ tr.expandable:hover{background:rgba(106,189,69,.04)}
     <h3>// Edit User</h3>
     <input type="hidden" id="eu-id">
     <label>User Type</label>
-    <select id="eu-type"><option value="admin">Admin</option><option value="investor">Investor</option></select>
+    <select id="eu-type"><option value="employee">Employee</option><option value="admin">Admin</option></select>
     <label>Status</label>
     <select id="eu-status"><option value="active">Active</option><option value="suspended">Suspended</option></select>
     <label>Notes</label>
@@ -529,13 +527,7 @@ tr.expandable:hover{background:rgba(106,189,69,.04)}
   <div class="modal-box" style="max-width:600px">
     <h3>// Customer Detail</h3>
     <div id="cust-detail-content">Loading...</div>
-    <input type="hidden" id="cd-cust-id">
-    <label>Tags <span style="font-size:.8em;color:var(--mut)">(comma-separated)</span></label>
-    <input type="text" id="cd-tags" class="tag-input" placeholder="e.g. vip, wholesale, repeat">
-    <label>Admin Notes</label>
-    <textarea id="cd-notes" style="width:100%;min-height:60px;resize:vertical;background:#0a0a0a;border:1px solid var(--brd);color:var(--txt);padding:6px 8px;font-size:.85em;font-family:inherit"></textarea>
     <div class="modal-btns">
-      <button class="btn btn-primary btn-sm" onclick="saveCustomerMeta()">Save</button>
       <button class="btn btn-outline btn-sm" onclick="closeModal('modal-cust-detail')">Close</button>
     </div>
   </div>
@@ -572,7 +564,11 @@ var visDays=7,ordDays=30;
 var cache={users:null,logins:null,stats:null,visitors:null,security:null,customers:null,purchases:null,feedback:null};
 
 // ─── Utility ────────────────────────────────────────────────
-function esc(s){var d=document.createElement('div');d.textContent=s||'';return d.innerHTML}
+// Escapes for both text and attribute contexts (the textContent trick leaves quotes alone).
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+// Resolve with the JSON body on 2xx, reject with the server's error otherwise,
+// so a 403/404 never shows a success toast.
+function checked(r){return r.json().catch(function(){return {}}).then(function(d){if(!r.ok)throw new Error(d.error||('HTTP '+r.status));return d})}
 function relTime(iso){
   if(!iso)return'--';
   var diff=Math.max(0,Math.floor((Date.now()-new Date(iso).getTime())/1000));
@@ -597,8 +593,8 @@ function setApiStatus(ok){
 }
 
 // ─── Section nav scroll ────────────────────────────────────
-document.querySelectorAll('.sec-nav a').forEach(function(a){
-  a.addEventListener('click',function(e){
+document.querySelectorAll('.sec-nav a').forEach(function(link){
+  link.addEventListener('click',function(e){
     e.preventDefault();
     var tgt=document.querySelector(this.getAttribute('href'));
     if(tgt)tgt.scrollIntoView({behavior:'smooth',block:'start'});
@@ -654,17 +650,16 @@ function renderUsers(users){
   emp.style.display='none';tbl.style.display='table';cnt.textContent='('+users.length+')';
   var html='';
   users.forEach(function(u){
-    var isHash=u.email&&u.email.length>50;
-    var label=isHash?(u.user_type==='admin'?'Primary Admin':'Primary Investor'):esc(u.email);
     var typeBadge=u.user_type==='admin'?'badge-ok':'badge-off';
     var statusBadge=u.status==='active'?'badge-ok':u.status==='suspended'?'badge-warn':'badge-crit';
-    var isPrimary=isHash;
+    // The server refuses to delete the bootstrap admin; this only hides the button.
+    var isPrimary=u.user_type==='admin'&&u.id===1;
     html+='<tr>'+
       '<td>'+u.id+'</td>'+
+      '<td>'+esc(u.email)+(u.display_name?' <span style="color:var(--mut);font-size:.85em">'+esc(u.display_name)+'</span>':'')+'</td>'+
       '<td><span class="badge '+typeBadge+'">'+esc(u.user_type)+'</span></td>'+
       '<td><span class="badge '+statusBadge+'">'+esc(u.status||'active')+'</span></td>'+
       '<td title="'+esc(fullDate(u.last_login))+'">'+relTime(u.last_login)+'</td>'+
-      '<td>'+(u.login_count||0)+'</td>'+
       '<td style="font-size:.85em;color:var(--mut)">'+esc(u.notes||'--')+'</td>'+
       '<td style="white-space:nowrap">'+
         (u.status==='suspended'?'<button class="btn btn-primary btn-sm" onclick="activateUser('+u.id+')">Activate</button> ':'<button class="btn btn-sm btn-outline" style="color:var(--warn);border-color:var(--warn)" onclick="suspendUser('+u.id+')">Suspend</button> ')+
@@ -710,9 +705,9 @@ window.submitEditUser=function(){
       showToast('User updated');closeModal('modal-edit-user');fetchUsers();
     }).catch(function(){showToast('Failed to update')});
 };
-window.suspendUser=function(id){if(confirm('Suspend this user?'))fetch(API+'/users/'+id+'/suspend',{method:'POST'}).then(function(){showToast('User suspended');fetchUsers()})};
-window.activateUser=function(id){fetch(API+'/users/'+id+'/activate',{method:'POST'}).then(function(){showToast('User activated');fetchUsers()})};
-window.deleteUser=function(id){if(confirm('Delete this user? This is a soft delete.'))fetch(API+'/users/'+id,{method:'DELETE'}).then(function(){showToast('User deleted');fetchUsers()})};
+window.suspendUser=function(id){if(confirm('Suspend this user?'))fetch(API+'/users/'+id+'/suspend',{method:'POST'}).then(checked).then(function(){showToast('User suspended');fetchUsers()}).catch(function(e){showToast('Error: '+e.message)})};
+window.activateUser=function(id){fetch(API+'/users/'+id+'/activate',{method:'POST'}).then(checked).then(function(){showToast('User activated');fetchUsers()}).catch(function(e){showToast('Error: '+e.message)})};
+window.deleteUser=function(id){if(confirm('Delete this user? This is a soft delete.'))fetch(API+'/users/'+id,{method:'DELETE'}).then(checked).then(function(){showToast('User deleted');fetchUsers()}).catch(function(e){showToast('Error: '+e.message)})};
 
 // ─── Logins ─────────────────────────────────────────────────
 var expandedLoginId=null;
@@ -779,13 +774,10 @@ function renderCustomers(custs,total){
   emp.style.display='none';tbl.style.display='table';cnt.textContent='('+(total||custs.length)+')';
   var html='';
   custs.forEach(function(c){
-    var tagHtml='';
-    if(c.tags){c.tags.split(',').forEach(function(t){t=t.trim();if(t)tagHtml+='<span class="tag-pill">'+esc(t)+'</span>'})}
     html+='<tr>'+
       '<td>'+c.id+'</td><td>'+esc(c.email)+'</td><td>'+esc(c.name||'--')+'</td>'+
       '<td title="'+esc(fullDate(c.creation_date))+'">'+relTime(c.creation_date)+'</td>'+
       '<td>'+(c.purchase_count||0)+'</td>'+
-      '<td>'+tagHtml+'</td>'+
       '<td><button class="btn btn-sm btn-outline" onclick="viewCustomer('+c.id+')">View</button> <button class="btn btn-sm btn-danger" onclick="deleteCustomer('+c.id+')">Delete</button></td></tr>';
   });
   tb.innerHTML=html;
@@ -805,21 +797,9 @@ window.viewCustomer=function(id){
       html+='</tbody></table>';
     }else{html+='<div class="alert-none">No purchases</div>';}
     el.innerHTML=html;
-    document.getElementById('cd-cust-id').value=d.id;
-    document.getElementById('cd-tags').value=d.tags||'';
-    document.getElementById('cd-notes').value=d.admin_notes||'';
   }).catch(function(){el.innerHTML='Failed to load'});
 };
-window.deleteCustomer=function(id){if(confirm('Delete this customer and all their purchases?'))fetch(API+'/customers/'+id,{method:'DELETE'}).then(function(){showToast('Customer deleted');fetchCustomers()})};
-window.saveCustomerMeta=function(){
-  var id=document.getElementById('cd-cust-id').value;if(!id)return;
-  var tags=document.getElementById('cd-tags').value,notes=document.getElementById('cd-notes').value;
-  fetch(API+'/customers/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({tags:tags,admin_notes:notes})})
-    .then(function(r){return r.json()}).then(function(d){
-      if(d.error){showToast('Error: '+d.error);return}
-      showToast('Customer updated');fetchCustomers();
-    }).catch(function(){showToast('Failed to update')});
-};
+window.deleteCustomer=function(id){if(confirm('Delete this customer and all their purchases?'))fetch(API+'/customers/'+id,{method:'DELETE'}).then(checked).then(function(){showToast('Customer deleted');fetchCustomers()}).catch(function(e){showToast('Error: '+e.message)})};
 
 // ─── Customer Insights ──────────────────────────────────────
 function fetchCustomerStats(){
@@ -882,9 +862,8 @@ function fetchPurchaseStats(){
   fetch(API+'/purchases/stats?days='+ordDays).then(function(r){if(!r.ok)throw new Error();return r.json()}).then(function(d){
     if(d.error)return;
     document.getElementById('purch-stats-row').style.display='flex';
-    var rev=d.revenue||{};
-    document.getElementById('ps-revenue').textContent='$'+((rev.total_cents||0)/100).toFixed(2);
-    document.getElementById('ps-avg').textContent='$'+((rev.avg_order_cents||0)/100).toFixed(2);
+    // No amount is stored per purchase (the price lives in Stripe), so there
+    // is no revenue figure to show.
     document.getElementById('ps-period-count').textContent=d.period_total||0;
     var statuses=d.status_breakdown||[],paid=0,totalO=0;
     statuses.forEach(function(s){totalO+=s.count;if(s.status==='paid')paid=s.count});
@@ -918,9 +897,9 @@ function fetchPurchaseFunnel(){
       {label:'Purchases',count:d.completed_purchases||0,color:'var(--g)'}
     ];
     var mx=steps[0].count||1;
-    var html='';steps.forEach(function(s){
-      var pct=Math.max(2,Math.round((s.count/mx)*100));
-      html+='<div class="funnel-row"><span class="funnel-label">'+esc(s.label)+'</span><div class="funnel-bar"><div class="funnel-fill" style="width:'+pct+'%;background:'+s.color+'"></div></div><span class="funnel-count">'+s.count+'</span></div>';
+    var html='';steps.forEach(function(step){
+      var pct=Math.max(2,Math.round((step.count/mx)*100));
+      html+='<div class="funnel-row"><span class="funnel-label">'+esc(step.label)+'</span><div class="funnel-bar"><div class="funnel-fill" style="width:'+pct+'%;background:'+step.color+'"></div></div><span class="funnel-count">'+step.count+'</span></div>';
     });
     el.innerHTML=html;
   }).catch(function(){});
@@ -1004,7 +983,7 @@ window.saveFbNotes=function(id){
   fetch(API+'/feedback/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({admin_notes:notes})})
     .then(function(){showToast('Notes saved')}).catch(function(){showToast('Failed')});
 };
-window.deleteFb=function(id){if(confirm('Delete this feedback?'))fetch(API+'/feedback/'+id,{method:'DELETE'}).then(function(){showToast('Deleted');fetchFeedback()})};
+window.deleteFb=function(id){if(confirm('Delete this feedback?'))fetch(API+'/feedback/'+id,{method:'DELETE'}).then(checked).then(function(){showToast('Deleted');fetchFeedback()}).catch(function(e){showToast('Error: '+e.message)})};
 window.openReply=function(id){var el=document.getElementById('fb-reply-'+id);if(el)el.style.display=el.style.display==='block'?'none':'block'};
 window.sendReply=function(id,resolve){
   var msg=document.getElementById('fb-reply-msg-'+id).value.trim();
@@ -1097,24 +1076,24 @@ function renderSecurity(d){
   var html='';
   if(bf.length>0){
     html+='<div style="margin-bottom:12px"><div style="font-size:.65em;color:var(--crit);text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;font-weight:700">Brute Force</div>';
-    bf.forEach(function(b){html+='<div class="alert-item"><div><span class="alert-ip" data-ip="'+esc(b.ip)+'">'+esc(b.ip)+'</span><span class="geo-tag" data-geo-ip="'+esc(b.ip)+'"></span><span class="alert-count"> - '+b.attempts+' attempts - '+relTime(b.latest)+'</span></div><div style="display:flex;gap:6px;align-items:center"><button class="btn btn-sm btn-danger" onclick="banIPQuick(\''+esc(b.ip)+'\')">Ban</button><span class="badge badge-crit">Critical</span></div></div>'});
+    bf.forEach(function(brute){html+='<div class="alert-item"><div><span class="alert-ip" data-ip="'+esc(brute.ip)+'">'+esc(brute.ip)+'</span><span class="geo-tag" data-geo-ip="'+esc(brute.ip)+'"></span><span class="alert-count"> - '+brute.attempts+' attempts - '+relTime(brute.latest)+'</span></div><div style="display:flex;gap:6px;align-items:center"><button class="btn btn-sm btn-danger" onclick="banIPQuick(\''+esc(brute.ip)+'\')">Ban</button><span class="badge badge-crit">Critical</span></div></div>'});
     html+='</div>';
   }
   if(sus.length>0){
     html+='<div style="margin-bottom:12px"><div style="font-size:.65em;color:var(--warn);text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;font-weight:700">Suspicious IPs</div>';
-    sus.forEach(function(s){
-      var sev=s.attempts>=5?'badge-crit':'badge-warn';
-      html+='<div class="alert-item"><div><span class="alert-ip" data-ip="'+esc(s.ip)+'">'+esc(s.ip)+'</span><span class="geo-tag" data-geo-ip="'+esc(s.ip)+'"></span><span class="alert-count"> - '+s.attempts+' failures</span></div><div style="display:flex;gap:6px;align-items:center"><button class="btn btn-sm btn-danger" onclick="banIPQuick(\''+esc(s.ip)+'\')">Ban</button><span class="badge '+sev+'">'+esc(s.severity||'warning')+'</span></div></div>';
+    sus.forEach(function(susp){
+      var sev=susp.attempts>=5?'badge-crit':'badge-warn';
+      html+='<div class="alert-item"><div><span class="alert-ip" data-ip="'+esc(susp.ip)+'">'+esc(susp.ip)+'</span><span class="geo-tag" data-geo-ip="'+esc(susp.ip)+'"></span><span class="alert-count"> - '+susp.attempts+' failures</span></div><div style="display:flex;gap:6px;align-items:center"><button class="btn btn-sm btn-danger" onclick="banIPQuick(\''+esc(susp.ip)+'\')">Ban</button><span class="badge '+sev+'">'+esc(susp.severity||'warning')+'</span></div></div>';
     });
     html+='</div>';
   }
   if(fu.length>0){
     html+='<div><div style="font-size:.65em;color:var(--mut);text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;font-weight:700">Failed Usernames</div>';
     html+='<div style="display:flex;flex-wrap:wrap;gap:6px">';
-    fu.forEach(function(u){
+    fu.forEach(function(fuser){
       var botNames=['admin','root','test','administrator','user','guest','login','info','support'];
-      var isBot=botNames.indexOf((u.username||'').toLowerCase())>=0;
-      html+='<span style="padding:3px 10px;font-size:.8em;font-family:Consolas,monospace;background:'+(isBot?'rgba(255,50,50,.1);color:var(--crit)':'#0a0a0a;color:var(--txt)')+';border:1px solid #1a1a1a">'+esc(u.username)+' <span style="color:var(--mut)">('+u.attempts+')</span></span>';
+      var isBot=botNames.indexOf((fuser.username||'').toLowerCase())>=0;
+      html+='<span style="padding:3px 10px;font-size:.8em;font-family:Consolas,monospace;background:'+(isBot?'rgba(255,50,50,.1);color:var(--crit)':'#0a0a0a;color:var(--txt)')+';border:1px solid #1a1a1a">'+esc(fuser.username)+' <span style="color:var(--mut)">('+fuser.attempts+')</span></span>';
     });
     html+='</div></div>';
   }
@@ -1162,7 +1141,7 @@ window.submitBanIP=function(){
       showToast('IP banned');closeModal('modal-ban-ip');fetchBannedIPs();
     }).catch(function(){showToast('Failed to ban IP')});
 };
-window.unbanIP=function(id){if(confirm('Unban this IP?'))fetch(API+'/banned-ips/'+id,{method:'DELETE'}).then(function(){showToast('IP unbanned');fetchBannedIPs()})};
+window.unbanIP=function(id){if(confirm('Unban this IP?'))fetch(API+'/banned-ips/'+id,{method:'DELETE'}).then(checked).then(function(){showToast('IP unbanned');fetchBannedIPs()}).catch(function(e){showToast('Error: '+e.message)})};
 window.banIPQuick=function(ip){openBanModal(ip)};
 
 // ─── Login Heatmap ──────────────────────────────────────────
@@ -1330,8 +1309,8 @@ function renderVisitorPageflow(d){
   if(seqs.length===0){stbl.style.display='none';return}
   stbl.style.display='table';
   var sHtml='';
-  seqs.slice(0,10).forEach(function(s){
-    sHtml+='<tr><td style="font-family:Consolas,monospace;font-size:.8em">'+esc(s.from)+'</td><td style="font-family:Consolas,monospace;font-size:.8em">'+esc(s.to)+'</td><td>'+s.count+'</td></tr>';
+  seqs.slice(0,10).forEach(function(seq){
+    sHtml+='<tr><td style="font-family:Consolas,monospace;font-size:.8em">'+esc(seq.from)+'</td><td style="font-family:Consolas,monospace;font-size:.8em">'+esc(seq.to)+'</td><td>'+seq.count+'</td></tr>';
   });
   stb.innerHTML=sHtml;
 }

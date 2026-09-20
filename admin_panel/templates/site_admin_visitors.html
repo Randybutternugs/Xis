@@ -137,9 +137,8 @@
           <th>Time</th>
           <th>IP</th>
           <th>Path</th>
-          <th>Method</th>
-          <th>Status</th>
           <th>Referrer</th>
+          <th>User Agent</th>
         </tr>
       </thead>
       <tbody id="recent-body"></tbody>
@@ -154,59 +153,49 @@
 {% block scripts %}
 <script>
 (function(){
+  // Field names follow visitor_stats and recent_visitors in
+  // xissite/admin_api.py. The contract test in tests/test_panel_contract.py
+  // fails if this drifts from the API.
   var API_BASE = '/api/site-admin';
   var currentDays = 7;
   var recentTimer = null;
 
-  // DOM refs
   var statUnique = document.getElementById('stat-unique');
   var statViews = document.getElementById('stat-views');
   var statTopPage = document.getElementById('stat-top-page');
   var statAvgDaily = document.getElementById('stat-avg-daily');
-
   var dailyChart = document.getElementById('daily-chart');
   var dailyEmpty = document.getElementById('daily-empty');
-
   var pagesTable = document.getElementById('pages-table');
   var pagesBody = document.getElementById('pages-body');
   var pagesEmpty = document.getElementById('pages-empty');
-
   var referrersTable = document.getElementById('referrers-table');
   var referrersBody = document.getElementById('referrers-body');
   var referrersEmpty = document.getElementById('referrers-empty');
-
   var recentTable = document.getElementById('recent-table');
   var recentBody = document.getElementById('recent-body');
   var recentEmpty = document.getElementById('recent-empty');
 
-  // Toast
   function showToast(msg) {
     var t = document.getElementById('toast');
     t.textContent = msg;
     t.classList.add('show');
     setTimeout(function(){ t.classList.remove('show'); }, 3000);
   }
-
-  // Escape HTML
+  // Path, referrer and user agent come from visitor requests: attacker data.
   function esc(str) {
-    var d = document.createElement('div');
-    d.textContent = str || '';
-    return d.innerHTML;
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
-
-  // Relative time
   function relTime(iso) {
     if (!iso) return '--';
-    var now = Date.now();
-    var then = new Date(iso).getTime();
-    var diff = Math.max(0, Math.floor((now - then) / 1000));
+    var diff = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
     if (diff < 60) return diff + 's ago';
     if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
     if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
     return Math.floor(diff / 86400) + 'd ago';
   }
-
-  // Format day label (e.g., "Mar 25")
   function dayLabel(iso) {
     if (!iso) return '--';
     var d = new Date(iso);
@@ -214,68 +203,38 @@
     return months[d.getMonth()] + ' ' + d.getDate();
   }
 
-  // Status code CSS class
-  function statusClass(code) {
-    code = parseInt(code, 10);
-    if (code >= 200 && code < 300) return 'status-2xx';
-    if (code >= 300 && code < 400) return 'status-3xx';
-    if (code >= 400 && code < 500) return 'status-4xx';
-    if (code >= 500) return 'status-5xx';
-    return '';
+  function renderStats(stats) {
+    statUnique.textContent = stats.total_unique != null ? stats.total_unique : '--';
+    statViews.textContent = stats.total_views != null ? stats.total_views : '--';
+    var top = (stats.top_pages || [])[0];
+    statTopPage.textContent = top ? top.path : '--';
+    statAvgDaily.textContent = stats.avg_daily != null ? stats.avg_daily : '--';
   }
 
-  // Render stats
-  function renderStats(data) {
-    statUnique.textContent = data.total_unique != null ? data.total_unique : '--';
-    statViews.textContent = data.total_views != null ? data.total_views : '--';
-
-    if (data.top_page) {
-      statTopPage.textContent = data.top_page;
-    } else {
-      statTopPage.textContent = '--';
-    }
-
-    statAvgDaily.textContent = data.avg_daily != null ? data.avg_daily : '--';
-  }
-
-  // Render daily chart
-  function renderDailyChart(days) {
-    // Clear existing bars
+  function renderDailyChart(daily) {
     var existing = dailyChart.querySelectorAll('.bar-row');
     for (var i = 0; i < existing.length; i++) existing[i].remove();
-
-    if (!days || days.length === 0) {
+    if (!daily || daily.length === 0) {
       dailyEmpty.style.display = 'block';
       return;
     }
     dailyEmpty.style.display = 'none';
-
     var maxViews = 1;
-    for (var i = 0; i < days.length; i++) {
-      var v = days[i].views || days[i].page_views || days[i].count || 0;
-      if (v > maxViews) maxViews = v;
-    }
-
-    for (var i = 0; i < days.length; i++) {
-      var d = days[i];
-      var views = d.views || d.page_views || d.count || 0;
-      var unique = d.unique_ips || d.unique || 0;
-      var pct = Math.round((views / maxViews) * 100);
-      var label = dayLabel(d.date || d.day);
-
+    for (var j = 0; j < daily.length; j++) if (daily[j].views > maxViews) maxViews = daily[j].views;
+    for (var k = 0; k < daily.length; k++) {
+      var day = daily[k];
+      var pct = Math.round(((day.views || 0) / maxViews) * 100);
       var row = document.createElement('div');
       row.className = 'bar-row';
       row.innerHTML =
-        '<span class="bar-label">' + esc(label) + '</span>' +
+        '<span class="bar-label">' + esc(dayLabel(day.day)) + '</span>' +
         '<div class="bar-track"><div class="bar-fill" style="width:' + pct + '%"></div></div>' +
-        '<span class="bar-count">' + views + '</span>' +
-        '<span class="bar-unique">' + unique + ' IPs</span>';
-
+        '<span class="bar-count">' + (day.views || 0) + '</span>' +
+        '<span class="bar-unique">' + (day.unique_ips || 0) + ' IPs</span>';
       dailyChart.insertBefore(row, dailyEmpty);
     }
   }
 
-  // Render top pages table
   function renderPages(pages) {
     pagesBody.innerHTML = '';
     if (!pages || pages.length === 0) {
@@ -285,19 +244,17 @@
     }
     pagesEmpty.style.display = 'none';
     pagesTable.style.display = 'table';
-
     for (var i = 0; i < pages.length; i++) {
-      var p = pages[i];
+      var page = pages[i];
       var tr = document.createElement('tr');
       tr.innerHTML =
-        '<td class="mono">' + esc(p.path || p.url || '--') + '</td>' +
-        '<td class="mono">' + (p.hits || p.views || p.count || 0) + '</td>' +
-        '<td class="mono">' + (p.unique_ips || p.unique || 0) + '</td>';
+        '<td class="mono">' + esc(page.path || '--') + '</td>' +
+        '<td class="mono">' + (page.hits || 0) + '</td>' +
+        '<td class="mono">' + (page.unique_ips || 0) + '</td>';
       pagesBody.appendChild(tr);
     }
   }
 
-  // Render referrers table
   function renderReferrers(referrers) {
     referrersBody.innerHTML = '';
     if (!referrers || referrers.length === 0) {
@@ -307,20 +264,16 @@
     }
     referrersEmpty.style.display = 'none';
     referrersTable.style.display = 'table';
-
     for (var i = 0; i < referrers.length; i++) {
-      var r = referrers[i];
-      var ref = r.referrer || r.source || '';
-      var display = ref ? ref : 'Direct';
+      var ref = referrers[i];
       var tr = document.createElement('tr');
       tr.innerHTML =
-        '<td class="mono">' + esc(display) + '</td>' +
-        '<td class="mono">' + (r.hits || r.count || 0) + '</td>';
+        '<td class="mono">' + esc(ref.referrer || 'Direct') + '</td>' +
+        '<td class="mono">' + (ref.hits || 0) + '</td>';
       referrersBody.appendChild(tr);
     }
   }
 
-  // Render recent visits table
   function renderRecent(visits) {
     recentBody.innerHTML = '';
     if (!visits || visits.length === 0) {
@@ -331,77 +284,46 @@
     }
     recentEmpty.style.display = 'none';
     recentTable.style.display = 'table';
-
     for (var i = 0; i < visits.length; i++) {
-      var v = visits[i];
-      var code = v.status_code || v.status || '';
-      var ref = v.referrer || v.referer || '';
-      var display_ref = ref ? ref : '--';
+      var visit = visits[i];
+      var ref = visit.referrer || '--';
       var tr = document.createElement('tr');
       tr.innerHTML =
-        '<td title="' + esc(v.timestamp || v.time || '') + '">' + relTime(v.timestamp || v.time || v.created_at) + '</td>' +
-        '<td class="mono">' + esc(v.ip || v.ip_address || '--') + '</td>' +
-        '<td class="mono">' + esc(v.path || v.url || '--') + '</td>' +
-        '<td class="mono">' + esc(v.method || '--') + '</td>' +
-        '<td class="mono ' + statusClass(code) + '">' + esc(String(code || '--')) + '</td>' +
-        '<td class="mono" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + esc(display_ref) + '">' + esc(display_ref) + '</td>';
+        '<td title="' + esc(visit.timestamp || '') + '">' + relTime(visit.timestamp) + '</td>' +
+        '<td class="mono">' + esc(visit.ip_address || '--') + '</td>' +
+        '<td class="mono">' + esc(visit.path || '--') + '</td>' +
+        '<td class="mono" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + esc(ref) + '">' + esc(ref) + '</td>' +
+        '<td class="mono" style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + esc(visit.user_agent || '') + '">' + esc(visit.user_agent || '--') + '</td>';
       recentBody.appendChild(tr);
     }
   }
 
-  // Fetch visitor stats
   function fetchVisitorStats() {
     fetch(API_BASE + '/visitors?days=' + currentDays)
-      .then(function(r) {
-        if (!r.ok) throw new Error('API error ' + r.status);
-        return r.json();
-      })
-      .then(function(data) {
-        // Render stats summary
-        renderStats(data);
-
-        // Render daily chart
-        var days = data.days || data.daily || [];
-        renderDailyChart(days);
-
-        // Render top pages
-        var pages = data.top_pages || data.pages || [];
-        renderPages(pages);
-
-        // Render referrers
-        var referrers = data.referrers || data.sources || [];
-        renderReferrers(referrers);
+      .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function(stats) {
+        renderStats(stats);
+        renderDailyChart(stats.daily || []);
+        renderPages(stats.top_pages || []);
+        renderReferrers(stats.top_referrers || []);
       })
       .catch(function(err) {
         showToast('Failed to load visitor stats: ' + err.message);
-        renderDailyChart([]);
-        renderPages([]);
-        renderReferrers([]);
-        statUnique.textContent = '--';
-        statViews.textContent = '--';
-        statTopPage.textContent = '--';
-        statAvgDaily.textContent = '--';
+        renderDailyChart([]); renderPages([]); renderReferrers([]);
+        statUnique.textContent = statViews.textContent = statTopPage.textContent = statAvgDaily.textContent = '--';
       });
   }
 
-  // Fetch recent visits
   function fetchRecentVisits() {
     fetch(API_BASE + '/visitors/recent')
-      .then(function(r) {
-        if (!r.ok) throw new Error('API error ' + r.status);
-        return r.json();
-      })
-      .then(function(data) {
-        var visits = Array.isArray(data) ? data : (data.visits || data.recent || []);
-        renderRecent(visits.slice(0, 50));
-      })
+      .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function(visits) { renderRecent(visits.slice(0, 50)); })
       .catch(function(err) {
         showToast('Failed to load recent visits: ' + err.message);
         renderRecent([]);
       });
   }
 
-  // Period selector
   var periodBtns = document.querySelectorAll('.period-btn');
   for (var i = 0; i < periodBtns.length; i++) {
     periodBtns[i].addEventListener('click', function() {
@@ -412,11 +334,8 @@
     });
   }
 
-  // Initial load
   fetchVisitorStats();
   fetchRecentVisits();
-
-  // Auto-refresh recent visits every 15 seconds
   recentTimer = setInterval(fetchRecentVisits, 15000);
 })();
 </script>

@@ -70,7 +70,7 @@
     <div class="val mono" id="stat-failed">--</div>
   </div>
   <div class="si">
-    <label>Unique IPs (24h)</label>
+    <label>Unique IPs (in list below)</label>
     <div class="val mono" id="stat-ips">--</div>
   </div>
 </div>
@@ -91,8 +91,8 @@
       <label>Result</label>
       <select id="filter-result">
         <option value="">All</option>
-        <option value="success">Success</option>
-        <option value="failed">Failed</option>
+        <option value="true">Success</option>
+        <option value="false">Failed</option>
       </select>
     </div>
     <div class="filter-group">
@@ -102,7 +102,7 @@
     <div class="filter-group" style="justify-content:flex-end;margin-top:auto">
       <div style="display:flex;gap:6px">
         <button class="btn btn-primary" onclick="applyFilters()">Filter</button>
-        <button class="btn btn-outline" onclick="exportLogins()">Export</button>
+        <button class="btn btn-outline" onclick="exportLogins()" title="Exports every row; filters do not apply">Export all</button>
       </div>
     </div>
   </div>
@@ -144,52 +144,39 @@
 {% block scripts %}
 <script>
 (function(){
+  // Field names follow LoginAttempt.to_dict(), /stats and /security/alerts in
+  // xissite/admin_api.py. The contract test in tests/test_panel_contract.py
+  // fails if this drifts from the API.
   let refreshTimer;
-
   function relativeTime(ts){
     if(!ts) return '--';
-    const now=Date.now();
-    const d=new Date(ts);
-    const diff=Math.floor((now-d.getTime())/1000);
+    const diff=Math.floor((Date.now()-new Date(ts).getTime())/1000);
     if(diff<0) return 'just now';
     if(diff<60) return diff+'s ago';
     if(diff<3600) return Math.floor(diff/60)+'m ago';
     if(diff<86400) return Math.floor(diff/3600)+'h ago';
     return Math.floor(diff/86400)+'d ago';
   }
-
-  function fullDateTime(ts){
-    if(!ts) return '';
-    const d=new Date(ts);
-    return d.toLocaleString();
-  }
-
+  function fullDateTime(ts){ return ts ? new Date(ts).toLocaleString() : ''; }
   function truncate(str,len){
     if(!str) return '';
     return str.length>len ? str.substring(0,len)+'...' : str;
   }
-
-  // Escapes for both text and attribute contexts. User-Agent and IP strings
-  // are written verbatim from public /login POSTs, so they are attacker data.
+  // Escapes for both text and attribute contexts. User-Agent, IP and the
+  // username tried are written verbatim from public /login POSTs.
   function esc(str){
     return String(str==null?'':str)
       .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
       .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
-
-  function formatUsername(entry){
-    if(entry.username==='admin' || entry.user_type==='admin') return '[admin]';
-    if(entry.username==='investor' || entry.user_type==='investor') return '[investor]';
-    return esc(entry.username || '--');
-  }
-
   function showToast(msg,duration){
     const t=document.getElementById('toast');
     t.textContent=msg;
     t.classList.add('show');
     setTimeout(()=>t.classList.remove('show'),duration||3000);
   }
-
+  // The API reads ?success=true|false, ?ip=<substring>, ?from= and ?to=
+  // (ISO dates; a date-only value means midnight at the start of that day).
   function getFilterParams(){
     const params=new URLSearchParams();
     const from=document.getElementById('filter-from').value;
@@ -197,132 +184,102 @@
     const result=document.getElementById('filter-result').value;
     const ip=document.getElementById('filter-ip').value.trim();
     if(from) params.set('from',from);
-    if(to) params.set('to',to);
-    if(result) params.set('result',result);
+    if(to) params.set('to',to+'T23:59:59');
+    if(result) params.set('success',result);
     if(ip) params.set('ip',ip);
     return params.toString();
   }
-
   async function fetchStats(){
     try{
       const resp=await fetch('/api/site-admin/stats');
-      if(!resp.ok) throw new Error('Stats fetch failed');
-      const data=await resp.json();
-      const s=data.login_24h||{};
-      document.getElementById('stat-total').textContent=s.total!=null?s.total:'--';
-      document.getElementById('stat-success').textContent=s.success!=null?s.success:'--';
+      if(!resp.ok) throw new Error('HTTP '+resp.status);
+      const l24=(await resp.json()).login_24h||{};
+      document.getElementById('stat-total').textContent=l24.total!=null?l24.total:'--';
+      document.getElementById('stat-success').textContent=l24.successful!=null?l24.successful:'--';
       const failEl=document.getElementById('stat-failed');
-      failEl.textContent=s.failed!=null?s.failed:'--';
-      failEl.className='val mono'+(s.failed>0?' crit':'');
-      document.getElementById('stat-ips').textContent=s.unique_ips!=null?s.unique_ips:'--';
+      failEl.textContent=l24.failed!=null?l24.failed:'--';
+      failEl.className='val mono'+(l24.failed>0?' crit':'');
     }catch(e){
-      console.error('Stats error:',e);
+      showToast('Stats failed: '+e.message);
     }
   }
-
   async function fetchLogins(){
     try{
       const qs=getFilterParams();
-      const url='/api/site-admin/login-attempts'+(qs?'?'+qs:'');
-      const resp=await fetch(url);
-      if(!resp.ok) throw new Error('Login fetch failed');
-      const data=await resp.json();
-      renderLogins(data.attempts||data||[]);
+      const resp=await fetch('/api/site-admin/login-attempts'+(qs?'?'+qs:''));
+      if(!resp.ok) throw new Error('HTTP '+resp.status);
+      renderLogins(await resp.json());
     }catch(e){
-      console.error('Logins error:',e);
-      showToast('Failed to load login attempts');
+      showToast('Failed to load login attempts: '+e.message);
     }
   }
-
   function renderLogins(attempts){
     const tbody=document.getElementById('logins-body');
+    // Distinct IPs among the loaded rows; the API has no separate count.
+    const ips=new Set(attempts.map(att=>att.ip_address).filter(Boolean));
+    document.getElementById('stat-ips').textContent=attempts.length?ips.size:'--';
     if(!attempts.length){
       tbody.innerHTML='<tr><td colspan="6" class="empty-state">No login attempts found</td></tr>';
       return;
     }
     let html='';
-    for(const a of attempts){
-      const isFail=a.result==='failed'||a.result==='fail'||!a.success;
-      const rowClass=isFail?'row-fail':'';
-      html+='<tr class="'+rowClass+'">';
-      html+='<td title="'+fullDateTime(a.timestamp)+'">'+relativeTime(a.timestamp)+'</td>';
-      html+='<td class="mono">'+esc(a.ip_address||a.ip||'--')+'</td>';
-      html+='<td class="ua-cell" title="'+esc(a.user_agent||'')+'">'
-        +esc(truncate(a.user_agent,40))+'</td>';
-      html+='<td>'+formatUsername(a)+'</td>';
-      if(isFail){
-        html+='<td><span class="dot dot-r"></span> FAIL</td>';
-        html+='<td style="font-size:.8em;color:var(--crit)">'+(a.failure_reason||a.reason||'')+'</td>';
+    for(const att of attempts){
+      const ok=att.success===true;
+      html+='<tr class="'+(ok?'':'row-fail')+'">';
+      html+='<td title="'+esc(fullDateTime(att.timestamp))+'">'+relativeTime(att.timestamp)+'</td>';
+      html+='<td class="mono">'+esc(att.ip_address||'--')+'</td>';
+      html+='<td class="ua-cell" title="'+esc(att.user_agent||'')+'">'+esc(truncate(att.user_agent,40))+'</td>';
+      html+='<td>'+esc(att.username_attempted||'--')+(att.user_type_matched?' <span class="badge badge-ok">'+esc(att.user_type_matched)+'</span>':'')+'</td>';
+      if(ok){
+        html+='<td><span class="dot dot-g"></span> OK</td><td></td>';
       }else{
-        html+='<td><span class="dot dot-g"></span> OK</td>';
-        html+='<td></td>';
+        html+='<td><span class="dot dot-r"></span> FAIL</td>';
+        html+='<td style="font-size:.8em;color:var(--crit)">'+esc(att.failure_reason||'')+'</td>';
       }
       html+='</tr>';
     }
     tbody.innerHTML=html;
   }
-
   async function fetchAlerts(){
     try{
       const resp=await fetch('/api/site-admin/security/alerts');
-      if(!resp.ok) throw new Error('Alerts fetch failed');
+      if(!resp.ok) throw new Error('HTTP '+resp.status);
       const data=await resp.json();
-      renderAlerts(data.alerts||data||[]);
+      // brute_force (5+ failures in an hour) and suspicious_ips (3+ in a day)
+      // share the same shape: ip, attempts, latest, severity, user_agent.
+      renderAlerts([].concat(data.brute_force||[],data.suspicious_ips||[]));
     }catch(e){
-      console.error('Alerts error:',e);
+      showToast('Alerts failed: '+e.message);
     }
   }
-
   function renderAlerts(alerts){
     const container=document.getElementById('suspicious-list');
     if(!alerts.length){
       container.innerHTML='<div class="empty-state">No suspicious activity detected</div>';
       return;
     }
+    const seen=new Set();
     let html='';
-    for(const a of alerts){
-      const count=a.attempt_count||a.count||0;
-      const badgeClass=count>=5?'badge-crit':'badge-warn';
-      const badgeLabel=count>=5?'Critical':'Warning';
-      html+='<div class="suspicious-entry">';
-      html+='<div class="details">';
-      html+='<span class="ip">'+esc(a.ip_address||a.ip||'--')+'</span>';
-      html+='<span class="badge '+badgeClass+'">'+badgeLabel+' - '+count+' attempts</span>';
-      html+='</div>';
-      html+='<div class="meta">';
-      html+='Last: '+relativeTime(a.last_attempt||a.last_seen);
-      if(a.user_agent) html+=' - '+esc(truncate(a.user_agent,50));
-      html+='</div>';
-      html+='</div>';
+    for(const susp of alerts){
+      if(seen.has(susp.ip)) continue;
+      seen.add(susp.ip);
+      const critical=susp.severity==='critical';
+      html+='<div class="suspicious-entry"><div class="details">';
+      html+='<span class="ip">'+esc(susp.ip||'--')+'</span>';
+      html+='<span class="badge '+(critical?'badge-crit':'badge-warn')+'">'+(critical?'Critical':'Warning')+' - '+(susp.attempts||0)+' attempts</span>';
+      html+='</div><div class="meta">Last: '+relativeTime(susp.latest);
+      if(susp.user_agent) html+=' - '+esc(truncate(susp.user_agent,50));
+      html+='</div></div>';
     }
     container.innerHTML=html;
   }
-
-  function applyFilters(){
-    fetchLogins();
-    showToast('Filters applied');
-  }
-
-  function exportLogins(){
-    const qs=getFilterParams();
-    const url='/api/site-admin/export/logins'+(qs?'?'+qs:'');
-    window.location.href=url;
-  }
-
-  function refreshAll(){
-    fetchStats();
-    fetchLogins();
-    fetchAlerts();
-  }
-
-  // Expose to onclick handlers
+  function applyFilters(){ fetchLogins(); }
+  // The export endpoint takes no filters; it always returns every row.
+  function exportLogins(){ window.location.href='/api/site-admin/export/logins'; }
+  function refreshAll(){ fetchStats(); fetchLogins(); fetchAlerts(); }
   window.applyFilters=applyFilters;
   window.exportLogins=exportLogins;
-
-  // Initial load
   refreshAll();
-
-  // Auto-refresh every 10 seconds
   refreshTimer=setInterval(refreshAll,10000);
 })();
 </script>

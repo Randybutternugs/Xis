@@ -63,14 +63,13 @@
       <select id="filter-status">
         <option value="">All</option>
         <option value="paid">Paid</option>
-        <option value="pending">Pending</option>
-        <option value="failed">Failed</option>
+        <option value="unpaid">Unpaid</option>
       </select>
     </div>
     <div class="filter-group" style="justify-content:flex-end;margin-top:auto">
       <div style="display:flex;gap:6px">
         <button class="btn btn-primary" onclick="applyFilters()">Filter</button>
-        <button class="btn btn-outline" onclick="exportPurchases()">Export CSV</button>
+        <button class="btn btn-outline" onclick="exportPurchases()" title="Exports every row; filters do not apply">Export all CSV</button>
       </div>
     </div>
   </div>
@@ -104,6 +103,9 @@
 {% block scripts %}
 <script>
 (function(){
+  // Field names follow list_purchases in xissite/admin_api.py (Purchase_info
+  // .to_dict() plus customer_email / customer_name). The contract test in
+  // tests/test_panel_contract.py fails if this drifts from the API.
   function showToast(msg){
     var t=document.getElementById('toast');
     t.textContent=msg;
@@ -111,117 +113,83 @@
     t.classList.add('show');
     setTimeout(function(){ t.classList.remove('show'); },3000);
   }
-
   function relativeTime(ts){
     if(!ts) return '--';
-    var now=Date.now();
-    var d=new Date(ts);
-    var diff=Math.floor((now-d.getTime())/1000);
+    var diff=Math.floor((Date.now()-new Date(ts).getTime())/1000);
     if(diff<0) return 'just now';
     if(diff<60) return diff+'s ago';
     if(diff<3600) return Math.floor(diff/60)+'m ago';
     if(diff<86400) return Math.floor(diff/3600)+'h ago';
     return Math.floor(diff/86400)+'d ago';
   }
-
-  function fullDateTime(ts){
-    if(!ts) return '';
-    return new Date(ts).toLocaleString();
-  }
-
+  function fullDateTime(ts){ return ts ? new Date(ts).toLocaleString() : ''; }
   function esc(str){
-    var d=document.createElement('div');
-    d.textContent=str||'';
-    return d.innerHTML;
+    return String(str==null?'':str)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
-
   function statusBadge(status){
     if(!status) return '<span class="badge badge-off">unknown</span>';
     var s=status.toLowerCase();
     if(s==='paid') return '<span class="badge badge-ok">paid</span>';
-    if(s==='pending') return '<span class="badge badge-warn">pending</span>';
+    if(s==='unpaid'||s==='pending') return '<span class="badge badge-warn">'+esc(s)+'</span>';
     return '<span class="badge badge-crit">'+esc(s)+'</span>';
   }
-
-  function formatLocation(purchase){
-    var city=purchase.city||'';
-    var state=purchase.state||'';
-    if(city&&state) return esc(city+', '+state);
-    if(city) return esc(city);
-    if(state) return esc(state);
-    return '<span style="color:var(--mut)">--</span>';
+  function formatLocation(pur){
+    var parts=[pur.city,pur.state,pur.country].filter(Boolean);
+    return parts.length ? esc(parts.join(', ')) : '<span style="color:var(--mut)">--</span>';
   }
-
+  // The API reads ?status=paid|unpaid, ?from= and ?to= (ISO dates).
   function getFilterParams(){
     var params=new URLSearchParams();
     var from=document.getElementById('filter-from').value;
     var to=document.getElementById('filter-to').value;
     var status=document.getElementById('filter-status').value;
     if(from) params.set('from',from);
-    if(to) params.set('to',to);
+    if(to) params.set('to',to+'T23:59:59');
     if(status) params.set('status',status);
     return params.toString();
   }
-
   function renderPurchases(purchases){
     var tbody=document.getElementById('purchases-body');
     var countEl=document.getElementById('total-count');
-
-    if(!purchases||!purchases.length){
+    if(!purchases.length){
       tbody.innerHTML='<tr><td colspan="6" class="empty-state">No purchases found</td></tr>';
       countEl.textContent='(0 orders)';
       return;
     }
-
     countEl.textContent='('+purchases.length+' order'+(purchases.length!==1?'s':'')+')';
-
     var html='';
     for(var i=0;i<purchases.length;i++){
-      var p=purchases[i];
-      var customer=p.email||p.customer_email||'Unknown';
+      var pur=purchases[i];
       html+='<tr>';
-      html+='<td style="font-family:monospace">'+esc(String(p.id))+'</td>';
-      html+='<td>'+esc(p.product||p.product_name||'--')+'</td>';
-      html+='<td>'+esc(customer)+'</td>';
-      html+='<td>'+formatLocation(p)+'</td>';
-      html+='<td>'+statusBadge(p.pay_status||p.status)+'</td>';
-      html+='<td title="'+fullDateTime(p.created_at||p.date)+'">'+relativeTime(p.created_at||p.date)+'</td>';
+      html+='<td style="font-family:monospace">'+esc(String(pur.id))+'</td>';
+      html+='<td>'+esc(pur.product_name||'--')+'</td>';
+      html+='<td title="'+esc(pur.customer_name||'')+'">'+esc(pur.customer_email||'Unknown')+'</td>';
+      html+='<td>'+formatLocation(pur)+'</td>';
+      html+='<td>'+statusBadge(pur.pay_status)+'</td>';
+      html+='<td title="'+esc(fullDateTime(pur.purchase_date))+'">'+relativeTime(pur.purchase_date)+'</td>';
       html+='</tr>';
     }
     tbody.innerHTML=html;
   }
-
   async function fetchPurchases(){
     try{
       var qs=getFilterParams();
-      var url='/api/site-admin/purchases'+(qs?'?'+qs:'');
-      var resp=await fetch(url);
-      if(!resp.ok) throw new Error('Failed to fetch purchases');
-      var data=await resp.json();
-      var purchases=Array.isArray(data)?data:(data.purchases||data.orders||[]);
-      renderPurchases(purchases);
+      var resp=await fetch('/api/site-admin/purchases'+(qs?'?'+qs:''));
+      if(!resp.ok) throw new Error('HTTP '+resp.status);
+      renderPurchases(await resp.json());
     }catch(e){
       showToast('Error loading purchases: '+e.message);
       document.getElementById('purchases-body').innerHTML='<tr><td colspan="6" class="empty-state">Failed to load purchases</td></tr>';
       document.getElementById('total-count').textContent='';
     }
   }
-
-  function applyFilters(){
-    fetchPurchases();
-  }
-
-  function exportPurchases(){
-    var qs=getFilterParams();
-    var url='/api/site-admin/export/purchases'+(qs?'?'+qs:'');
-    window.location.href=url;
-  }
-
-  // Expose to onclick handlers
+  function applyFilters(){ fetchPurchases(); }
+  // The export endpoint takes no filters; it always returns every row.
+  function exportPurchases(){ window.location.href='/api/site-admin/export/purchases'; }
   window.applyFilters=applyFilters;
   window.exportPurchases=exportPurchases;
-
-  // Initial load
   fetchPurchases();
 })();
 </script>

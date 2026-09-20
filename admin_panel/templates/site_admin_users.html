@@ -71,7 +71,7 @@
     <select id="filter-type">
       <option value="">All Types</option>
       <option value="admin">Admin</option>
-      <option value="investor">Investor</option>
+      <option value="employee">Employee</option>
     </select>
     <button class="btn btn-primary btn-sm" onclick="loadUsers()">Apply</button>
   </div>
@@ -85,11 +85,11 @@
       <thead>
         <tr>
           <th>ID</th>
-          <th>Email</th>
+          <th>Username</th>
+          <th>Display Name</th>
           <th>Type</th>
           <th>Status</th>
           <th>Last Login</th>
-          <th>Login Count</th>
           <th>Notes</th>
           <th>Actions</th>
         </tr>
@@ -111,13 +111,17 @@
     </div>
     <div class="modal-field">
       <label>Password</label>
-      <input type="password" id="create-password">
+      <input type="password" id="create-password" placeholder="At least 10 characters">
+    </div>
+    <div class="modal-field">
+      <label>Display Name</label>
+      <input type="text" id="create-display-name" placeholder="Optional">
     </div>
     <div class="modal-field">
       <label>User Type</label>
       <select id="create-type">
+        <option value="employee">Employee</option>
         <option value="admin">Admin</option>
-        <option value="investor">Investor</option>
       </select>
     </div>
     <div class="modal-field">
@@ -137,10 +141,14 @@
     <h3>Edit User</h3>
     <input type="hidden" id="edit-uid">
     <div class="modal-field">
+      <label>Display Name</label>
+      <input type="text" id="edit-display-name" placeholder="Optional">
+    </div>
+    <div class="modal-field">
       <label>User Type</label>
       <select id="edit-type">
+        <option value="employee">Employee</option>
         <option value="admin">Admin</option>
-        <option value="investor">Investor</option>
       </select>
     </div>
     <div class="modal-field">
@@ -171,6 +179,9 @@
 
 {% block scripts %}
 <script>
+// Field names follow User.to_dict() in xissite/models.py; roles are admin and
+// employee only (create_user rejects anything else). The contract test in
+// tests/test_panel_contract.py fails if this drifts from the API.
 function showToast(msg, isError){
   const t=document.getElementById('toast');
   t.textContent=msg;
@@ -180,180 +191,155 @@ function showToast(msg, isError){
   t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),3000);
 }
-
-function openModal(id){
-  document.getElementById(id).classList.add('show');
+function esc(str){
+  return String(str==null?'':str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
-
-function closeModal(id){
-  document.getElementById(id).classList.remove('show');
-}
-
-// Close modals on overlay click
+function openModal(id){ document.getElementById(id).classList.add('show'); }
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
 document.querySelectorAll('.modal-overlay').forEach(m=>{
-  m.addEventListener('click',e=>{
-    if(e.target===m) closeModal(m.id);
-  });
+  m.addEventListener('click',e=>{ if(e.target===m) closeModal(m.id); });
 });
-
 function relativeTime(dateStr){
   if(!dateStr) return '<span style="color:var(--mut)">Never</span>';
-  const now=Date.now(), then=new Date(dateStr).getTime();
-  const diff=Math.floor((now-then)/1000);
+  const diff=Math.floor((Date.now()-new Date(dateStr).getTime())/1000);
   if(diff<60) return diff+'s ago';
   if(diff<3600) return Math.floor(diff/60)+'m ago';
   if(diff<86400) return Math.floor(diff/3600)+'h ago';
   if(diff<2592000) return Math.floor(diff/86400)+'d ago';
   return new Date(dateStr).toLocaleDateString();
 }
-
 function typeBadge(t){
   if(t==='admin') return '<span class="badge badge-ok">admin</span>';
-  return '<span class="badge badge-off">investor</span>';
+  return '<span class="badge badge-off">'+esc(t||'employee')+'</span>';
 }
-
 function statusBadge(s){
   if(s==='active') return '<span class="badge badge-ok">active</span>';
   if(s==='suspended') return '<span class="badge badge-warn">suspended</span>';
   if(s==='deleted') return '<span class="badge badge-crit">deleted</span>';
-  return '<span class="badge badge-off">'+s+'</span>';
+  return '<span class="badge badge-off">'+esc(s)+'</span>';
 }
-
-function renderActions(u){
-  const isPrimary=u.id===1;
+function lockNote(usr){
+  if(!usr.locked_until) return '';
+  return ' <span class="badge badge-warn" title="locked until '+esc(usr.locked_until)+'">locked</span>';
+}
+function renderActions(usr){
+  // The server refuses to delete the bootstrap admin (403) regardless of
+  // what the UI shows; this only hides the button for the obvious case.
+  const isPrimary=usr.user_type==='admin'&&usr.id===1;
   let html='<div class="actions-cell">';
-
-  if(u.status==='active'){
-    html+='<button class="btn btn-sm btn-warn" onclick="suspendUser('+u.id+')">Suspend</button>';
-  } else if(u.status==='suspended'){
-    html+='<button class="btn btn-sm btn-primary" onclick="activateUser('+u.id+')">Activate</button>';
+  if(usr.status==='active'){
+    html+='<button class="btn btn-sm btn-warn" onclick="suspendUser('+usr.id+')">Suspend</button>';
+  } else if(usr.status==='suspended'){
+    html+='<button class="btn btn-sm btn-primary" onclick="activateUser('+usr.id+')">Activate</button>';
   }
-
-  html+='<button class="btn btn-sm btn-outline" onclick="editUser('+u.id+')">Edit</button>';
-
+  html+='<button class="btn btn-sm btn-outline" onclick="editUser('+usr.id+')">Edit</button>';
   if(isPrimary){
     html+='<button class="btn btn-sm btn-danger" disabled title="Primary admin cannot be deleted">Del <span class="lock-icon">&#128274;</span></button>';
-  } else {
-    html+='<button class="btn btn-sm btn-danger" onclick="deleteUser('+u.id+')">Del</button>';
+  } else if(usr.status!=='deleted'){
+    html+='<button class="btn btn-sm btn-danger" onclick="deleteUser('+usr.id+')">Del</button>';
   }
-
   html+='</div>';
   return html;
 }
-
 function renderTable(users){
   const tbody=document.getElementById('users-tbody');
   if(!users||!users.length){
     tbody.innerHTML='<tr><td colspan="8" class="empty-state">No users found</td></tr>';
     return;
   }
-
   const search=(document.getElementById('filter-search').value||'').toLowerCase();
   let filtered=users;
   if(search){
-    filtered=users.filter(u=>{
-      const email=(u.email||u.username||'').toLowerCase();
-      const notes=(u.notes||'').toLowerCase();
-      return email.includes(search)||notes.includes(search)||String(u.id).includes(search);
+    filtered=users.filter(usr=>{
+      const hay=[usr.email,usr.display_name,usr.notes,String(usr.id)].join(' ').toLowerCase();
+      return hay.includes(search);
     });
   }
-
   if(!filtered.length){
     tbody.innerHTML='<tr><td colspan="8" class="empty-state">No matching users</td></tr>';
     return;
   }
-
-  tbody.innerHTML=filtered.map(u=>`<tr>
-    <td style="font-family:monospace">${u.id}</td>
-    <td>${u.email||u.username||'-'}</td>
-    <td>${typeBadge(u.user_type||u.type||'')}</td>
-    <td>${statusBadge(u.status||'active')}</td>
-    <td style="font-family:monospace;font-size:.85em">${relativeTime(u.last_login)}</td>
-    <td style="font-family:monospace">${u.login_count!=null?u.login_count:'-'}</td>
-    <td style="color:var(--mut);font-size:.85em;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${u.notes||'-'}</td>
-    <td>${renderActions(u)}</td>
+  tbody.innerHTML=filtered.map(usr=>`<tr>
+    <td style="font-family:monospace">${usr.id}</td>
+    <td>${esc(usr.email||'-')}</td>
+    <td>${esc(usr.display_name||'-')}</td>
+    <td>${typeBadge(usr.user_type)}</td>
+    <td>${statusBadge(usr.status||'active')}${lockNote(usr)}</td>
+    <td style="font-family:monospace;font-size:.85em">${relativeTime(usr.last_login)}</td>
+    <td style="color:var(--mut);font-size:.85em;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(usr.notes||'')}">${esc(usr.notes||'-')}</td>
+    <td>${renderActions(usr)}</td>
   </tr>`).join('');
 }
-
 let _users=[];
-
+async function readJson(res){
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok) throw new Error(data.error||('HTTP '+res.status));
+  return data;
+}
 async function loadUsers(){
+  const params=new URLSearchParams();
   const status=document.getElementById('filter-status').value;
   const userType=document.getElementById('filter-type').value;
-  const params=new URLSearchParams();
   if(status) params.set('status',status);
   if(userType) params.set('user_type',userType);
-
   try{
-    const res=await fetch('/api/site-admin/users?'+params.toString());
-    if(!res.ok) throw new Error('Failed to fetch users');
-    _users=await res.json();
+    _users=await readJson(await fetch('/api/site-admin/users?'+params.toString()));
     renderTable(_users);
   }catch(e){
     showToast('Error loading users: '+e.message,true);
     document.getElementById('users-tbody').innerHTML='<tr><td colspan="8" class="empty-state">Failed to load users</td></tr>';
   }
 }
-
 async function createUser(){
   const email=document.getElementById('create-email').value.trim();
   const password=document.getElementById('create-password').value;
   const userType=document.getElementById('create-type').value;
+  const displayName=document.getElementById('create-display-name').value.trim();
   const notes=document.getElementById('create-notes').value.trim();
-
-  if(!email||!password){
-    showToast('Email and password are required',true);
-    return;
-  }
-
+  if(!email||!password){ showToast('Username and password are required',true); return; }
   try{
-    const res=await fetch('/api/site-admin/users',{
+    await readJson(await fetch('/api/site-admin/users',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({email,password,user_type:userType,notes:notes||null})
-    });
-    const data=await res.json();
-    if(!res.ok) throw new Error(data.error||'Create failed');
+      body:JSON.stringify({email,password,user_type:userType,display_name:displayName||null,notes:notes||null})
+    }));
     showToast('User created');
     closeModal('create-modal');
-    document.getElementById('create-email').value='';
-    document.getElementById('create-password').value='';
-    document.getElementById('create-notes').value='';
+    ['create-email','create-password','create-display-name','create-notes'].forEach(id=>{document.getElementById(id).value='';});
     loadUsers();
   }catch(e){
     showToast('Error: '+e.message,true);
   }
 }
-
 function editUser(id){
-  const u=_users.find(x=>x.id===id);
-  if(!u) return;
-  document.getElementById('edit-uid').value=u.id;
-  document.getElementById('edit-type').value=u.user_type||u.type||'admin';
-  document.getElementById('edit-status').value=u.status||'active';
-  document.getElementById('edit-notes').value=u.notes||'';
+  const usr=_users.find(x=>x.id===id);
+  if(!usr) return;
+  document.getElementById('edit-uid').value=usr.id;
+  document.getElementById('edit-type').value=usr.user_type||'employee';
+  document.getElementById('edit-status').value=usr.status||'active';
+  document.getElementById('edit-display-name').value=usr.display_name||'';
+  document.getElementById('edit-notes').value=usr.notes||'';
   document.getElementById('edit-password').value='';
   openModal('edit-modal');
 }
-
 async function saveUser(){
   const uid=document.getElementById('edit-uid').value;
   const body={
     user_type:document.getElementById('edit-type').value,
     status:document.getElementById('edit-status').value,
+    display_name:document.getElementById('edit-display-name').value.trim()||null,
     notes:document.getElementById('edit-notes').value.trim()||null
   };
   const pw=document.getElementById('edit-password').value;
   if(pw) body.password=pw;
-
   try{
-    const res=await fetch('/api/site-admin/users/'+uid,{
+    await readJson(await fetch('/api/site-admin/users/'+uid,{
       method:'PUT',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify(body)
-    });
-    const data=await res.json();
-    if(!res.ok) throw new Error(data.error||'Update failed');
+    }));
     showToast('User updated');
     closeModal('edit-modal');
     loadUsers();
@@ -361,48 +347,30 @@ async function saveUser(){
     showToast('Error: '+e.message,true);
   }
 }
-
 async function suspendUser(id){
+  if(!confirm('Suspend this user? They will not be able to log in until reactivated.')) return;
   try{
-    const res=await fetch('/api/site-admin/users/'+id+'/suspend',{method:'POST'});
-    const data=await res.json();
-    if(!res.ok) throw new Error(data.error||'Suspend failed');
+    await readJson(await fetch('/api/site-admin/users/'+id+'/suspend',{method:'POST'}));
     showToast('User suspended');
     loadUsers();
-  }catch(e){
-    showToast('Error: '+e.message,true);
-  }
+  }catch(e){ showToast('Error: '+e.message,true); }
 }
-
 async function activateUser(id){
   try{
-    const res=await fetch('/api/site-admin/users/'+id+'/activate',{method:'POST'});
-    const data=await res.json();
-    if(!res.ok) throw new Error(data.error||'Activate failed');
+    await readJson(await fetch('/api/site-admin/users/'+id+'/activate',{method:'POST'}));
     showToast('User activated');
     loadUsers();
-  }catch(e){
-    showToast('Error: '+e.message,true);
-  }
+  }catch(e){ showToast('Error: '+e.message,true); }
 }
-
 async function deleteUser(id){
-  if(!confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
+  if(!confirm('Delete this user? The account is marked deleted and can no longer log in.')) return;
   try{
-    const res=await fetch('/api/site-admin/users/'+id,{method:'DELETE'});
-    const data=await res.json();
-    if(!res.ok) throw new Error(data.error||'Delete failed');
+    await readJson(await fetch('/api/site-admin/users/'+id,{method:'DELETE'}));
     showToast('User deleted');
     loadUsers();
-  }catch(e){
-    showToast('Error: '+e.message,true);
-  }
+  }catch(e){ showToast('Error: '+e.message,true); }
 }
-
-// Client-side search filtering without re-fetching
 document.getElementById('filter-search').addEventListener('input',()=>renderTable(_users));
-
-// Load on page ready
 loadUsers();
 </script>
 {% endblock %}
