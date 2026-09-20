@@ -35,6 +35,10 @@ ticks for keys that still exist.
 Errors: 400 with `{"error": "..."}` for bad input; 404 if the assignee
 does not exist or is not active.
 
+Broadcast (`assignee: null`) suits notices; for tasks and checklists a
+single employee's complete finishes the item for everyone, so assign
+those to a person.
+
 ## List and archive
 
 - `GET /api/admin/ops/items?assignee=&kind=&status=` (status defaults to
@@ -70,6 +74,10 @@ starts from the beginning. Do this:
 
 Also re-push all open items on a schedule (hourly is fine). It is a no-op
 when nothing changed, and it means a wipe costs at most an hour of content.
+
+Event ids restart from 1 after a reset and are not stable across one, so
+apply events idempotently (an id you have already applied may appear again
+with different content).
 
 ## Employee side, for reference
 

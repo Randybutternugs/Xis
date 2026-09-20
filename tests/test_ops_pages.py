@@ -27,13 +27,18 @@ def test_ops_page_is_driven_by_the_api(client, db):
 
 def test_ops_js_never_inlines_api_strings_into_event_handlers():
     """HTML-entity escaping is undone before an inline handler's JS is parsed, so
-    API strings must reach handlers via data-* attributes, never on*= text."""
+    only a numeric id may be interpolated into an on*="..." attribute; any other
+    interpolated expression (e.g. a string field) must reach handlers via data-*
+    attributes instead."""
     import re
     from pathlib import Path
     for rel in ('xissite/static/js/ops.js', 'xissite/static/js/admin_dashboard.js'):
         src = Path(rel).read_text(encoding='utf-8')
-        for m in re.finditer(r'on(click|change)="[^"]*"', src):
-            assert 'esc(' not in m.group(0), rel + ': ' + m.group(0)
+        for m in re.finditer(r'on(?:click|change)="([^"]*)"', src):
+            attr = m.group(1)
+            for expr in re.findall(r"'\+(.+?)\+'", attr):
+                assert re.fullmatch(r'[A-Za-z_]\w*\.id', expr.strip()), \
+                    rel + ': ' + expr + ' in ' + m.group(0)
 
 
 def test_admin_dashboard_has_ops_section(client, db):

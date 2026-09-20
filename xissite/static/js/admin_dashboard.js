@@ -367,7 +367,7 @@ function renderFeedback(items){
         '<label style="display:block;font-size:.7em;color:var(--mut);text-transform:uppercase;letter-spacing:1px;margin:8px 0 4px">Admin Notes</label>'+
         '<textarea id="fb-notes-'+f.id+'" style="width:100%;min-height:50px;background:#0a0a0a;border:1px solid var(--brd);color:var(--txt);padding:6px 8px;font-size:.85em;font-family:inherit;resize:vertical">'+esc(f.admin_notes||'')+'</textarea>'+
         '<div style="display:flex;gap:8px;margin-top:8px">'+
-          '<button class="btn btn-sm '+(f.resolved?'btn-outline':'btn-primary')+'" onclick="resolveFeedback('+f.id+','+(!f.resolved)+')">'+(f.resolved?'Mark Open':'Mark Resolved')+'</button>'+
+          '<button class="btn btn-sm '+(f.resolved?'btn-outline':'btn-primary')+'" onclick="resolveFeedback('+f.id+')">'+(f.resolved?'Mark Open':'Mark Resolved')+'</button>'+
           '<button class="btn btn-sm btn-outline" onclick="updateFeedbackNotes('+f.id+')">Save Notes</button>'+
           '<button class="btn btn-sm btn-danger" onclick="deleteFb('+f.id+')">Delete</button>'+
         '</div>'+
@@ -377,7 +377,9 @@ function renderFeedback(items){
   list.innerHTML=html;
 }
 window.toggleFb=function(id){var el=document.getElementById('fb-'+id);if(el)el.classList.toggle('show')};
-window.resolveFeedback=function(id,val){
+window.resolveFeedback=function(id){
+  var rec=(cache.feedback||[]).find(function(x){return x.id===id});
+  var val=!(rec&&rec.resolved);
   apiPut('/feedback/'+id,{resolved:val})
     .then(function(r){return r.json()}).then(function(){showToast(val?'Marked resolved':'Marked open');fetchFeedback()}).catch(function(){showToast('Failed')});
 };
@@ -566,7 +568,7 @@ function fetchOps(){
 }
 function opsProgress(item){
   var st=item.state||{};
-  if(item.kind==='checklist'){var n=item.steps.filter(function(s){return st.steps&&st.steps[s.key]}).length;return n+' / '+item.steps.length+' steps'}
+  if(item.kind==='checklist'){var steps=item.steps||[];var n=steps.filter(function(s){return st.steps&&st.steps[s.key]}).length;return n+' / '+steps.length+' steps'}
   if(item.kind==='notice'){return Object.keys(st.acks||{}).length+' acknowledged'}
   return item.status==='done'?'done by '+esc(st.done_by||''):'open';
 }
@@ -589,7 +591,7 @@ function renderOps(items){
   });
   tb.innerHTML=html;
 }
-document.getElementById('ops-body').addEventListener('click',function(e){
+document.getElementById('ops-body')?.addEventListener('click',function(e){
   var btn=e.target.closest('button[data-archive-ref]');
   if(!btn)return;
   var ref=btn.getAttribute('data-archive-ref');

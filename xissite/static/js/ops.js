@@ -41,11 +41,12 @@
     if(!items.length){els.checklists.innerHTML='<div class="ops-empty">No checklists assigned.</div>';return}
     var html='';
     items.forEach(function(item){
-      var ticked=item.state.steps||{},total=item.steps.length,doneN=item.steps.filter(function(s){return ticked[s.key]}).length;
+      var steps=item.steps||[];
+      var ticked=item.state.steps||{},total=steps.length,doneN=steps.filter(function(s){return ticked[s.key]}).length;
       var allDone=total>0&&doneN===total,done=item.status==='done';
       html+='<div class="ops-checklist"><div class="ops-checklist-title">'+esc(item.title)+(done?' <span class="badge-ok">Done</span>':'')+'</div>'+
         (item.body?'<div class="ops-task-desc">'+esc(item.body)+'</div>':'');
-      item.steps.forEach(function(step){
+      steps.forEach(function(step){
         var on=!!ticked[step.key],by=on?' title="'+esc(ticked[step.key].by)+' '+esc(when(ticked[step.key].at))+'"':'';
         html+='<label class="ops-checklist-item'+(on?' checked':'')+'"'+by+'><input type="checkbox"'+(on?' checked':'')+(done?' disabled':'')+
           ' data-item-id="'+item.id+'" data-step-key="'+esc(step.key)+'">'+esc(step.label)+'</label>';

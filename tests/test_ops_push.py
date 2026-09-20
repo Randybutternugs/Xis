@@ -82,8 +82,19 @@ def test_repush_keeps_state_unless_reset(client, db):
     d = _push(client, 'cl:1', steps=[{'key': 'a', 'label': 'A'}]).get_json()
     assert list(d['state']['steps']) == ['a'] and d['status'] == 'done'
 
+    # A truthy-looking string is not the boolean True: state must survive.
+    d = _push(client, 'cl:1', reset_state='false').get_json()
+    assert list(d['state']['steps']) == ['a'] and d['status'] == 'done'
+
     d = _push(client, 'cl:1', reset_state=True).get_json()
     assert d['state']['steps'] == {} and d['status'] == 'open'
+
+
+def test_upsert_rejects_non_object_body(client, db):
+    r = client.put('/api/admin/ops/items/x:9', headers=API, json=[1, 2, 3])
+    assert r.status_code == 400 and 'error' in r.get_json()
+    r = client.put('/api/admin/ops/items/x:9', headers=API, json='hello')
+    assert r.status_code == 400 and 'error' in r.get_json()
 
 
 def test_list_filters_and_hides_archived_by_default(client, db):

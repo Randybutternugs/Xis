@@ -87,6 +87,8 @@ def _resolve_assignee(username):
 @require_api_key
 def upsert_item(ref):
     data = request.get_json(silent=True) or {}
+    if not isinstance(data, dict):
+        raise BadRequest('body must be a JSON object')
     item = OpsItem.query.filter_by(ref=ref).first()
     created = item is None
 
@@ -133,7 +135,7 @@ def upsert_item(ref):
         if data['status'] not in ('open', 'done'):
             raise BadRequest('status must be open or done; archive with DELETE')
         item.status = data['status']
-    if data.get('reset_state'):
+    if data.get('reset_state') is True:
         item.set_state(None)
         item.status = 'open'
 

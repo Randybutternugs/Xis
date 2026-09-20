@@ -19,7 +19,6 @@ import hmac
 
 from flask import Blueprint, request, jsonify, Response, g
 from flask_login import current_user
-from werkzeug.exceptions import BadRequest
 from flask_wtf.csrf import validate_csrf
 from sqlalchemy.sql import func
 from sqlalchemy import desc
