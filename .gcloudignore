@@ -28,3 +28,7 @@ __pycache__/
 admin_panel/
 admin_panel.env
 admin_panel.env.example
+
+# Local development secrets and database. Never deploy.
+vars.env
+*.db

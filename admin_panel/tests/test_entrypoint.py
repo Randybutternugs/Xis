@@ -35,6 +35,15 @@ def test_dev_artifacts_excluded_from_gae_deploy():
     assert ".remember/" in lines
 
 
+def test_local_secrets_excluded_from_gae_deploy():
+    """vars.env holds the local secret key and API key; *.db is the local
+    SQLite file with the local admin's password hash. Neither may ship."""
+    text = (REPO / ".gcloudignore").read_text()
+    lines = [line.strip() for line in text.split("\n")]
+    assert "vars.env" in lines
+    assert "*.db" in lines
+
+
 def test_env_file_gitignored():
     text = (REPO / ".gitignore").read_text()
     assert "admin_panel.env" in text
