@@ -194,11 +194,14 @@ def create_app():
     from .auth import auth
     from .sales import sales
     from .admin_api import admin_api
+    from .ops_api import ops_admin, ops_me
 
     app.register_blueprint(views, url_prefix='/')
     app.register_blueprint(auth, url_prefix='/')
     app.register_blueprint(sales, url_prefix='/')
     app.register_blueprint(admin_api)
+    app.register_blueprint(ops_admin)
+    app.register_blueprint(ops_me)
 
     # ========================================================================
     # JINJA FILTERS
