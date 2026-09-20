@@ -1,294 +1,240 @@
 #!/usr/bin/env python3
 """
-Tull Hydroponics - Database Management Script
-==============================================
+Tull Hydroponics - Database Management CLI
+==========================================
 
-A command-line tool for managing the Tull Hydroponics database.
+Runs on the app's SQLAlchemy models, so it follows the real schema and
+whatever database the app is configured for (DATABASE_URL, or the local
+SQLite file). Run from the repository root:
 
-Usage:
-    python manage_db.py [command]
+    python -m xissite.manage_db <command>
 
 Commands:
-    status      Show database status and table counts
-    customers   List all customers
-    purchases   List all purchases
-    feedback    List all feedback
-    users       List all users
-    export      Export all data to CSV files
-    reset       Reset the database (WARNING: deletes all data)
-    backup      Create a backup of the database
+    status      Row counts for every table
+    customers   List customers with purchase counts
+    purchases   List purchases with customer email
+    feedback    List feedback submissions
+    users       List accounts (never passwords)
+    export      Write customers.csv, purchases.csv, feedback.csv  [--out DIR]
+    backup      Copy the SQLite file (SQLite file databases only)
+    reset       Back up, then delete the SQLite file (SQLite file databases only)
+
+Backup and reset refuse anything that is not a SQLite file: an in-memory
+database has nothing to copy and Cloud SQL has its own tooling.
 """
 
-import os
-import sys
-import sqlite3
+import argparse
 import csv
+import os
+import shutil
+import sqlite3
+import sys
 from datetime import datetime
 
-DB_NAME = "tullhydro.db"
 
-def get_db_path():
-    """Find the database file."""
-    if os.path.exists(DB_NAME):
-        return DB_NAME
-    # Check in parent directory
-    parent_path = os.path.join('..', DB_NAME)
-    if os.path.exists(parent_path):
-        return parent_path
-    return None
+# ============================================================================
+# HELPERS
+# ============================================================================
 
-def get_connection():
-    """Get database connection."""
-    db_path = get_db_path()
-    if not db_path:
-        print(f"Error: Database '{DB_NAME}' not found.")
-        print("Run 'python main.py' first to create the database.")
-        sys.exit(1)
-    return sqlite3.connect(db_path)
+def _sqlite_file(app):
+    """Path of the SQLite file the app uses, or None for anything else."""
+    uri = app.config['SQLALCHEMY_DATABASE_URI']
+    prefix = 'sqlite:///'
+    if not uri.startswith(prefix):
+        return None
+    path = uri[len(prefix):]
+    if path in ('', ':memory:'):
+        return None
+    return path
 
-def cmd_status():
-    """Show database status."""
-    conn = get_connection()
-    cursor = conn.cursor()
-    
-    print("=" * 50)
-    print("DATABASE STATUS")
-    print("=" * 50)
-    print(f"Database: {get_db_path()}")
-    print(f"Size: {os.path.getsize(get_db_path()) / 1024:.1f} KB")
-    print()
-    
-    tables = ['customer', 'purchase__info', 'feed_back', 'user']
-    for table in tables:
-        try:
-            cursor.execute(f"SELECT COUNT(*) FROM {table}")
-            count = cursor.fetchone()[0]
-            print(f"  {table}: {count} records")
-        except sqlite3.OperationalError:
-            print(f"  {table}: (table not found)")
-    
-    conn.close()
-    print()
 
-def cmd_customers():
-    """List all customers."""
-    conn = get_connection()
-    cursor = conn.cursor()
-    
-    print("=" * 80)
-    print("CUSTOMERS")
-    print("=" * 80)
-    
-    cursor.execute("SELECT id, email, first_name, last_name, creation_date FROM customer ORDER BY id")
-    rows = cursor.fetchall()
-    
+def _fmt_dt(value):
+    return value.strftime('%Y-%m-%d %H:%M') if value else '--'
+
+
+def _rows_to_csv(path, columns, rows):
+    with open(path, 'w', newline='', encoding='utf-8') as f:
+        writer = csv.writer(f)
+        writer.writerow(columns)
+        writer.writerows(rows)
+
+
+# ============================================================================
+# COMMANDS  (each takes the parsed args; an app context is already active)
+# ============================================================================
+
+def cmd_status(args):
+    from . import db
+    from .models import (Customer, Purchase_info, FeedBack, User, LoginAttempt,
+                         BannedIP, SiteVisit, GeoIPCache, AdminAuditLog)
+    print('DATABASE STATUS')
+    print(f"  uri: {db.engine.url}")
+    for model in (Customer, Purchase_info, FeedBack, User, LoginAttempt,
+                  BannedIP, SiteVisit, GeoIPCache, AdminAuditLog):
+        print(f"  {model.__tablename__}: {model.query.count()}")
+    return 0
+
+
+def cmd_customers(args):
+    from . import db
+    from .models import Customer, Purchase_info
+    from sqlalchemy import func
+    counts = dict(db.session.query(Purchase_info.customer_id, func.count(Purchase_info.id))
+                  .group_by(Purchase_info.customer_id).all())
+    rows = Customer.query.order_by(Customer.id).all()
     if not rows:
-        print("No customers found.")
-    else:
-        print(f"{'ID':<5} {'Email':<30} {'Name':<25} {'Created':<20}")
-        print("-" * 80)
-        for row in rows:
-            name = f"{row[2] or ''} {row[3] or ''}".strip() or "(no name)"
-            created = row[4][:10] if row[4] else "(unknown)"
-            print(f"{row[0]:<5} {row[1]:<30} {name:<25} {created:<20}")
-    
-    conn.close()
-    print()
+        print('No customers.')
+        return 0
+    print(f"{'ID':<5} {'Email':<32} {'Name':<24} {'Created':<17} {'Orders':>6}")
+    for c in rows:
+        print(f"{c.id:<5} {c.email:<32} {(c.name or '--'):<24} {_fmt_dt(c.creation_date):<17} {counts.get(c.id, 0):>6}")
+    return 0
 
-def cmd_purchases():
-    """List all purchases."""
-    conn = get_connection()
-    cursor = conn.cursor()
-    
-    print("=" * 100)
-    print("PURCHASES")
-    print("=" * 100)
-    
-    cursor.execute("""
-        SELECT p.id, c.email, p.product_name, p.purchase_date, p.paid
-        FROM purchase__info p
-        LEFT JOIN customer c ON p.customer_id = c.id
-        ORDER BY p.id
-    """)
-    rows = cursor.fetchall()
-    
+
+def cmd_purchases(args):
+    from .models import Purchase_info, Customer
+    rows = Purchase_info.query.order_by(Purchase_info.id).all()
     if not rows:
-        print("No purchases found.")
-    else:
-        print(f"{'ID':<8} {'Customer':<30} {'Product':<20} {'Date':<15} {'Paid':<6}")
-        print("-" * 100)
-        for row in rows:
-            date = row[3][:10] if row[3] else "(unknown)"
-            paid = "Yes" if row[4] else "No"
-            print(f"{row[0]:<8} {(row[1] or 'N/A'):<30} {(row[2] or 'N/A'):<20} {date:<15} {paid:<6}")
-    
-    conn.close()
-    print()
+        print('No purchases.')
+        return 0
+    print(f"{'ID':<6} {'Customer':<32} {'Product':<18} {'Status':<8} {'City':<16} {'Date':<17}")
+    for p in rows:
+        email = p.customer.email if p.customer else '--'
+        print(f"{p.id:<6} {email:<32} {(p.product_name or '--'):<18} {(p.pay_status or '--'):<8} "
+              f"{(p.city or '--'):<16} {_fmt_dt(p.purchase_date):<17}")
+    return 0
 
-def cmd_feedback():
-    """List all feedback."""
-    conn = get_connection()
-    cursor = conn.cursor()
-    
-    print("=" * 100)
-    print("FEEDBACK")
-    print("=" * 100)
-    
-    cursor.execute("SELECT id, feedbackmail, feedbacktype, feedbackorderid, feedbackfullfield FROM feed_back ORDER BY id DESC")
-    rows = cursor.fetchall()
-    
+
+def cmd_feedback(args):
+    from .models import FeedBack
+    rows = FeedBack.query.order_by(FeedBack.id.desc()).all()
     if not rows:
-        print("No feedback found.")
-    else:
-        for row in rows:
-            print(f"\nID: {row[0]}")
-            print(f"Email: {row[1]}")
-            print(f"Type: {row[2]}")
-            if row[3]:
-                print(f"Order ID: {row[3]}")
-            print(f"Message: {row[4][:100]}{'...' if len(row[4] or '') > 100 else ''}")
-            print("-" * 50)
-    
-    conn.close()
+        print('No feedback.')
+        return 0
+    for f in rows:
+        print(f"TULL-{f.id:05d}  {f.feedbacktype or '--'}  {'resolved' if f.resolved else 'open'}  "
+              f"{f.feedbackmail}  {_fmt_dt(f.date)}")
+        if f.feedbackorderid:
+            print(f"  order: {f.feedbackorderid}")
+        if f.serial_number:
+            print(f"  serial: {f.serial_number}")
+        msg = f.feedbackfullfield or ''
+        print(f"  {msg[:100]}{'...' if len(msg) > 100 else ''}")
+    return 0
 
-def cmd_users():
-    """List all users."""
-    conn = get_connection()
-    cursor = conn.cursor()
-    
-    print("=" * 60)
-    print("USERS")
-    print("=" * 60)
-    
-    try:
-        cursor.execute("SELECT id, user_type FROM user ORDER BY id")
-        rows = cursor.fetchall()
-        
-        if not rows:
-            print("No users found.")
-        else:
-            print(f"{'ID':<5} {'Type':<15}")
-            print("-" * 20)
-            for row in rows:
-                print(f"{row[0]:<5} {row[1] or 'admin':<15}")
-    except sqlite3.OperationalError as e:
-        print(f"Error reading users: {e}")
-    
-    conn.close()
-    print()
-    print("Note: User credentials are stored as hashes in environment variables,")
-    print("not in the database. The database only tracks login sessions.")
 
-def cmd_export():
-    """Export all data to CSV."""
-    conn = get_connection()
-    cursor = conn.cursor()
-    
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    export_dir = f"export_{timestamp}"
-    os.makedirs(export_dir, exist_ok=True)
-    
-    exports = [
-        ('customer', 'customers.csv', "SELECT * FROM customer"),
-        ('purchase__info', 'purchases.csv', "SELECT * FROM purchase__info"),
-        ('feed_back', 'feedback.csv', "SELECT * FROM feed_back"),
-    ]
-    
-    for table, filename, query in exports:
-        try:
-            cursor.execute(query)
-            rows = cursor.fetchall()
-            columns = [desc[0] for desc in cursor.description]
-            
-            filepath = os.path.join(export_dir, filename)
-            with open(filepath, 'w', newline='', encoding='utf-8') as f:
-                writer = csv.writer(f)
-                writer.writerow(columns)
-                writer.writerows(rows)
-            print(f"Exported {len(rows)} rows to {filepath}")
-        except sqlite3.OperationalError as e:
-            print(f"Skipped {table}: {e}")
-    
-    conn.close()
-    print(f"\nAll exports saved to: {export_dir}/")
+def cmd_users(args):
+    from .models import User
+    rows = User.query.order_by(User.id).all()
+    if not rows:
+        print('No users.')
+        return 0
+    print(f"{'ID':<5} {'Username':<24} {'Type':<10} {'Status':<10} {'Last login':<17} {'Display name'}")
+    for u in rows:
+        print(f"{u.id:<5} {u.email:<24} {u.user_type:<10} {u.status:<10} {_fmt_dt(u.last_login):<17} {u.display_name or ''}")
+    print('\nPasswords are scrypt hashes in the database. Change them through the admin API or panel.')
+    return 0
 
-def cmd_backup():
-    """Create a database backup."""
-    db_path = get_db_path()
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    backup_path = f"tullhydro_backup_{timestamp}.db"
-    
-    conn = sqlite3.connect(db_path)
-    backup = sqlite3.connect(backup_path)
-    conn.backup(backup)
-    backup.close()
-    conn.close()
-    
-    print(f"Backup created: {backup_path}")
-    print(f"Size: {os.path.getsize(backup_path) / 1024:.1f} KB")
 
-def cmd_reset():
-    """Reset the database."""
-    db_path = get_db_path()
-    
-    print("=" * 50)
-    print("WARNING: DATABASE RESET")
-    print("=" * 50)
-    print(f"This will DELETE all data in: {db_path}")
-    print()
-    
-    confirm = input("Type 'RESET' to confirm: ")
-    if confirm != 'RESET':
-        print("Reset cancelled.")
-        return
-    
-    # Create backup first
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    backup_path = f"tullhydro_backup_{timestamp}.db"
-    
-    conn = sqlite3.connect(db_path)
-    backup = sqlite3.connect(backup_path)
-    conn.backup(backup)
-    backup.close()
-    conn.close()
-    print(f"Backup created: {backup_path}")
-    
-    # Delete database
-    os.remove(db_path)
-    print(f"Database deleted: {db_path}")
-    print()
-    print("Restart the application to create a fresh database.")
+def cmd_export(args):
+    from .models import Customer, Purchase_info, FeedBack
+    out = args.out or f"export_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    os.makedirs(out, exist_ok=True)
 
-def cmd_help():
-    """Show help."""
-    print(__doc__)
+    customers = Customer.query.order_by(Customer.id).all()
+    _rows_to_csv(os.path.join(out, 'customers.csv'),
+                 ['id', 'email', 'name', 'creation_date', 'purchase_count'],
+                 [[c.id, c.email, c.name, c.creation_date, len(c.buys)] for c in customers])
 
-def main():
-    commands = {
-        'status': cmd_status,
-        'customers': cmd_customers,
-        'purchases': cmd_purchases,
-        'feedback': cmd_feedback,
-        'users': cmd_users,
-        'export': cmd_export,
-        'backup': cmd_backup,
-        'reset': cmd_reset,
-        'help': cmd_help,
-    }
-    
-    if len(sys.argv) < 2:
-        cmd_status()
-        print("Use 'python manage_db.py help' for more commands.")
-        return
-    
-    command = sys.argv[1].lower()
-    
-    if command in commands:
-        commands[command]()
-    else:
-        print(f"Unknown command: {command}")
-        print("Use 'python manage_db.py help' for available commands.")
-        sys.exit(1)
+    purchases = Purchase_info.query.order_by(Purchase_info.id).all()
+    _rows_to_csv(os.path.join(out, 'purchases.csv'),
+                 ['id', 'customer_id', 'customer_email', 'product_name', 'city', 'state',
+                  'country', 'line1', 'line2', 'postal_code', 'pay_status', 'purchase_date'],
+                 [[p.id, p.customer_id, p.customer.email if p.customer else '', p.product_name,
+                   p.city, p.state, p.country, p.line1, p.line2, p.postal_code, p.pay_status,
+                   p.purchase_date] for p in purchases])
 
-if __name__ == "__main__":
-    main()
+    feedback = FeedBack.query.order_by(FeedBack.id).all()
+    _rows_to_csv(os.path.join(out, 'feedback.csv'),
+                 ['id', 'feedbackmail', 'feedbacktype', 'feedbackorderid', 'serial_number',
+                  'feedbackfullfield', 'date', 'submitter_ip', 'resolved', 'admin_notes',
+                  'first_response_date', 'resolved_date', 'resolution_time_hours'],
+                 [[f.id, f.feedbackmail, f.feedbacktype, f.feedbackorderid, f.serial_number,
+                   f.feedbackfullfield, f.date, f.submitter_ip, f.resolved, f.admin_notes,
+                   f.first_response_date, f.resolved_date, f.resolution_time_hours]
+                  for f in feedback])
+
+    print(f"Exported {len(customers)} customers, {len(purchases)} purchases, {len(feedback)} feedback rows to {out}/")
+    return 0
+
+
+def _backup(path):
+    dest = f"{os.path.splitext(path)[0]}_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
+    src = sqlite3.connect(path)
+    dst = sqlite3.connect(dest)
+    src.backup(dst)
+    dst.close()
+    src.close()
+    print(f"Backup created: {dest} ({os.path.getsize(dest) / 1024:.1f} KB)")
+    return dest
+
+
+def cmd_backup(args):
+    path = _sqlite_file(args.app)
+    if not path:
+        print('backup only applies to a SQLite file database; this app is not using one.')
+        return 2
+    _backup(path)
+    return 0
+
+
+def cmd_reset(args):
+    path = _sqlite_file(args.app)
+    if not path:
+        print('reset only applies to a SQLite file database; this app is not using one.')
+        return 2
+    print(f"This deletes all data in {path} (a backup is taken first).")
+    if not args.yes:
+        if input("Type 'RESET' to confirm: ") != 'RESET':
+            print('Reset cancelled.')
+            return 1
+    _backup(path)
+    from . import db
+    db.session.remove()
+    db.engine.dispose()
+    os.remove(path)
+    print(f"Deleted {path}. Start the app to create a fresh database.")
+    return 0
+
+
+COMMANDS = {
+    'status': cmd_status, 'customers': cmd_customers, 'purchases': cmd_purchases,
+    'feedback': cmd_feedback, 'users': cmd_users, 'export': cmd_export,
+    'backup': cmd_backup, 'reset': cmd_reset,
+}
+
+
+# ============================================================================
+# ENTRY POINT
+# ============================================================================
+
+def run(argv=None, app=None):
+    """Parse argv and run one command inside an app context. Returns an exit code."""
+    parser = argparse.ArgumentParser(prog='python -m xissite.manage_db',
+                                     description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('command', choices=sorted(COMMANDS))
+    parser.add_argument('--out', help='export: directory to write CSV files into')
+    parser.add_argument('--yes', action='store_true', help='reset: skip the confirmation prompt')
+    args = parser.parse_args(argv)
+
+    if app is None:
+        os.environ.setdefault('FLASK_ENV', 'development')
+        from . import create_app
+        app = create_app()
+    args.app = app
+    with app.app_context():
+        return COMMANDS[args.command](args)
+
+
+if __name__ == '__main__':
+    sys.exit(run())
