@@ -1,11 +1,19 @@
 """Employee side: see my items, act on them, never see anyone else's."""
 
 import os
+import pytest
 
 from werkzeug.security import generate_password_hash
 
 os.environ['ADMIN_API_KEY'] = 'test-api-key-for-dual-auth'
 API = {'Authorization': 'Bearer test-api-key-for-dual-auth'}
+
+
+@pytest.fixture
+def patch_csrf(monkeypatch):
+    """Patch validate_csrf to allow CSRF-exempt session tests."""
+    import xissite.ops_api as api
+    monkeypatch.setattr(api, 'validate_csrf', lambda token: None)
 
 
 def _user(db, email, user_type='employee'):
@@ -57,7 +65,7 @@ def test_me_shows_own_and_broadcast_items_open_first(client, db):
     assert 'b:1' not in {i['ref'] for i in items}
 
 
-def test_task_complete_and_reopen(client, db):
+def test_task_complete_and_reopen(client, db, patch_csrf):
     _user(db, 'alice')
     t = _push(client, 't:1', kind='task', title='t', assignee='alice')
     _login(client, 'alice')
@@ -72,7 +80,7 @@ def test_task_complete_and_reopen(client, db):
     assert [(e.action, e.note) for e in evs] == [('complete', 'done at 9'), ('reopen', None)]
 
 
-def test_checklist_tick_untick_and_complete_gate(client, db):
+def test_checklist_tick_untick_and_complete_gate(client, db, patch_csrf):
     _user(db, 'alice')
     cl = _push(client, 'c:1', kind='checklist', title='Morning', assignee='alice',
                steps=[{'key': 'a', 'label': 'A'}, {'key': 'b', 'label': 'B'}])
@@ -90,7 +98,7 @@ def test_checklist_tick_untick_and_complete_gate(client, db):
     assert d['status'] == 'done'
 
 
-def test_notice_ack_records_per_user(client, db):
+def test_notice_ack_records_per_user(client, db, patch_csrf):
     _user(db, 'alice')
     n = _push(client, 'n:1', kind='notice', title='Heads up')
     _login(client, 'alice')
@@ -99,7 +107,7 @@ def test_notice_ack_records_per_user(client, db):
     assert _act(client, n['id'], action='complete').status_code == 400
 
 
-def test_invisible_items_are_404_and_note_is_bounded(client, db):
+def test_invisible_items_are_404_and_note_is_bounded(client, db, patch_csrf):
     _user(db, 'alice')
     _user(db, 'bob')
     b = _push(client, 'b:1', kind='task', title='bob only', assignee='bob')
@@ -112,11 +120,28 @@ def test_invisible_items_are_404_and_note_is_bounded(client, db):
     mine = _push(client, 'a:2', kind='task', title='mine', assignee='alice')
     assert _act(client, mine['id'], action='complete', note='x' * 501).status_code == 400
     assert _act(client, mine['id'], action='explode').status_code == 400
+    # Finding 1: non-dict JSON body → 400, not 500
+    assert client.post(f'/api/ops/items/{mine["id"]}/events', json=[1, 2, 3]).status_code == 400
+    # Finding 2: unhashable step_key → 400, not 500
+    cl = _push(client, 'c:1', kind='checklist', title='Check', assignee='alice',
+               steps=[{'key': 'a', 'label': 'A'}])
+    assert _act(client, cl['id'], action='tick', step_key=['x']).status_code == 400
 
 
-def test_admin_session_can_use_employee_api(client, db):
+def test_admin_session_can_use_employee_api(client, db, patch_csrf):
     _user(db, 'boss', user_type='admin')
     n = _push(client, 'n:2', kind='notice', title='All hands')
     _login(client, 'boss')
     assert client.get('/api/ops/me').status_code == 200
     assert _act(client, n['id'], action='ack').status_code == 200
+
+
+def test_post_without_csrf_token_is_403(client, db):
+    """Finding 3: CSRF validation enforced on all non-GET requests."""
+    _user(db, 'alice')
+    n = _push(client, 'n:1', kind='notice', title='Heads up')
+    _login(client, 'alice')
+    # POST without X-CSRFToken header should return 403, not 200
+    r = _act(client, n['id'], action='ack')
+    assert r.status_code == 403
+    assert r.get_json() == {'error': 'CSRF validation failed'}

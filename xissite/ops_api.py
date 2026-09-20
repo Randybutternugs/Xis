@@ -12,7 +12,7 @@ Design: docs/superpowers/specs/2026-09-20-ops-content-push-design.md
 import functools
 from datetime import datetime
 
-from flask import Blueprint, request, jsonify, abort, current_app
+from flask import Blueprint, request, jsonify, abort
 from flask_login import current_user
 from flask_wtf.csrf import validate_csrf
 from sqlalchemy import desc, func
@@ -220,7 +220,7 @@ def require_employee_session(f):
         if not current_user.is_authenticated or \
                 getattr(current_user, 'user_type', None) not in ('employee', 'admin'):
             return jsonify(error='Unauthorized'), 401
-        if request.method != 'GET' and current_app.config.get('WTF_CSRF_ENABLED', True):
+        if request.method != 'GET':
             try:
                 validate_csrf(request.headers.get('X-CSRFToken', ''))
             except Exception:
@@ -256,6 +256,8 @@ def apply_action(item, user, action, step_key=None, note=None):
     now = utcnow().isoformat()
 
     if action in ('tick', 'untick'):
+        if step_key is not None and not isinstance(step_key, str):
+            raise BadRequest('step_key must be a string')
         keys = {s['key'] for s in item.get_steps()}
         if not step_key or step_key not in keys:
             raise BadRequest('step_key must name one of the checklist steps')
@@ -308,6 +310,8 @@ def record_event(item_id):
     if item is None:
         abort(404, description='Not found')
     data = request.get_json(silent=True) or {}
+    if not isinstance(data, dict):
+        raise BadRequest('body must be a JSON object')
     action = data.get('action')
     if action not in OpsEvent.ACTIONS:
         raise BadRequest('action must be one of complete, reopen, tick, untick, ack')
