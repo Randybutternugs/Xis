@@ -61,6 +61,9 @@ def test_assignee_must_be_an_active_account(client, db):
     assert _push(client, 'a:2', kind='task', title='t', assignee='gone').status_code == 404
     r = _push(client, 'a:3', kind='task', title='t', assignee=None)
     assert r.status_code == 201 and r.get_json()['assignee'] is None
+    assert _push(client, 'a:4', kind='task', title='t', assignee=['a', 'b']).status_code == 400
+    assert _push(client, 'a:5', kind='task', title='t', assignee={'x': 1}).status_code == 400
+    assert _push(client, 'a:6', kind='task', title='t', assignee='').status_code == 400
 
 
 def test_repush_keeps_state_unless_reset(client, db):

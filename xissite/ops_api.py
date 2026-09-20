@@ -71,6 +71,8 @@ def _resolve_assignee(username):
     """User for a username, or 404. None stays None (broadcast)."""
     if username is None:
         return None
+    if not isinstance(username, str) or not username.strip():
+        raise BadRequest('assignee must be a username string or null')
     user = User.query.filter_by(email=username).first()
     if user is None or user.status != 'active':
         abort(404, description='assignee not found or not active')
