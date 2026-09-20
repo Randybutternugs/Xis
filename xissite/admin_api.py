@@ -40,23 +40,9 @@ admin_api = Blueprint('admin_api', __name__, url_prefix='/api/admin')
 # REQUEST PARSING HELPERS
 # ============================================================================
 
-@admin_api.errorhandler(BadRequest)
-def _bad_request(e):
-    return jsonify(error=e.description or 'Bad request'), 400
+from .apiutil import int_arg as _int_arg, json_errors
 
-
-def _int_arg(name, default, lo=None, hi=None, source=None):
-    """Integer query/body parameter with bounds. Non-numeric -> 400, never 500."""
-    raw = (source if source is not None else request.args).get(name, default)
-    try:
-        value = int(raw)
-    except (TypeError, ValueError):
-        raise BadRequest(f'{name} must be an integer')
-    if lo is not None and value < lo:
-        value = lo
-    if hi is not None and value > hi:
-        value = hi
-    return value
+json_errors(admin_api)
 
 
 class _SafeCsvWriter:
