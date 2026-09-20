@@ -33,6 +33,7 @@ ENDPOINTS = [
     '/banned-ips', '/security/login-heatmap', '/visitors/heatmap',
     '/customers/stats', '/customers/geo', '/purchases/geo', '/purchases/funnel',
     '/visitors/referrers', '/visitors/pageflow', '/visitors/devices',
+    '/ops/items?status=all', '/ops/events',
 ]
 
 # Per template: JS variable name -> endpoint whose response it holds.
@@ -129,6 +130,22 @@ def _seed(db):
                                  target_id='1', details='{}', admin_ip='127.0.0.1'))
     db.session.commit()
 
+    from xissite.models import OpsItem, OpsEvent
+    emp = User.query.filter_by(email='emp').one()
+    task = OpsItem(ref='task:seed', kind='task', title='Seed task', assignee_id=emp.id, body='b')
+    task.set_state(None)
+    cl = OpsItem(ref='cl:seed', kind='checklist', title='Seed checklist')
+    cl.set_steps([{'key': 'a', 'label': 'A'}])
+    st = cl.get_state()
+    st['steps']['a'] = {'by': 'emp', 'at': '2026-09-20T10:00:00+00:00'}
+    st['acks'] = {'emp': '2026-09-20T10:00:00+00:00'}
+    cl.set_state(st)
+    db.session.add_all([task, cl])
+    db.session.flush()
+    db.session.add(OpsEvent(item_id=task.id, item_ref=task.ref, user_id=emp.id,
+                            username='emp', action='complete', note='n'))
+    db.session.commit()
+
 
 @pytest.fixture(scope='module')
 def shapes(app):
@@ -155,6 +172,14 @@ def shapes(app):
         assert resp.status_code == 200, resp.data[:200]
         result['/feedback/1/reply'] = _keys(resp.get_json(), set())
         result['/feedback'] |= result['/feedback/1/reply']
+        client.post('/login', data={'username': 'emp', 'password': 'x' * 10})
+        from flask import g
+        g.pop('_login_user', None)
+        resp = client.get('/api/ops/me')
+        assert resp.status_code == 200, resp.data[:200]
+        result['/ops/me'] = _keys(resp.get_json(), set())
+        client.get('/logout')
+        g.pop('_login_user', None)
         _db.session.rollback()
         _db.drop_all()
     return result
@@ -228,3 +253,20 @@ def test_template_actually_sends_declared_params(template):
         for name in sent:
             assert re.search(r"['\"]" + re.escape(name) + r"['\"]|[?&]" + re.escape(name) + r"=", source), \
                 f'{template} declares it sends {endpoint}?{name} but never does'
+
+
+SITE_CONTRACT = {
+    'xissite/static/js/ops.js': {'item': '/ops/me', 'step': '/ops/me'},
+    'xissite/static/js/admin_dashboard.js': {'item': '/ops/items?status=all'},
+}
+
+
+@pytest.mark.parametrize('script', sorted(SITE_CONTRACT))
+def test_site_script_reads_only_keys_the_api_sends(shapes, script):
+    source = (REPO / script).read_text(encoding='utf-8')
+    bad = []
+    for var, endpoint in SITE_CONTRACT[script].items():
+        allowed = shapes[endpoint] | JS_BUILTINS
+        for key in sorted(_accesses(source, var) - allowed):
+            bad.append(f'{var}.{key} (not in {endpoint})')
+    assert not bad, f'{script} reads keys the API does not send:\n  ' + '\n  '.join(bad)
