@@ -113,6 +113,8 @@ td.n{font-family:var(--mono);font-size:12.5px;text-align:right;font-variant-nume
 .obs li.hi{border-left-color:var(--crit)}
 .obs li.md{border-left-color:var(--warn)}
 .obs li.lo{border-left-color:var(--muted)}
+.obs li.ok{border-left-color:var(--accent)}
+.ok .w{color:var(--accent)}
 .obs b{display:block;font-weight:600;margin-bottom:2px}
 .obs .w{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;margin-right:8px}
 .hi .w{color:var(--crit)}.md .w{color:var(--warn)}.lo .w{color:var(--muted)}
@@ -137,18 +139,18 @@ ul.plain li{margin-bottom:6px}
 <div class="wrap">
 
 <header class="hero">
-  <p class="eyebrow">// architecture map · repo Randybutternugs/Xis · branch main @ 7abfe4b · read 2026-09-20</p>
+  <p class="eyebrow">// architecture map · repo Randybutternugs/Xis · main @ 7b64934 · read 2026-09-20, updated the same day after the audit fixes and deploy</p>
   <h1>How the Tull website is built and what talks to what</h1>
   <p class="lede">Xis is one Flask application (the <code>xissite/</code> package) deployed to Google App Engine as tullhydro.com, plus a second, separate Flask app (<code>admin_panel/</code>) that runs only on the LAN and proxies to the first one's admin API. Everything below was read from the code, not the docs, and where the two disagree the code wins and the disagreement is listed at the end.</p>
   <div class="facts">
     <div><label>Runtime</label><b>Python 3.12 · Flask 3.1</b></div>
-    <div><label>Hosting</label><b>GAE Standard · F1 · 1 instance</b></div>
+    <div><label>Hosting</label><b>GAE Standard · F1 · 1 instance · deployed 2026-09-20</b></div>
     <div><label>Database</label><b>SQLite in /tmp (ephemeral)</b></div>
     <div><label>Blueprints</label><b>views · auth · sales · admin_api</b></div>
     <div><label>Tables</label><b>9 models · 1 foreign key</b></div>
     <div><label>External services</label><b>Stripe · Postmark · ip-api</b></div>
-    <div><label>App code</label><b>≈3.9k lines Python · 605 JS</b></div>
-    <div><label>Tests</label><b>49 site · 41 admin panel</b></div>
+    <div><label>App code</label><b>≈3.7k lines Python · 615 JS</b></div>
+    <div><label>Tests</label><b>104 site · 76 admin panel</b></div>
   </div>
 </header>
 
@@ -221,7 +223,7 @@ ul.plain li{margin-bottom:6px}
       <line class="ln" x1="230" y1="518" x2="280" y2="518" marker-end="url(#ar)"/>
       <text class="tm" x="255" y="510" text-anchor="middle">loopback</text>
       <rect class="bx" x="280" y="490" width="220" height="56" rx="2"/>
-      <text class="tb" x="390" y="512" text-anchor="middle">Admin panel · admin_panel/</text><text class="tm" x="390" y="530" text-anchor="middle">Flask on :5002 · no auth · loopback</text>
+      <text class="tb" x="390" y="512" text-anchor="middle">Admin panel · admin_panel/</text><text class="tm" x="390" y="530" text-anchor="middle">Flask on :5002 · no login · same-origin guard</text>
       <line class="lnA" x1="390" y1="490" x2="390" y2="390" marker-end="url(#arA)"/>
       <text class="tm" x="398" y="430">/api/site-admin/*  proxies to</text><text class="tm" x="398" y="444">/api/admin/*  with Bearer key</text>
       <rect class="bx" x="560" y="490" width="240" height="56" rx="2"/>
@@ -285,16 +287,17 @@ ul.plain li{margin-bottom:6px}
 
   <div class="mods">
     <div class="mod"><div class="f">main.py <span>45 lines</span></div><div class="d">Calls <code>create_app()</code> and exposes <code>app</code> for gunicorn. Runs the dev server on port 5000 when executed directly.</div><div class="u">uses: xissite</div></div>
-    <div class="mod core"><div class="f">xissite/__init__.py <span>444</span></div><div class="d">App factory, environment detection, DB URI selection, session config, blueprint registration, visitor tracker, migrations, bootstrap admin.</div><div class="u">uses: views, auth, sales, admin_api, models</div></div>
+    <div class="mod core"><div class="f">xissite/__init__.py <span>449</span></div><div class="d">App factory, environment detection, DB URI selection, session config, blueprint registration, visitor tracker, migrations, bootstrap admin.</div><div class="u">uses: views, auth, sales, admin_api, models</div></div>
     <div class="mod core"><div class="f">xissite/models.py <span>435</span></div><div class="d">Nine SQLAlchemy models, each with a <code>to_dict()</code> the admin API serialises. <code>User</code> mixes in Flask-Login's <code>UserMixin</code>.</div><div class="u">uses: db</div></div>
     <div class="mod core"><div class="f">xissite/views.py <span>271</span></div><div class="d">Public pages and the contact form: WTForms <code>ContactForm</code> with honeypot and timestamp fields, spam validation, <code>FeedBack</code> insert, two Postmark emails.</div><div class="u">uses: models, spam_guard, email_templates, requests</div></div>
-    <div class="mod core"><div class="f">xissite/auth.py <span>320</span></div><div class="d">Login with IP bans, rate limits and lockouts; logout; <code>admin_required</code> and <code>employee_required</code>; <code>/admin</code> dashboard, <code>/ops</code> employee page, legacy <code>/viewdb</code> pages.</div><div class="u">uses: models, werkzeug.security, flask_login</div></div>
+    <div class="mod core"><div class="f">xissite/auth.py <span>323</span></div><div class="d">Login with IP bans, rate limits and lockouts; logout; <code>admin_required</code> and <code>employee_required</code>; <code>/admin</code> dashboard, <code>/ops</code> employee page, legacy <code>/viewdb</code> pages.</div><div class="u">uses: models, timeutil, werkzeug.security, flask_login</div></div>
+    <div class="mod"><div class="f">xissite/timeutil.py <span>24</span></div><div class="d">Added 2026-09-20. <code>as_utc()</code> gives DB-loaded datetimes a UTC zone. SQLite drops the zone on every read, and comparing a naive value with an aware <code>now()</code> raised the TypeError that crashed lockouts, bans and feedback resolve.</div><div class="u">uses: nothing from the app</div></div>
     <div class="mod core"><div class="f">xissite/sales.py <span>347</span></div><div class="d">Stripe Checkout session creation, success and cancel pages, signed webhook handler, customer/purchase upsert, confirmation and failure emails.</div><div class="u">uses: stripe, models, email_templates, requests</div></div>
-    <div class="mod core"><div class="f">xissite/admin_api.py <span>1218</span></div><div class="d">37 JSON/CSV endpoints under <code>/api/admin</code>: users, logins, customers, purchases, feedback, visitors, security, bans, GeoIP, audit log, exports. Dual auth decorator.</div><div class="u">uses: models, email_templates, requests (ip-api, Postmark)</div></div>
+    <div class="mod core"><div class="f">xissite/admin_api.py <span>1313</span></div><div class="d">37 JSON/CSV endpoints under <code>/api/admin</code>: users, logins, customers, purchases, feedback, visitors, security, bans, GeoIP, audit log, exports. Dual auth decorator with constant-time key compare, bounded integer-parameter parsing, a formula-safe CSV writer, and guards that keep the bootstrap admin and your own session from being disabled.</div><div class="u">uses: models, timeutil, email_templates, requests (ip-api, Postmark)</div></div>
     <div class="mod"><div class="f">xissite/spam_guard.py <span>356</span></div><div class="d">Six pure-function checks plus an in-memory sliding-window rate limiter. Returns a verdict that says whether to reject silently or visibly.</div><div class="u">uses: nothing from the app</div></div>
     <div class="mod"><div class="f">xissite/email_templates.py <span>199</span></div><div class="d">Five branded HTML email bodies: contact confirmation, admin notification (with deep link), order confirmation, payment failed, feedback reply.</div><div class="u">uses: html.escape</div></div>
     <div class="mod"><div class="f">templates/ · static/ <span>14 html · 4.1k css</span></div><div class="d"><code>base.html</code> wraps public pages. <code>admin_dashboard.html</code> + <code>admin_dashboard.js</code> is a single-page UI that polls <code>/api/admin/*</code> every refresh cycle.</div><div class="u">main.css, dashboard.css, flickity carousel</div></div>
-    <div class="mod"><div class="f">admin_panel/ <span>227 lines</span></div><div class="d">Separate Flask app for ARCS: 8 template pages and a two-route passthrough that forwards <code>/api/site-admin/&lt;path&gt;</code> upstream with the Bearer key. Excluded from GAE by <code>.gcloudignore</code>.</div><div class="u">uses: requests, python-dotenv</div></div>
+    <div class="mod"><div class="f">admin_panel/ <span>≈200 lines + 8 templates</span></div><div class="d">Separate Flask app run locally on the LAN: 8 template pages and a two-route passthrough that forwards <code>/api/site-admin/&lt;path&gt;</code> upstream with the Bearer key. Mutations must carry a same-origin marker header. Every page's script is pinned to the API's real field names by a contract test. Excluded from GAE by <code>.gcloudignore</code>.</div><div class="u">uses: requests, python-dotenv</div></div>
     <div class="mod"><div class="f">scripts <span>3</span></div><div class="d"><code>setup_credentials.py</code> writes <code>vars.env</code>. <code>seed_users.py</code> wipes and recreates two named accounts. <code>manage_db.py</code> is a raw-sqlite CLI that targets an older schema (see observations).</div><div class="u">standalone</div></div>
   </div>
 </section>
@@ -340,15 +343,15 @@ ul.plain li{margin-bottom:6px}
     <tbody>
       <tr><td>Health</td><td class="r">GET /health</td><td><i class="pill pub">public</i></td><td>The one unauthenticated endpoint. The dashboard uses it for its green/red status dot.</td></tr>
       <tr><td>Stats</td><td class="r">GET /stats</td><td><i class="pill key">key or admin session</i></td><td>Counts for users, customers, purchases, unresolved feedback, logins in 24h.</td></tr>
-      <tr><td>Users</td><td class="r">GET · POST /users<br>PUT · DELETE /users/&lt;id&gt;<br>POST /users/&lt;id&gt;/suspend · /activate</td><td><i class="pill key">key or admin session</i></td><td>Password minimum 10 chars, types admin or employee. Activate also clears lockout counters. Delete is a soft delete (status=deleted). All audited.</td></tr>
+      <tr><td>Users</td><td class="r">GET · POST /users<br>PUT · DELETE /users/&lt;id&gt;<br>POST /users/&lt;id&gt;/suspend · /activate</td><td><i class="pill key">key or admin session</i></td><td>Password minimum 10 chars, types admin or employee. Activate also clears lockout counters. Delete is a soft delete (status=deleted). Suspend, delete and status changes refuse the bootstrap admin and, from a browser session, your own account. All audited.</td></tr>
       <tr><td>Logins</td><td class="r">GET /login-attempts</td><td><i class="pill key">key or admin session</i></td><td>Filter by success, IP, limit.</td></tr>
-      <tr><td>Customers</td><td class="r">GET /customers · /customers/stats · /customers/geo<br>GET · DELETE /customers/&lt;id&gt;</td><td><i class="pill key">key or admin session</i></td><td>Search by email or name. Detail includes purchases. Delete audited.</td></tr>
+      <tr><td>Customers</td><td class="r">GET /customers · /customers/stats · /customers/geo<br>GET · DELETE /customers/&lt;id&gt;</td><td><i class="pill key">key or admin session</i></td><td>Search by email or name. The list carries a purchase_count per row; detail includes the purchases. Delete audited.</td></tr>
       <tr><td>Purchases</td><td class="r">GET /purchases · /purchases/stats · /purchases/geo · /purchases/funnel</td><td><i class="pill key">key or admin session</i></td><td>Filter by pay_status. Funnel joins site visits on /sell to purchases.</td></tr>
-      <tr><td>Feedback</td><td class="r">GET /feedback · /feedback/stats<br>PUT · DELETE /feedback/&lt;id&gt;<br>POST /feedback/&lt;id&gt;/reply</td><td><i class="pill key">key or admin session</i></td><td>Reply sends a Postmark email, appends to admin_notes, sets first_response_date and optionally resolves with resolution_time_hours.</td></tr>
+      <tr><td>Feedback</td><td class="r">GET /feedback · /feedback/stats<br>PUT · DELETE /feedback/&lt;id&gt;<br>POST /feedback/&lt;id&gt;/reply</td><td><i class="pill key">key or admin session</i></td><td>Reply sends a Postmark email, appends to admin_notes, sets first_response_date and optionally resolves with resolution_time_hours. Answers 502 with ok=false when Postmark rejects the message, 503 when no sender is configured.</td></tr>
       <tr><td>Visitors</td><td class="r">GET /visitors · /recent · /devices · /referrers · /heatmap · /pageflow</td><td><i class="pill key">key or admin session</i></td><td>All computed from site_visit rows, so only since the last instance restart.</td></tr>
       <tr><td>Security</td><td class="r">GET /security/alerts · /login-heatmap · /audit-log<br>POST /security/resolve-geo</td><td><i class="pill key">key or admin session</i></td><td>Alerts: 5+ failures/hour is "critical", 3+/day is "warning". resolve-geo batches up to 20 IPs through ip-api.com and caches.</td></tr>
       <tr><td>Bans</td><td class="r">GET · POST /banned-ips<br>DELETE /banned-ips/&lt;id&gt;</td><td><i class="pill key">key or admin session</i></td><td>Manual bans with optional expiry. Audited as ip.ban / ip.unban.</td></tr>
-      <tr><td>Export</td><td class="r">GET /export/&lt;table&gt;</td><td><i class="pill key">key or admin session</i></td><td>CSV for customers, purchases, feedback, logins.</td></tr>
+      <tr><td>Export</td><td class="r">GET /export/&lt;table&gt;</td><td><i class="pill key">key or admin session</i></td><td>CSV for customers, purchases, feedback, logins. Cells beginning with = + - @ tab or CR are prefixed with a quote so customer text cannot run as a spreadsheet formula. Takes no filters.</td></tr>
     </tbody>
   </table></div>
 
@@ -358,7 +361,7 @@ ul.plain li{margin-bottom:6px}
     <tbody>
       <tr><td class="r">/site-admin, /users, /logins, /customers, /purchases, /feedback, /visitors, /security</td><td>Eight template pages generated from one <code>PAGES</code> tuple, which also drives the nav so they cannot drift. No authentication; the only protection is that it binds 127.0.0.1 unless <code>ADMIN_PANEL_HOST</code> says otherwise.</td></tr>
       <tr><td class="r">/api/site-admin/export/&lt;table&gt;</td><td>Forwards upstream and adds a <code>Content-Disposition: attachment</code> header so the browser downloads the CSV.</td></tr>
-      <tr><td class="r">/api/site-admin/&lt;path&gt;</td><td>GET/POST/PUT/DELETE catch-all. Forwards to <code>TULLSITE_API_URL/api/admin/&lt;path&gt;</code> with the Bearer header, 10 s timeout, and maps timeout to 504 and connection failure to 502. The key never reaches the browser.</td></tr>
+      <tr><td class="r">/api/site-admin/&lt;path&gt;</td><td>GET/POST/PUT/DELETE catch-all. Forwards to <code>TULLSITE_API_URL/api/admin/&lt;path&gt;</code> with the Bearer header, 10 s timeout, and maps timeout to 504 and connection failure to 502. The key never reaches the browser. POST, PUT and DELETE are refused with 403 unless they carry <code>X-Requested-With</code> and, if present, an Origin equal to the panel's own. The base template adds that header to every same-origin fetch, so a page in another tab cannot drive the passthrough.</td></tr>
     </tbody>
   </table></div>
 </section>
@@ -426,7 +429,7 @@ ul.plain li{margin-bottom:6px}
     <svg viewBox="0 0 960 270" role="img" aria-label="Login gates in order: IP ban check, per-IP failure count, account status and lockout, password check, then success redirect. Admin accounts skip the IP gates and lockout. Every attempt writes a login_attempt row.">
       <defs><marker id="ar5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
       <polyline class="lnM" points="180,44 180,36 630,36 630,44"/>
-      <text class="tm" x="405" y="30" text-anchor="middle">admin accounts skip these three gates and lockout; a successful admin login also lifts any active ban on its IP</text>
+      <text class="tm" x="405" y="30" text-anchor="middle">admin accounts skip the two IP gates and lockout, but not suspension; a successful admin login lifts any ban on its IP</text>
 
       <rect class="bx" x="20" y="60" width="130" height="64" rx="2"/><text class="tb" x="85" y="80" text-anchor="middle">POST /login</text><text class="tm" x="85" y="96" text-anchor="middle">username + password</text><text class="tm" x="85" y="111" text-anchor="middle">ip = remote_addr</text>
       <line class="ln" x1="150" y1="92" x2="180" y2="92" marker-end="url(#ar5)"/>
@@ -448,7 +451,7 @@ ul.plain li{margin-bottom:6px}
       <text class="t" x="485" y="230" text-anchor="middle">Every attempt, pass or fail, writes a login_attempt row: ip, user agent, username tried, success, failure_reason, matched user_type.</text>
     </svg>
     </div>
-    <figcaption><b>Two independent counters.</b> IP failures are counted from login_attempt rows over the last hour; account failures are the <code>failed_attempts</code> column on the user. Only the account counter resets on success. The login route reads the raw form and never calls <code>validate_on_submit</code>, so the CSRF token in the login page is not actually checked.</figcaption>
+    <figcaption><b>Two independent counters.</b> IP failures are counted from login_attempt rows over the last hour; account failures are the <code>failed_attempts</code> column on the user. Only the account counter resets on success. Both <code>locked_until</code> and a ban's <code>expires_at</code> come back from SQLite without a timezone and are normalised through <code>as_utc()</code> before comparison; until 2026-09-20 that comparison raised and turned both gates into 500s. The login route still reads the raw form and never calls <code>validate_on_submit</code>, so the CSRF token in the login page is not checked.</figcaption>
   </figure>
 
   <h3>D. Admin access: three UIs, one API, two credentials</h3>
@@ -470,7 +473,7 @@ ul.plain li{margin-bottom:6px}
       <text class="tm" x="485" y="192" text-anchor="middle">If ADMIN_API_KEY is unset in the environment every protected endpoint answers 503, including for logged-in admins.</text>
     </svg>
     </div>
-    <figcaption><b>Three front ends share this one API.</b> The in-site <code>/admin</code> dashboard uses the session path. The ARCS admin panel and TullOps use the key path. The legacy <code>/viewdb</code> pages bypass the API entirely and query the models directly.</figcaption>
+    <figcaption><b>Three front ends share this one API.</b> The in-site <code>/admin</code> dashboard uses the session path. The local admin panel and TullOps use the key path. The decorator records which path authenticated the request, so suspend and delete can refuse the account behind the current browser session while a key-holder can still act on any account. The legacy <code>/viewdb</code> pages bypass the API entirely and query the models directly.</figcaption>
   </figure>
 </section>
 
@@ -520,7 +523,7 @@ ul.plain li{margin-bottom:6px}
       <text class="tk" x="750" y="460">id  PK</text><text class="tk" x="750" y="476">ip_address  unique</text><text class="tk" x="750" y="492">country</text><text class="tk" x="750" y="508">region</text><text class="tk" x="750" y="524">city</text><text class="tk" x="750" y="540">isp</text><text class="tk" x="750" y="556">cached_at</text>
     </svg>
     </div>
-    <figcaption><b>Writers:</b> Stripe webhook writes customer and purchase_info. Contact form writes feed_back. Login writes login_attempt and updates user; the auto-ban path writes banned_ip. The visitor middleware writes site_visit. The admin API writes user, banned_ip, feed_back, geo_ip_cache and admin_audit_log. Audited actions: user.create/update/delete/suspend/activate, customer.delete, feedback.update/delete/reply, ip.ban/unban.</figcaption>
+    <figcaption><b>Datetimes:</b> every DateTime column is written as aware UTC and read back naive, because SQLite has no zone type. Anything that compares or subtracts a stored value against <code>now()</code> must pass it through <code>timeutil.as_utc()</code> first. <b>Writers:</b> Stripe webhook writes customer and purchase_info. Contact form writes feed_back. Login writes login_attempt and updates user; the auto-ban path writes banned_ip. The visitor middleware writes site_visit. The admin API writes user, banned_ip, feed_back, geo_ip_cache and admin_audit_log. Audited actions: user.create/update/delete/suspend/activate, customer.delete, feedback.update/delete/reply, ip.ban/unban.</figcaption>
   </figure>
 </section>
 
@@ -533,13 +536,15 @@ ul.plain li{margin-bottom:6px}
     <tbody>
       <tr><td>Transport</td><td>App Engine forces HTTPS on every handler; Secure cookie flags on in production.</td><td class="r">app.yaml · __init__.py</td></tr>
       <tr><td>Roles</td><td>Two roles. <code>admin</code> sees everything. <code>employee</code> sees only <code>/ops</code>. Investor role was removed in the March 2026 overhaul and a test guards against its return.</td><td class="r">auth.py · tests/test_investor_removal.py</td></tr>
+      <tr><td>Suspension</td><td>Applies to admins and employees alike. The session loader drops any account that is not active, so a suspended or deleted user loses access on their next request, not at their next login. The bootstrap admin can never be suspended, deleted or demoted, and a browser session cannot disable its own account.</td><td class="r">auth.py · __init__.py · admin_api.py</td></tr>
       <tr><td>Passwords</td><td>Werkzeug scrypt. Minimum 10 characters enforced by the API, no complexity rules. A dummy hash is computed for unknown usernames to blunt timing enumeration.</td><td class="r">admin_api.py · auth.py</td></tr>
       <tr><td>Brute force</td><td>Per-IP counters from login_attempt rows, auto-ban at <code>AUTO_BAN_THRESHOLD</code> (20), per-account lockout at 5 and 10 failures, manual bans with expiry. Admin accounts are exempt so a lockout attack cannot lock the owner out.</td><td class="r">auth.py</td></tr>
-      <tr><td>Machine access</td><td>One static Bearer key for the whole admin API. No per-caller keys, no rotation mechanism, no rate limit on the key path.</td><td class="r">admin_api.py</td></tr>
+      <tr><td>Machine access</td><td>One static Bearer key for the whole admin API, compared in constant time. No per-caller keys, no rotation mechanism, no rate limit on the key path.</td><td class="r">admin_api.py</td></tr>
+      <tr><td>Inputs</td><td>Every numeric query or body parameter goes through one bounded parser. Non-numeric values answer a JSON 400; <code>days</code> is capped at 365. Export cells that could be spreadsheet formulas are neutralised.</td><td class="r">admin_api.py</td></tr>
       <tr><td>CSRF</td><td>Global check is off. Enforced where a WTForm validates (contact, /viewdb search) and by the <code>X-CSRFToken</code> header on session-authenticated API mutations. Webhook and checkout routes are exempt on purpose.</td><td class="r">views.py · admin_api.py · sales.py</td></tr>
       <tr><td>Spam</td><td>Six-layer guard on the contact form, described in flow B.</td><td class="r">spam_guard.py</td></tr>
       <tr><td>Audit</td><td>Eleven admin actions write admin_audit_log with the caller IP.</td><td class="r">admin_api.py</td></tr>
-      <tr><td>Admin panel</td><td>No authentication at all. Binds loopback by default; the README forbids port-forwarding or a Tailscale funnel. Refuses to start without the key so a misconfiguration fails loudly instead of silently 401ing.</td><td class="r">admin_panel/config.py</td></tr>
+      <tr><td>Admin panel</td><td>No login. Its protection is network position plus a same-origin guard: mutating requests need a custom header and a matching Origin, which a page in another tab cannot supply. Binds loopback by default; the README forbids port-forwarding or a Tailscale funnel. Refuses to start without the key so a misconfiguration fails loudly instead of silently 401ing. Every value it renders is escaped for both text and attribute contexts, and a test fails on any raw interpolation of attacker-controlled fields.</td><td class="r">admin_panel/api.py · config.py · templates</td></tr>
     </tbody>
   </table></div>
 </section>
@@ -575,7 +580,8 @@ ul.plain li{margin-bottom:6px}
       <tr><td>Instance class</td><td class="r">F1 · min 1 · max 1 · 50 concurrent</td><td>Never scales out. Chosen deliberately because each instance would get its own /tmp database.</td></tr>
       <tr><td>Static handler</td><td class="r">/static → xissite/static · 1 h cache</td><td>App Engine serves CSS, JS, fonts and images without touching Flask.</td></tr>
       <tr><td>Session affinity</td><td class="r">true</td><td>Harmless with one instance; would matter for the in-memory rate limiter if scaled.</td></tr>
-      <tr><td>Excluded from upload</td><td class="r">.git · .venv* · .pytest_cache · .remember · admin_panel/ · admin_panel.env*</td><td>The LAN panel and its secret never reach Google. A test asserts this.</td></tr>
+      <tr><td>Excluded from upload</td><td class="r">.git · .venv* · .pytest_cache · .remember · admin_panel/ · admin_panel.env* · vars.env · *.db</td><td>The LAN panel, its secret, the local env file and the local SQLite file never reach Google. Tests assert this.</td></tr>
+      <tr><td>Live version</td><td class="r">20260920t033545 · deployed 2026-09-20 03:36</td><td>Carries all of today's fixes. The 76 older versions were deleted the same day; only this one exists.</td></tr>
       <tr><td>Local run</td><td class="r">python main.py → localhost:5000</td><td>SQLite file in the repo root, persistent across restarts.</td></tr>
     </tbody>
   </table></div>
@@ -585,15 +591,24 @@ ul.plain li{margin-bottom:6px}
 <section id="obs">
   <p class="eyebrow">// 09 observations</p>
   <h2>Where the code, the docs and the intent disagree</h2>
-  <p class="summary">Found while mapping. Ordered by how much they would surprise someone operating the site. None of these were changed.</p>
+  <p class="summary">Found while mapping and auditing on 2026-09-20. Green items were fixed and deployed that day. The rest are still open, ordered by how much they would surprise someone operating the site.</p>
   <ul class="obs">
-    <li class="hi"><b><span class="w">high</span>Every deploy or instance restart erases users, customers, purchases, feedback and all security history.</b> SQLite lives in /tmp. The bootstrap admin is recreated from env vars, but the accounts seeded by <code>seed_users.py</code> (for example the employee account) are gone until TullOps recreates them. The admin panel README already notes the analytics side of this; the user side is the sharper edge. Cloud SQL is the intended fix and is one env var away in code.</li>
+    <li class="ok"><b><span class="w">fixed</span>Locked accounts and expiring bans crashed the login route; feedback resolve, stats and reply crashed too.</b> SQLite returns datetimes without a zone; comparing them to an aware <code>now()</code> raised. Normalised through <code>timeutil.as_utc()</code>, with tests that reload the rows the way a second request does.</li>
+    <li class="ok"><b><span class="w">fixed</span>Script injection through the local panel's Logins page.</b> The User-Agent of every public login attempt was rendered unescaped, so one crafted failed login ran script in the panel, which holds the API key. Escaped, and a source-level test now fails on any raw interpolation of attacker fields in any panel template.</li>
+    <li class="ok"><b><span class="w">fixed</span>The local panel forwarded requests from any website open in the same browser.</b> Body-less POSTs need no CORS preflight. Mutations now require a same-origin marker header and a matching Origin.</li>
+    <li class="ok"><b><span class="w">fixed</span>Most panel pages showed blanks or lied about success.</b> They read field names the API never sent and sent filters it never read. Every page is rewritten against the real shapes, dead features (revenue, customer tags, Investor role) are removed, and a contract test pins template field names and query parameters to the API.</li>
+    <li class="ok"><b><span class="w">fixed</span>A deploy would have uploaded the local secrets file and SQLite database.</b> Both are now in <code>.gcloudignore</code>, with a test.</li>
+    <li class="ok"><b><span class="w">fixed</span>Suspend did nothing for admins and never ended a live session; PUT could soft-delete the protected bootstrap admin; an admin could disable their own account.</b> Suspension applies to everyone, the session loader drops inactive accounts, and the bootstrap admin and your own session are refused.</li>
+    <li class="ok"><b><span class="w">fixed</span>CSV formula injection, 500s on non-numeric parameters, replies reporting success when the email failed, GeoIP failures silently dropped, and a non-constant-time key compare.</b> All in <code>admin_api.py</code>, each with a test.</li>
+    <li class="ok"><b><span class="w">fixed</span>Site dashboard: quotes not escaped in tooltips, success toasts on failed actions, usernames never shown, a section stuck on "Loading".</b> Also the devices breakdown endpoint, which had answered 500 everywhere because its <code>user-agents</code> dependency was never listed.</li>
+    <li class="ok"><b><span class="w">event</span>Google Cloud billing had lapsed and the site returned 503.</b> Billing was restored on 2026-09-20, the site came back on the April build, the fixes above were deployed the same day, and 76 stale App Engine versions were deleted. Each restart or deploy still resets the database (next item).</li>
+    <li class="hi"><b><span class="w">high</span>Every deploy or instance restart erases users, customers, purchases, feedback and all security history.</b> SQLite lives in /tmp. The bootstrap admin is recreated from env vars, but the accounts seeded by <code>seed_users.py</code> (for example the employee account) are gone until TullOps recreates them. This happened twice on 2026-09-20 alone: once when billing came back, once on deploy. Cloud SQL is the intended fix and is one env var away in code, but a real migration in practice.</li>
     <li class="hi"><b><span class="w">high</span>The purchase pipeline is built but not reachable.</b> <code>/sell</code> is a "coming soon" page whose only call to action is /contact. Nothing posts to <code>/create-checkout-session</code>, so Stripe, the webhook, customer and purchase tables, and the order email are all live code with no traffic. The dashboard's Orders and Customers panels will stay empty until a buy button exists.</li>
     <li class="md"><b><span class="w">medium</span>TullOps content push does not exist yet.</b> The design says TullOps pushes tasks, checklists and notifications to employees through the admin API. There is no endpoint for that; <code>/ops</code> renders placeholder content hardcoded in the template (commit d463c10). The API today is read-mostly plus user management.</li>
-    <li class="md"><b><span class="w">medium</span>Three admin front ends for one dataset.</b> The in-site <code>/admin</code> JS dashboard, the legacy <code>/viewdb</code> pages, and the ARCS admin panel all show the same data. The Postmark admin-notification email still deep-links to the legacy feedback page, not to <code>/admin</code>.</li>
+    <li class="md"><b><span class="w">medium</span>Three admin front ends for one dataset.</b> The in-site <code>/admin</code> JS dashboard, the legacy <code>/viewdb</code> pages, and the local admin panel all show the same data. The panel is now the one that is wired correctly and tested against the API. The Postmark admin-notification email still deep-links to the legacy feedback page, not to <code>/admin</code>.</li>
     <li class="md"><b><span class="w">medium</span>manage_db.py targets a schema that no longer exists.</b> It queries table <code>purchase__info</code> with columns <code>first_name</code>, <code>last_name</code>, <code>paid</code>; the models use <code>purchase_info</code>, <code>name</code>, <code>pay_status</code>. Its <code>users</code> command also claims credentials live in env vars, which stopped being true in March. The <code>status</code>, <code>purchases</code> and <code>export</code> commands will error or skip on a current database. MANAGEMENT_GUIDE.md's schema section has the same stale shape.</li>
     <li class="md"><b><span class="w">medium</span>One startup migration checks the wrong table name.</b> <code>add_product_name_column</code> inspects <code>purchase__info</code> (double underscore), finds nothing, tries to ALTER a table that does not exist, and is swallowed by the bare except on every boot. Harmless today because new databases get the column from the model, but it prints a misleading "Running" line each start.</li>
-    <li class="lo"><b><span class="w">low</span>Login POST does not check its CSRF token.</b> The route reads <code>request.form</code> directly instead of calling <code>form.validate_on_submit()</code>, and the global CSRF check is off. Impact is limited to login CSRF, but the token in the template is decorative.</li>
+    <li class="lo"><b><span class="w">low</span>Login POST does not check its CSRF token.</b> The route reads <code>request.form</code> directly instead of calling <code>form.validate_on_submit()</code>, and the global CSRF check is off. Impact is limited to login CSRF, but the token in the template is decorative. Not changed today.</li>
     <li class="lo"><b><span class="w">low</span>Two different ideas of the client IP.</b> Login trusts <code>remote_addr</code> (correct behind App Engine). The contact form trusts the first <code>X-Forwarded-For</code> value, which a client can set, so the contact rate limit can be sidestepped by spoofing the header.</li>
     <li class="lo"><b><span class="w">low</span>Hardcoded order total.</b> <code>fulfill_order</code> emails "$200" regardless of what Stripe charged; the price lives only in the Stripe Price object.</li>
     <li class="lo"><b><span class="w">low</span>Docs drift.</b> README lists a <code>dataviz.html</code> that does not exist, omits <code>/admin</code>, <code>/ops</code> and the whole <code>/api/admin</code> surface, and app.yaml comments still mention Mailgun although all email moved to Postmark.</li>
