@@ -39,6 +39,7 @@
   <a href="#sec-feedback" data-sec="feedback">Feedback</a>
   <a href="#sec-visitors" data-sec="visitors">Visitors</a>
   <a href="#sec-security" data-sec="security">Security</a>
+  <a href="#sec-ops" data-sec="ops">Ops</a>
 </div>
 
 <!-- Stats Row -->
@@ -177,6 +178,20 @@
     <div class="sub-header" style="margin-top:20px">Peak Hours</div>
     <div class="heatmap-row" id="vis-heatmap"></div>
     <div class="alert-none" id="vis-heatmap-empty" style="display:none">No heatmap data</div>
+  </div>
+</div>
+
+<!-- Ops content (pushed by TullOps) -->
+<div class="sec-card" id="sec-ops">
+  <div class="card">
+    <h2>// Ops Content <span class="sec-count" id="ops-count"></span></h2>
+    <div class="table-scroll">
+      <table class="table" id="ops-table" style="display:none">
+        <thead><tr><th>Ref</th><th>Kind</th><th>Title</th><th>Assignee</th><th>Status</th><th>Progress</th><th>Updated</th><th>Actions</th></tr></thead>
+        <tbody id="ops-body"></tbody>
+      </table>
+    </div>
+    <div class="alert-none" id="ops-empty">Nothing pushed by TullOps yet</div>
   </div>
 </div>
 

@@ -30,6 +30,15 @@ def test_ops_js_never_inlines_api_strings_into_event_handlers():
     API strings must reach handlers via data-* attributes, never on*= text."""
     import re
     from pathlib import Path
-    src = Path('xissite/static/js/ops.js').read_text(encoding='utf-8')
-    for m in re.finditer(r'on(click|change)="[^"]*"', src):
-        assert 'esc(' not in m.group(0), m.group(0)
+    for rel in ('xissite/static/js/ops.js', 'xissite/static/js/admin_dashboard.js'):
+        src = Path(rel).read_text(encoding='utf-8')
+        for m in re.finditer(r'on(click|change)="[^"]*"', src):
+            assert 'esc(' not in m.group(0), rel + ': ' + m.group(0)
+
+
+def test_admin_dashboard_has_ops_section(client, db):
+    _login_as(client, db, 'boss', 'admin')
+    html = client.get('/admin').data.decode()
+    assert 'id="sec-ops"' in html
+    assert 'href="#sec-ops"' in html
+    assert 'id="ops-body"' in html

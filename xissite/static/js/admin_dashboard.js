@@ -559,6 +559,44 @@ window.submitBanIP=function(){
 window.unbanIP=function(id){if(confirm('Unban this IP?'))apiDelete('/banned-ips/'+id).then(checked).then(function(){showToast('IP unbanned');fetchBannedIPs()}).catch(failToast)};
 window.banIPQuick=function(ip){openBanModal(ip)};
 
+// ---- Ops content (pushed by TullOps) -------------------------------------
+function fetchOps(){
+  fetch(API+'/ops/items?status=all&limit=200').then(checked).then(function(d){renderOps(d.items||[])})
+    .catch(function(e){var emp=document.getElementById('ops-empty');emp.style.display='block';emp.textContent='Failed to load ops items: '+e.message});
+}
+function opsProgress(item){
+  var st=item.state||{};
+  if(item.kind==='checklist'){var n=item.steps.filter(function(s){return st.steps&&st.steps[s.key]}).length;return n+' / '+item.steps.length+' steps'}
+  if(item.kind==='notice'){return Object.keys(st.acks||{}).length+' acknowledged'}
+  return item.status==='done'?'done by '+esc(st.done_by||''):'open';
+}
+function renderOps(items){
+  var tb=document.getElementById('ops-body'),tbl=document.getElementById('ops-table'),emp=document.getElementById('ops-empty'),cnt=document.getElementById('ops-count');
+  if(!items.length){tbl.style.display='none';emp.style.display='block';emp.textContent='Nothing pushed by TullOps yet';cnt.textContent='';return}
+  emp.style.display='none';tbl.style.display='table';cnt.textContent='('+items.length+')';
+  var html='';
+  items.forEach(function(item){
+    var sb=item.status==='done'?'badge-ok':item.status==='archived'?'badge-off':'badge-warn';
+    html+='<tr>'+
+      '<td style="font-family:Consolas,monospace;font-size:.8em">'+esc(item.ref)+'</td>'+
+      '<td>'+esc(item.kind)+'</td>'+
+      '<td title="'+esc(item.body||'')+'">'+esc(item.title)+'</td>'+
+      '<td>'+(item.assignee?esc(item.assignee):'<span style="color:var(--mut)">everyone</span>')+'</td>'+
+      '<td><span class="badge '+sb+'">'+esc(item.status)+'</span></td>'+
+      '<td>'+opsProgress(item)+'</td>'+
+      '<td title="'+esc(fullDate(item.updated_at))+'">'+relTime(item.updated_at)+'</td>'+
+      '<td>'+(item.status==='archived'?'':'<button class="btn btn-sm btn-danger" data-archive-ref="'+esc(item.ref)+'">Archive</button>')+'</td></tr>';
+  });
+  tb.innerHTML=html;
+}
+document.getElementById('ops-body').addEventListener('click',function(e){
+  var btn=e.target.closest('button[data-archive-ref]');
+  if(!btn)return;
+  var ref=btn.getAttribute('data-archive-ref');
+  if(confirm('Archive '+ref+'? Employees will no longer see it.'))
+    apiDelete('/ops/items/'+encodeURIComponent(ref)).then(checked).then(function(){showToast('Archived');fetchOps()}).catch(failToast);
+});
+
 // ---- Audit Log -------------------------------------------------------------
 function fetchAuditLog(){
   fetch(API+'/security/audit-log?limit=30').then(function(r){if(!r.ok)throw new Error();return r.json()}).then(function(d){
@@ -599,6 +637,7 @@ function refresh(){
   fetchFeedback();
   fetchVisitors();
   fetchSecurity();
+  fetchOps();
 }
 
 // ---- Initialization --------------------------------------------------------
