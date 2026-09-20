@@ -31,14 +31,16 @@ def main():
     print(f"  Upstream:  {cfg.api_url}")
     print(f"  Listening: http://{cfg.host}:{cfg.port}/site-admin")
 
-    # Warn if not bound to loopback
+    # Warn if not bound to loopback. ASCII only: a redirected or legacy
+    # Windows console encodes stdout as cp1252 and a non-ASCII glyph here
+    # raises UnicodeEncodeError before app.run() is reached.
     is_loopback = cfg.host in ("127.0.0.1", "localhost")
     if not is_loopback:
-        print(f"  ⚠️  WARNING: Binding to {cfg.host} — this panel is reachable")
-        print("      from the network with NO AUTHENTICATION. Only use on ARCS")
-        print("      behind a router. Never port-forward or expose via Tailscale.")
+        print(f"  [WARNING] Binding to {cfg.host} - this panel is reachable")
+        print("            from the network with NO AUTHENTICATION. Only use on ARCS")
+        print("            behind a router. Never port-forward or expose via Tailscale.")
     else:
-        print("  ✓ Loopback-only (safe). Set ADMIN_PANEL_HOST=0.0.0.0 for LAN access.")
+        print("  [OK] Loopback-only (safe). Set ADMIN_PANEL_HOST=0.0.0.0 for LAN access.")
 
     print("=" * 60)
     app.run(host=cfg.host, port=cfg.port, debug=False, use_reloader=False)
