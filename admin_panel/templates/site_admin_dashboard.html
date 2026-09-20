@@ -1,0 +1,1356 @@
+{% extends "base.html" %}
+{% block title %}Site Admin - TULL{% endblock %}
+
+{% block head %}
+<style>
+/* ─── Base size bump for readability on large monitors ───── */
+#sec-nav,
+.sa-header,
+.sa-stats,
+.sec-card{font-size:1.12em}
+#sec-users{font-size:1.25em}
+#sec-users .table{font-size:1em}
+#sec-users .table th{font-size:.95em}
+
+/* ─── Header ─────────────────────────────────────────────── */
+.sa-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px}
+.sa-header h1{font-size:1.3em;font-weight:700;letter-spacing:1px;font-family:Consolas,monospace}
+.sa-header h1 span.accent{color:var(--g)}
+.api-ind{display:flex;align-items:center;gap:6px;font-size:.75em;font-family:Consolas,monospace;color:var(--mut)}
+.countdown{font-size:.65em;color:var(--mut);font-family:Consolas,monospace;margin-left:8px}
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.3}}
+.refresh-pulse{animation:pulse-dot 1.5s ease-in-out infinite}
+
+/* ─── Section nav (sticky) ───────────────────────────────── */
+.sec-nav{position:sticky;top:0;z-index:50;background:var(--bg);padding:8px 0 8px;margin-bottom:12px;border-bottom:1px solid var(--brd);display:flex;gap:4px;flex-wrap:wrap;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.sec-nav a{padding:5px 12px;font-size:.65em;font-weight:700;text-transform:uppercase;letter-spacing:1px;border:1px solid var(--brd);color:var(--mut);text-decoration:none;white-space:nowrap;transition:all .15s}
+.sec-nav a:hover,.sec-nav a.active{background:var(--g);color:#000;border-color:var(--g)}
+
+/* ─── Stats ──────────────────────────────────────────────── */
+.sa-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+
+/* ─── Sub-values under .si ───────────────────────────────── */
+.val-sub{display:block;font-size:.55em;color:var(--mut);font-family:Consolas,monospace;margin-top:2px}
+
+/* ─── Section card (tower-style) ─────────────────────────── */
+.sec-card{margin-bottom:16px}
+.sec-card>.card{margin-bottom:0}
+.sec-card .card h2{cursor:default}
+.sec-actions{float:right;display:flex;gap:6px;align-items:center}
+.sec-count{font-size:.7em;color:var(--mut);font-family:Consolas,monospace;font-weight:400;margin-left:8px}
+
+/* ─── Filter bar ─────────────────────────────────────────── */
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.filter-row input,.filter-row select{max-width:180px}
+
+/* ─── User badges ────────────────────────────────────────── */
+.user-hash{font-family:Consolas,monospace;font-size:.75em;color:var(--mut);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:middle}
+.user-label{font-weight:700}
+
+/* ─── Login detail expand ────────────────────────────────── */
+.login-detail{background:#080808;border:1px solid #1a1a1a;padding:12px 16px;font-size:.82em;font-family:Consolas,monospace;display:none;margin-bottom:2px}
+.login-detail.show{display:block}
+.login-detail .ld-row{display:flex;gap:12px;margin-bottom:4px;flex-wrap:wrap}
+.login-detail .ld-label{color:var(--g);min-width:100px;text-transform:uppercase;font-size:.85em;letter-spacing:1px}
+.login-detail .ld-val{color:var(--txt);word-break:break-all}
+tr.fail-row{background:rgba(255,50,50,.04)}
+tr.expandable{cursor:pointer}
+tr.expandable:hover{background:rgba(106,189,69,.04)}
+
+/* ─── Bar chart ──────────────────────────────────────────── */
+.bar-chart{display:flex;flex-direction:column;gap:6px}
+.bar-row{display:flex;align-items:center;gap:10px}
+.bar-label{font-family:Consolas,monospace;font-size:.75em;color:var(--mut);min-width:50px;text-align:right}
+.bar-track{flex:1;height:22px;background:#0a0a0a;border:1px solid #1a1a1a;position:relative;overflow:hidden}
+.bar-fill{height:100%;background:var(--g);opacity:.7;transition:width .6s ease;min-width:0}
+.bar-count{font-family:Consolas,monospace;font-size:.75em;color:var(--txt);min-width:40px}
+
+/* ─── Alert items ────────────────────────────────────────── */
+.alert-item{background:#0a0a0a;border:1px solid #1a1a1a;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:.85em}
+.alert-item .alert-ip{font-family:Consolas,monospace;font-weight:700}
+.alert-item .alert-count{font-family:Consolas,monospace;color:var(--mut);font-size:.85em}
+.alert-none{color:var(--mut);font-size:.85em;padding:16px 0;text-align:center;font-family:Consolas,monospace}
+
+/* ─── Threat banner ──────────────────────────────────────── */
+.threat-ok{background:rgba(106,189,69,.08);border:1px solid rgba(106,189,69,.2);color:var(--g);padding:10px 16px;font-family:Consolas,monospace;font-size:.85em;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+.threat-warn{background:rgba(255,153,0,.08);border:1px solid rgba(255,153,0,.2);color:var(--warn);padding:10px 16px;font-family:Consolas,monospace;font-size:.85em;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+.threat-crit{background:rgba(255,50,50,.08);border:1px solid rgba(255,50,50,.2);color:var(--crit);padding:10px 16px;font-family:Consolas,monospace;font-size:.85em;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+
+/* ─── Modal ──────────────────────────────────────────────── */
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:100}
+.modal-overlay.show{display:flex}
+.modal-box{background:var(--card);border:1px solid var(--brd);padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+.modal-box h3{font-size:.8em;color:var(--g);text-transform:uppercase;letter-spacing:2px;margin-bottom:16px;font-family:Consolas,monospace}
+.modal-box label{display:block;font-size:.7em;color:var(--mut);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;margin-top:12px}
+.modal-box input,.modal-box select,.modal-box textarea{width:100%;margin-bottom:4px}
+.modal-box textarea{min-height:60px;resize:vertical;font-family:inherit;background:#0a0a0a;border:1px solid var(--brd);color:var(--txt);padding:6px 8px;font-size:.9em}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+
+/* ─── Feedback expanded ──────────────────────────────────── */
+.fb-detail{background:#080808;border:1px solid #1a1a1a;padding:12px 16px;font-size:.85em;display:none;margin-top:4px;margin-bottom:8px}
+.fb-detail.show{display:block}
+.fb-msg{background:#0a0a0a;padding:10px;border:1px solid #1a1a1a;margin:8px 0;white-space:pre-wrap;font-family:Consolas,monospace;font-size:.9em;color:var(--txt);max-height:200px;overflow-y:auto;line-height:1.5}
+
+/* ─── Heatmap (24-cell grid) ─────────────────────────────── */
+.heatmap-row{display:flex;gap:2px;margin:8px 0}
+.heatmap-cell{flex:1;min-width:0;position:relative;display:flex;flex-direction:column;align-items:center}
+.heatmap-bar{width:100%;position:relative;height:40px;background:#0a0a0a;border:1px solid #1a1a1a;overflow:hidden}
+.heatmap-fill{position:absolute;bottom:0;left:0;width:100%;background:var(--g);opacity:.5;transition:height .4s ease}
+.heatmap-fail{position:absolute;bottom:0;left:0;width:100%;background:var(--crit);opacity:.6;transition:height .4s ease}
+.heatmap-hour{font-size:.55em;color:var(--mut);font-family:Consolas,monospace;margin-top:2px}
+.heatmap-count{font-size:.5em;color:var(--mut);font-family:Consolas,monospace;position:absolute;top:1px;left:50%;transform:translateX(-50%);z-index:1}
+
+/* ─── Subsection headers ────────────────────────────────── */
+.sub-header{font-size:.65em;color:var(--g);text-transform:uppercase;letter-spacing:2px;margin:20px 0 8px;font-weight:700;font-family:Consolas,monospace}
+.sub-header:first-child{margin-top:0}
+
+/* ─── Inline stat row ───────────────────────────────────── */
+.inline-stats{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px}
+.inline-stat{font-family:Consolas,monospace;font-size:.8em}
+.inline-stat .is-val{font-weight:700;color:var(--txt)}
+.inline-stat .is-label{color:var(--mut);font-size:.85em}
+
+/* ─── Geo tag (inline) ──────────────────────────────────── */
+.geo-tag{font-size:.75em;color:var(--mut);font-style:italic;margin-left:4px}
+
+/* ─── Feedback Intelligence ─────────────────────────────── */
+.fb-stats-bar{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:14px;padding:10px 14px;background:#0a0a0a;border:1px solid #1a1a1a}
+.fb-type-bars{display:flex;gap:4px;align-items:flex-end;height:24px}
+.fb-type-bar{width:32px;opacity:.6;transition:height .4s ease}
+.fb-type-bar:hover{opacity:1}
+.age-badge{display:inline-block;padding:2px 8px;font-size:.6em;font-weight:700;text-transform:uppercase;letter-spacing:1px;font-family:Consolas,monospace}
+.age-badge.age-fresh{background:rgba(106,189,69,.1);color:var(--g)}
+.age-badge.age-normal{background:rgba(59,130,246,.1);color:var(--blue,#3b82f6)}
+.age-badge.age-aging{background:rgba(255,153,0,.1);color:var(--warn)}
+.age-badge.age-stale{background:rgba(255,50,50,.1);color:var(--crit)}
+.fb-age-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;vertical-align:middle}
+.reply-area{margin-top:8px;padding:8px;background:#050505;border:1px solid #1a1a1a}
+.reply-area textarea{width:100%;min-height:60px;background:#0a0a0a;border:1px solid var(--brd);color:var(--txt);padding:6px 8px;font-size:.85em;font-family:inherit;resize:vertical;margin-bottom:6px}
+
+/* ─── Customer Insights ─────────────────────────────────── */
+.tag-pill{display:inline-block;padding:1px 7px;font-size:.65em;font-weight:700;background:rgba(106,189,69,.1);color:var(--g);margin:1px 2px;font-family:Consolas,monospace;white-space:nowrap}
+.tag-input{background:#0a0a0a;border:1px solid var(--brd);color:var(--txt);padding:4px 8px;font-size:.8em;font-family:Consolas,monospace;width:100%}
+
+/* ─── Purchase Funnel ───────────────────────────────────── */
+.funnel-row{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.funnel-label{font-family:Consolas,monospace;font-size:.75em;color:var(--mut);min-width:100px;text-align:right}
+.funnel-bar{flex:1;height:28px;background:#0a0a0a;border:1px solid #1a1a1a;position:relative;overflow:hidden}
+.funnel-fill{height:100%;transition:width .6s ease;opacity:.7}
+.funnel-count{font-family:Consolas,monospace;font-size:.75em;color:var(--txt);min-width:50px}
+
+/* ─── Section color tints ────────────────────────────────── */
+#sec-users > .card{border-left:3px solid rgba(106,189,69,.5);background:linear-gradient(90deg,rgba(106,189,69,.04) 0%,var(--card) 60%)}
+#sec-logins > .card{border-left:3px solid rgba(74,158,255,.5);background:linear-gradient(90deg,rgba(74,158,255,.04) 0%,var(--card) 60%)}
+#sec-customers > .card{border-left:3px solid rgba(45,212,191,.5);background:linear-gradient(90deg,rgba(45,212,191,.03) 0%,var(--card) 60%)}
+#sec-purchases > .card{border-left:3px solid rgba(245,158,11,.5);background:linear-gradient(90deg,rgba(245,158,11,.04) 0%,var(--card) 60%)}
+#sec-feedback > .card{border-left:3px solid rgba(167,139,250,.5);background:linear-gradient(90deg,rgba(167,139,250,.04) 0%,var(--card) 60%)}
+#sec-visitors > .card{border-left:3px solid rgba(56,189,248,.5);background:linear-gradient(90deg,rgba(56,189,248,.04) 0%,var(--card) 60%)}
+#sec-security > .card{border-left:3px solid rgba(239,68,68,.5);background:linear-gradient(90deg,rgba(239,68,68,.04) 0%,var(--card) 60%)}
+
+/* ─── Button uniformity ──────────────────────────────────── */
+.sec-card .btn-sm{font-size:.8em;padding:6px 12px}
+.modal-box .btn-sm{font-size:.8em;padding:6px 12px}
+
+/* ─── Word spacing ───────────────────────────────────────── */
+.sec-card .card{word-spacing:.04em}
+.sec-card .table td{word-spacing:.05em}
+.alert-item{word-spacing:.06em}
+.fb-msg{word-spacing:.08em}
+.login-detail .ld-val{word-spacing:.06em}
+.inline-stat{word-spacing:.05em}
+
+/* ─── Responsive ─────────────────────────────────────────── */
+@media(max-width:768px){
+  .sa-stats{grid-template-columns:repeat(2,1fr)}
+  .sec-nav{padding:6px 0;gap:2px}
+  .sec-nav a{padding:6px 10px;font-size:.6em}
+  .filter-row{flex-direction:column;align-items:stretch}
+  .filter-row input,.filter-row select{max-width:100%}
+  .sec-actions{float:none;margin-bottom:8px}
+  .login-detail .ld-row{flex-direction:column;gap:2px}
+  .modal-box{margin:12px;max-width:calc(100% - 24px)}
+  /* Grids collapse to 1 column */
+  #vis-device-grid{grid-template-columns:1fr !important}
+  #cust-charts > div,
+  #vis-flow-grid{grid-template-columns:1fr !important}
+  #sec-purchases > .card > div[style*="1fr 1fr"]{grid-template-columns:1fr !important}
+  /* Heatmap horizontal scroll */
+  .heatmap-row{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
+  .heatmap-cell{min-width:28px;flex:0 0 28px}
+  /* Alert items wrap */
+  .alert-item{flex-wrap:wrap}
+  /* Bar labels narrower */
+  .bar-label{min-width:36px !important;font-size:.65em}
+  /* Button touch targets */
+  .sec-card .btn-sm{min-height:40px;padding:8px 14px}
+}
+@media(max-width:480px){
+  .sa-stats{grid-template-columns:1fr}
+  .sa-header h1{font-size:1.1em}
+  .table{font-size:.7em}
+  .bar-label{min-width:28px !important;font-size:.6em}
+  .heatmap-cell{min-width:24px;flex:0 0 24px}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="sa-header">
+  <h1><span class="accent">//</span> TullSite Admin <span class="countdown" id="countdown"></span></h1>
+  <div class="api-ind" id="api-ind">
+    <span class="dot dot-r" id="api-dot"></span>
+    <span id="api-label">Checking...</span>
+  </div>
+</div>
+
+<!-- Sticky section nav -->
+<div class="sec-nav" id="sec-nav">
+  <a href="#sec-users" data-sec="users">Users</a>
+  <a href="#sec-logins" data-sec="logins">Logins</a>
+  <a href="#sec-customers" data-sec="customers">Customers</a>
+  <a href="#sec-purchases" data-sec="purchases">Orders</a>
+  <a href="#sec-feedback" data-sec="feedback">Feedback</a>
+  <a href="#sec-visitors" data-sec="visitors">Visitors</a>
+  <a href="#sec-security" data-sec="security">Security</a>
+</div>
+
+<!-- Stats Row -->
+<div class="sa-stats">
+  <div class="si"><label>Active Users</label><div class="val" id="s-users">--</div></div>
+  <div class="si"><label>Total Customers</label><div class="val" id="s-customers">--</div></div>
+  <div class="si"><label>Total Purchases</label><div class="val" id="s-purchases">--</div></div>
+  <div class="si"><label>Pending Feedback</label><div class="val" id="s-feedback">--</div></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- // User Management                                         -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="sec-card" id="sec-users">
+  <div class="card">
+    <h2><span class="sec-actions"><button class="btn btn-primary btn-sm" onclick="openCreateUser()">+ Create User</button></span>// User Management <span class="sec-count" id="user-count"></span></h2>
+    <div class="table-scroll">
+      <table class="table" id="users-table" style="display:none">
+        <thead><tr><th>ID</th><th>Type</th><th>Status</th><th>Last Login</th><th>Logins</th><th>Notes</th><th>Actions</th></tr></thead>
+        <tbody id="users-body"></tbody>
+      </table>
+    </div>
+    <div class="alert-none" id="users-empty">Loading users...</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- // Login Monitor                                           -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="sec-card" id="sec-logins">
+  <div class="card">
+    <h2>// Login Monitor <span class="sec-count" id="login-count"></span></h2>
+    <div class="filter-row">
+      <select id="login-filter-result" style="max-width:120px"><option value="">All Results</option><option value="true">Success</option><option value="false">Failed</option></select>
+      <input type="text" id="login-filter-ip" placeholder="Filter by IP..." style="max-width:160px">
+      <button class="btn btn-sm btn-outline" onclick="fetchLogins()">Filter</button>
+      <button class="btn btn-sm btn-outline" onclick="window.location='/api/site-admin/export/logins'">Export CSV</button>
+    </div>
+    <div class="table-scroll">
+      <table class="table" id="logins-table" style="display:none">
+        <thead><tr><th>Time</th><th>IP Address</th><th>Username</th><th>Result</th><th>Reason</th><th style="width:20px"></th></tr></thead>
+        <tbody id="logins-body"></tbody>
+      </table>
+    </div>
+    <div class="alert-none" id="logins-empty">No login attempts recorded</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- // Customers                                               -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="sec-card" id="sec-customers">
+  <div class="card">
+    <h2>// Customers <span class="sec-count" id="cust-count"></span></h2>
+    <div class="filter-row">
+      <input type="text" id="cust-search" placeholder="Search email or name..." style="flex:1;max-width:280px">
+      <button class="btn btn-sm btn-primary" onclick="fetchCustomers()">Search</button>
+      <button class="btn btn-sm btn-outline" onclick="window.location='/api/site-admin/export/customers'">Export CSV</button>
+    </div>
+    <div class="inline-stats" id="cust-stats-row" style="display:none">
+      <div class="inline-stat"><span class="is-val" id="cs-repeat">--</span> <span class="is-label">repeat buyers</span></div>
+      <div class="inline-stat"><span class="is-val" id="cs-repeat-pct">--</span> <span class="is-label">repeat %</span></div>
+      <div class="inline-stat"><span class="is-val" id="cs-top-state">--</span> <span class="is-label">top state</span></div>
+      <div class="inline-stat"><span class="is-val" id="cs-new-week">--</span> <span class="is-label">new this week</span></div>
+    </div>
+    <div id="cust-charts" style="display:none">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+        <div>
+          <div class="sub-header">Customer Geography</div>
+          <div class="bar-chart" id="cust-geo-chart"></div>
+        </div>
+        <div>
+          <div class="sub-header">Acquisition Trend</div>
+          <div class="bar-chart" id="cust-acq-chart"></div>
+        </div>
+      </div>
+    </div>
+    <div class="table-scroll">
+      <table class="table" id="cust-table" style="display:none">
+        <thead><tr><th>ID</th><th>Email</th><th>Name</th><th>Created</th><th>Orders</th><th>Tags</th><th>Actions</th></tr></thead>
+        <tbody id="cust-body"></tbody>
+      </table>
+    </div>
+    <div class="alert-none" id="cust-empty">No customers yet</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- // Orders                                                  -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="sec-card" id="sec-purchases">
+  <div class="card">
+    <h2>// Orders <span class="sec-count" id="purch-count"></span></h2>
+    <div class="filter-row">
+      <select id="purch-status"><option value="">All Statuses</option><option value="paid">Paid</option><option value="pending">Pending</option></select>
+      <button class="btn btn-sm btn-primary" onclick="fetchPurchases()">Filter</button>
+      <button class="btn btn-sm btn-outline" onclick="window.location='/api/site-admin/export/purchases'">Export CSV</button>
+    </div>
+    <div class="inline-stats" id="purch-stats-row" style="display:none">
+      <div class="inline-stat"><span class="is-val" id="ps-revenue">$0</span> <span class="is-label">revenue</span></div>
+      <div class="inline-stat"><span class="is-val" id="ps-avg">$0</span> <span class="is-label">avg order</span></div>
+      <div class="inline-stat"><span class="is-val" id="ps-period-count">0</span> <span class="is-label">period orders</span></div>
+      <div class="inline-stat"><span class="is-val" id="ps-paid-rate">--</span> <span class="is-label">paid rate</span></div>
+    </div>
+    <div style="margin-bottom:8px">
+      <button class="btn btn-sm btn-outline ord-period active" data-days="7" onclick="setOrdPeriod(7,this)">7d</button>
+      <button class="btn btn-sm btn-outline ord-period" data-days="30" onclick="setOrdPeriod(30,this)">30d</button>
+      <button class="btn btn-sm btn-outline ord-period" data-days="90" onclick="setOrdPeriod(90,this)">90d</button>
+    </div>
+    <div class="sub-header">Orders Over Time</div>
+    <div class="bar-chart" id="purch-time-chart" style="margin-bottom:16px"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <div>
+        <div class="sub-header">Shipping Geography</div>
+        <div class="bar-chart" id="purch-geo-chart"></div>
+      </div>
+      <div>
+        <div class="sub-header">Conversion Funnel</div>
+        <div id="purch-funnel"></div>
+      </div>
+    </div>
+    <div class="table-scroll">
+      <table class="table" id="purch-table" style="display:none">
+        <thead><tr><th>#</th><th>Product</th><th>Customer</th><th>Location</th><th>Status</th><th>Date</th></tr></thead>
+        <tbody id="purch-body"></tbody>
+      </table>
+    </div>
+    <div class="alert-none" id="purch-empty">No orders yet</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- // Feedback                                                -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="sec-card" id="sec-feedback">
+  <div class="card">
+    <h2>// Feedback <span class="sec-count" id="fb-count"></span></h2>
+    <div class="filter-row">
+      <select id="fb-filter-type"><option value="">All Types</option><option value="General">General</option><option value="Technical">Technical</option><option value="Order">Order</option><option value="Feature">Feature</option></select>
+      <select id="fb-filter-resolved"><option value="">All</option><option value="false">Unresolved</option><option value="true">Resolved</option></select>
+      <button class="btn btn-sm btn-primary" onclick="fetchFeedback()">Filter</button>
+      <button class="btn btn-sm btn-outline" onclick="window.location='/api/site-admin/export/feedback'">Export CSV</button>
+    </div>
+    <div id="fb-stats-bar" class="fb-stats-bar" style="display:none">
+      <div><div style="font-size:.6em;color:var(--mut);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Type Distribution</div><div class="fb-type-bars" id="fb-type-dist"></div></div>
+      <div><div style="font-size:.6em;color:var(--mut);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Aging</div><div id="fb-aging"></div></div>
+      <div><div style="font-size:.6em;color:var(--mut);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Avg Resolution</div><div id="fb-avg-res" style="font-family:Consolas,monospace;font-size:.9em;font-weight:700">--</div></div>
+    </div>
+    <div id="fb-list"></div>
+    <div class="alert-none" id="fb-empty">No feedback yet</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- // Visitor Trends                                          -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="sec-card" id="sec-visitors">
+  <div class="card">
+    <h2><span class="sec-actions">
+      <button class="btn btn-sm btn-outline vis-period active" data-days="7" onclick="setVisPeriod(7,this)">7d</button>
+      <button class="btn btn-sm btn-outline vis-period" data-days="14" onclick="setVisPeriod(14,this)">14d</button>
+      <button class="btn btn-sm btn-outline vis-period" data-days="30" onclick="setVisPeriod(30,this)">30d</button>
+    </span>// Visitor Trends</h2>
+    <div class="grid-4" style="margin-bottom:16px" id="vis-stats">
+      <div class="si"><label>Unique Visitors</label><div class="val" id="vis-unique">--</div></div>
+      <div class="si"><label>Total Views</label><div class="val" id="vis-views">--</div></div>
+      <div class="si"><label>Top Page</label><div class="val" id="vis-top" style="font-size:1em">--</div></div>
+      <div class="si"><label>Avg Daily</label><div class="val" id="vis-avg">--</div></div>
+    </div>
+    <div class="bar-chart" id="vis-chart"></div>
+    <div class="alert-none" id="vis-empty">No visitor data</div>
+    <div style="margin-top:16px">
+      <h3 style="font-size:.65em;color:var(--g);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px">Top Pages</h3>
+      <div class="table-scroll">
+        <table class="table" id="vis-pages-table" style="display:none">
+          <thead><tr><th>Path</th><th>Hits</th><th>Unique IPs</th></tr></thead>
+          <tbody id="vis-pages-body"></tbody>
+        </table>
+      </div>
+    </div>
+    <!-- Peak Hours Heatmap -->
+    <div class="sub-header" style="margin-top:20px">Peak Hours</div>
+    <div class="heatmap-row" id="vis-heatmap"></div>
+    <div class="alert-none" id="vis-heatmap-empty" style="display:none">No heatmap data</div>
+    <!-- Device/Browser/OS Breakdown -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px" id="vis-device-grid">
+      <div>
+        <div class="sub-header">Browsers</div>
+        <div class="bar-chart" id="vis-browsers"></div>
+      </div>
+      <div>
+        <div class="sub-header">Operating Systems</div>
+        <div class="bar-chart" id="vis-os"></div>
+      </div>
+      <div>
+        <div class="sub-header">Device Types</div>
+        <div class="bar-chart" id="vis-devices"></div>
+      </div>
+    </div>
+    <!-- Traffic Sources -->
+    <div class="sub-header" style="margin-top:20px">Traffic Sources</div>
+    <div class="inline-stats" id="vis-referrer-stats"></div>
+    <div class="table-scroll">
+      <table class="table" id="vis-ref-table" style="display:none">
+        <thead><tr><th>Source</th><th>Hits</th><th>Type</th></tr></thead>
+        <tbody id="vis-ref-body"></tbody>
+      </table>
+    </div>
+    <!-- Page Flow -->
+    <div class="sub-header" style="margin-top:20px">Page Flow</div>
+    <div class="inline-stats" id="vis-flow-stats"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px" id="vis-flow-grid">
+      <div>
+        <div style="font-size:.6em;color:var(--mut);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Entry Pages</div>
+        <div class="bar-chart" id="vis-entry-pages"></div>
+      </div>
+      <div>
+        <div style="font-size:.6em;color:var(--mut);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Top Sequences</div>
+        <div class="table-scroll">
+          <table class="table" id="vis-seq-table" style="display:none">
+            <thead><tr><th>From</th><th>To</th><th>Count</th></tr></thead>
+            <tbody id="vis-seq-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- // Security                                                -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="sec-card" id="sec-security">
+  <div class="card">
+    <h2><span class="sec-actions"><button class="btn btn-sm btn-outline" onclick="fetchSecurity()">Refresh</button><button class="btn btn-sm btn-outline" onclick="window.location='/api/site-admin/export/logins'">Export Report</button></span>// Security</h2>
+    <div id="threat-banner" class="threat-ok">No threats detected</div>
+    <div class="grid-3" style="margin-bottom:16px">
+      <div class="si"><label>Logins (24h)</label><div class="val" id="sec-total">--</div></div>
+      <div class="si"><label>Successful</label><div class="val ok" id="sec-ok">--</div></div>
+      <div class="si"><label>Failed</label><div class="val" id="sec-fail">--</div></div>
+    </div>
+    <div id="sec-alerts"></div>
+    <div class="alert-none" id="sec-empty" style="display:none">No suspicious activity</div>
+    <!-- Login Heatmap -->
+    <div class="sub-header" style="margin-top:20px">Login Activity by Hour (7d)</div>
+    <div class="heatmap-row" id="sec-heatmap"></div>
+    <!-- Banned IPs -->
+    <div class="sub-header" style="margin-top:20px">Banned IPs <span class="sec-count" id="ban-count"></span></div>
+    <div style="margin-bottom:8px"><button class="btn btn-sm btn-primary" onclick="openBanModal()">+ Ban IP</button></div>
+    <div class="table-scroll">
+      <table class="table" id="ban-table" style="display:none">
+        <thead><tr><th>IP Address</th><th>Reason</th><th>Banned By</th><th>Expires</th><th>Action</th></tr></thead>
+        <tbody id="ban-body"></tbody>
+      </table>
+    </div>
+    <div class="alert-none" id="ban-empty">No banned IPs</div>
+    <!-- Audit Log -->
+    <div class="sub-header" style="margin-top:20px">Audit Log</div>
+    <div class="table-scroll">
+      <table class="table" id="audit-table" style="display:none">
+        <thead><tr><th>Time</th><th>Action</th><th>Target</th><th>Details</th><th>Admin IP</th></tr></thead>
+        <tbody id="audit-body"></tbody>
+      </table>
+    </div>
+    <div class="alert-none" id="audit-empty">No audit entries</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- Modals                                                     -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<!-- Create User Modal -->
+<div class="modal-overlay" id="modal-create-user">
+  <div class="modal-box">
+    <h3>// Create User</h3>
+    <label>Email / Username</label>
+    <input type="text" id="cu-email" placeholder="user@example.com">
+    <label>Password</label>
+    <input type="password" id="cu-pass" placeholder="Strong password...">
+    <label>User Type</label>
+    <select id="cu-type"><option value="admin">Admin</option><option value="investor">Investor</option></select>
+    <label>Notes</label>
+    <textarea id="cu-notes" placeholder="Optional notes..."></textarea>
+    <div class="modal-btns">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('modal-create-user')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="submitCreateUser()">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal-overlay" id="modal-edit-user">
+  <div class="modal-box">
+    <h3>// Edit User</h3>
+    <input type="hidden" id="eu-id">
+    <label>User Type</label>
+    <select id="eu-type"><option value="admin">Admin</option><option value="investor">Investor</option></select>
+    <label>Status</label>
+    <select id="eu-status"><option value="active">Active</option><option value="suspended">Suspended</option></select>
+    <label>Notes</label>
+    <textarea id="eu-notes"></textarea>
+    <label>New Password (leave blank to keep current)</label>
+    <input type="password" id="eu-pass" placeholder="New password...">
+    <div class="modal-btns">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('modal-edit-user')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="submitEditUser()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Customer Detail Modal -->
+<div class="modal-overlay" id="modal-cust-detail">
+  <div class="modal-box" style="max-width:600px">
+    <h3>// Customer Detail</h3>
+    <div id="cust-detail-content">Loading...</div>
+    <input type="hidden" id="cd-cust-id">
+    <label>Tags <span style="font-size:.8em;color:var(--mut)">(comma-separated)</span></label>
+    <input type="text" id="cd-tags" class="tag-input" placeholder="e.g. vip, wholesale, repeat">
+    <label>Admin Notes</label>
+    <textarea id="cd-notes" style="width:100%;min-height:60px;resize:vertical;background:#0a0a0a;border:1px solid var(--brd);color:var(--txt);padding:6px 8px;font-size:.85em;font-family:inherit"></textarea>
+    <div class="modal-btns">
+      <button class="btn btn-primary btn-sm" onclick="saveCustomerMeta()">Save</button>
+      <button class="btn btn-outline btn-sm" onclick="closeModal('modal-cust-detail')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Ban IP Modal -->
+<div class="modal-overlay" id="modal-ban-ip">
+  <div class="modal-box">
+    <h3>// Ban IP Address</h3>
+    <label>IP Address</label>
+    <input type="text" id="ban-ip-input" placeholder="e.g. 192.168.1.1">
+    <label>Reason</label>
+    <textarea id="ban-reason" placeholder="Why is this IP being banned?"></textarea>
+    <label>Duration (hours, leave blank for permanent)</label>
+    <input type="number" id="ban-hours" placeholder="24" min="1">
+    <div class="modal-btns">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('modal-ban-ip')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="submitBanIP()">Ban</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast-el"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function(){
+var API='/api/site-admin';
+var REFRESH=20;
+var cd=REFRESH,cdTimer,refreshTimer;
+var visDays=7,ordDays=30;
+// Caches to prevent flicker
+var cache={users:null,logins:null,stats:null,visitors:null,security:null,customers:null,purchases:null,feedback:null};
+
+// ─── Utility ────────────────────────────────────────────────
+function esc(s){var d=document.createElement('div');d.textContent=s||'';return d.innerHTML}
+function relTime(iso){
+  if(!iso)return'--';
+  var diff=Math.max(0,Math.floor((Date.now()-new Date(iso).getTime())/1000));
+  if(diff<60)return diff+'s ago';if(diff<3600)return Math.floor(diff/60)+'m ago';
+  if(diff<86400)return Math.floor(diff/3600)+'h ago';return Math.floor(diff/86400)+'d ago';
+}
+function fullDate(iso){if(!iso)return'--';return new Date(iso).toLocaleString()}
+function showToast(msg){var t=document.getElementById('toast-el');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},3000)}
+function openModal(id){document.getElementById(id).classList.add('show')}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+function parseUA(ua){
+  if(!ua)return{browser:'Unknown',os:'Unknown',device:'Unknown'};
+  var b='Unknown',o='Unknown';
+  if(/Edg\//.test(ua))b='Edge';else if(/OPR\//.test(ua))b='Opera';else if(/Chrome\//.test(ua))b='Chrome';else if(/Safari\//.test(ua)&&!/Chrome/.test(ua))b='Safari';else if(/Firefox\//.test(ua))b='Firefox';
+  if(/Windows NT 10/.test(ua))o='Windows';else if(/Mac OS X/.test(ua))o='macOS';else if(/Linux/.test(ua))o='Linux';else if(/Android/.test(ua))o='Android';else if(/iPhone|iPad/.test(ua))o='iOS';
+  var dev=/Mobile|Android|iPhone/.test(ua)?'Mobile':'Desktop';
+  return{browser:b,os:o,device:dev};
+}
+function setApiStatus(ok){
+  var dot=document.getElementById('api-dot'),lbl=document.getElementById('api-label');
+  dot.className='dot '+(ok?'dot-g refresh-pulse':'dot-r');lbl.textContent=ok?'Connected':'API Unreachable';
+}
+
+// ─── Section nav scroll ────────────────────────────────────
+document.querySelectorAll('.sec-nav a').forEach(function(a){
+  a.addEventListener('click',function(e){
+    e.preventDefault();
+    var tgt=document.querySelector(this.getAttribute('href'));
+    if(tgt)tgt.scrollIntoView({behavior:'smooth',block:'start'});
+    document.querySelectorAll('.sec-nav a').forEach(function(l){l.classList.remove('active')});
+    this.classList.add('active');
+  });
+});
+// Highlight nav on scroll
+var secEls=document.querySelectorAll('.sec-card');
+var navLinks=document.querySelectorAll('.sec-nav a');
+window.addEventListener('scroll',function(){
+  var scrollY=window.scrollY+100;
+  secEls.forEach(function(sec){
+    if(sec.offsetTop<=scrollY&&sec.offsetTop+sec.offsetHeight>scrollY){
+      var id=sec.id;
+      navLinks.forEach(function(l){l.classList.toggle('active',l.getAttribute('href')==='#'+id)});
+    }
+  });
+},{passive:true});
+
+// ─── Stats ──────────────────────────────────────────────────
+function fetchStats(){
+  fetch(API+'/stats').then(function(r){if(!r.ok)throw new Error();return r.json()}).then(function(d){
+    if(d.error){setApiStatus(false);return}
+    cache.stats=d;setApiStatus(true);
+    var su=document.getElementById('s-users'),sc=document.getElementById('s-customers'),sp=document.getElementById('s-purchases'),sf=document.getElementById('s-feedback');
+    var uCount=d.user_counts?d.user_counts.active:0;
+    su.textContent=uCount;su.className='val'+(uCount>0?' ok':'');
+    sc.textContent=d.customer_count||0;
+    var pc=d.purchase_count||0,paid=d.paid_count||0;
+    sp.innerHTML=esc(String(pc))+'<span class="val-sub">'+paid+' paid</span>';
+    var fb=d.feedback_unresolved||0;
+    sf.textContent=fb;sf.className='val'+(fb>0?' warn':'');
+    // Security stats
+    var l24=d.login_24h||{};
+    document.getElementById('sec-total').textContent=l24.total||0;
+    document.getElementById('sec-ok').textContent=l24.successful||0;
+    var fail=l24.failed||0;
+    var secF=document.getElementById('sec-fail');secF.textContent=fail;secF.className='val'+(fail>0?' crit':'');
+  }).catch(function(){setApiStatus(false)});
+}
+
+// ─── Users ──────────────────────────────────────────────────
+function fetchUsers(){
+  fetch(API+'/users').then(function(r){if(!r.ok)throw new Error();return r.json()}).then(function(d){
+    if(!Array.isArray(d))return;
+    cache.users=d;renderUsers(d);
+  }).catch(function(){});
+}
+function renderUsers(users){
+  var tb=document.getElementById('users-body'),tbl=document.getElementById('users-table'),emp=document.getElementById('users-empty'),cnt=document.getElementById('user-count');
+  if(!users||users.length===0){tbl.style.display='none';emp.style.display='block';emp.textContent='No users';cnt.textContent='';return}
+  emp.style.display='none';tbl.style.display='table';cnt.textContent='('+users.length+')';
+  var html='';
+  users.forEach(function(u){
+    var isHash=u.email&&u.email.length>50;
+    var label=isHash?(u.user_type==='admin'?'Primary Admin':'Primary Investor'):esc(u.email);
+    var typeBadge=u.user_type==='admin'?'badge-ok':'badge-off';
+    var statusBadge=u.status==='active'?'badge-ok':u.status==='suspended'?'badge-warn':'badge-crit';
+    var isPrimary=isHash;
+    html+='<tr>'+
+      '<td>'+u.id+'</td>'+
+      '<td><span class="badge '+typeBadge+'">'+esc(u.user_type)+'</span></td>'+
+      '<td><span class="badge '+statusBadge+'">'+esc(u.status||'active')+'</span></td>'+
+      '<td title="'+esc(fullDate(u.last_login))+'">'+relTime(u.last_login)+'</td>'+
+      '<td>'+(u.login_count||0)+'</td>'+
+      '<td style="font-size:.85em;color:var(--mut)">'+esc(u.notes||'--')+'</td>'+
+      '<td style="white-space:nowrap">'+
+        (u.status==='suspended'?'<button class="btn btn-primary btn-sm" onclick="activateUser('+u.id+')">Activate</button> ':'<button class="btn btn-sm btn-outline" style="color:var(--warn);border-color:var(--warn)" onclick="suspendUser('+u.id+')">Suspend</button> ')+
+        '<button class="btn btn-sm btn-outline" onclick="openEditUser('+u.id+')">Edit</button> '+
+        (isPrimary?'':'<button class="btn btn-sm btn-danger" onclick="deleteUser('+u.id+')">Delete</button>')+
+      '</td></tr>';
+  });
+  tb.innerHTML=html;
+}
+window.openCreateUser=function(){
+  document.getElementById('cu-email').value='';document.getElementById('cu-pass').value='';
+  document.getElementById('cu-type').value='admin';document.getElementById('cu-notes').value='';
+  openModal('modal-create-user');
+};
+window.submitCreateUser=function(){
+  var email=document.getElementById('cu-email').value.trim(),pass=document.getElementById('cu-pass').value,
+      type=document.getElementById('cu-type').value,notes=document.getElementById('cu-notes').value;
+  if(!email||!pass){showToast('Email and password required');return}
+  fetch(API+'/users',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,password:pass,user_type:type,notes:notes||null})})
+    .then(function(r){return r.json()}).then(function(d){
+      if(d.error){showToast('Error: '+(d.error||'Unknown'));return}
+      showToast('User created');closeModal('modal-create-user');fetchUsers();
+    }).catch(function(){showToast('Failed to create user')});
+};
+window.openEditUser=function(id){
+  var u=(cache.users||[]).find(function(x){return x.id===id});
+  if(!u)return;
+  document.getElementById('eu-id').value=id;
+  document.getElementById('eu-type').value=u.user_type;
+  document.getElementById('eu-status').value=u.status||'active';
+  document.getElementById('eu-notes').value=u.notes||'';
+  document.getElementById('eu-pass').value='';
+  openModal('modal-edit-user');
+};
+window.submitEditUser=function(){
+  var id=document.getElementById('eu-id').value;
+  var body={user_type:document.getElementById('eu-type').value,status:document.getElementById('eu-status').value,notes:document.getElementById('eu-notes').value||null};
+  var pass=document.getElementById('eu-pass').value;
+  if(pass)body.password=pass;
+  fetch(API+'/users/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(function(r){return r.json()}).then(function(d){
+      if(d.error){showToast('Error: '+d.error);return}
+      showToast('User updated');closeModal('modal-edit-user');fetchUsers();
+    }).catch(function(){showToast('Failed to update')});
+};
+window.suspendUser=function(id){if(confirm('Suspend this user?'))fetch(API+'/users/'+id+'/suspend',{method:'POST'}).then(function(){showToast('User suspended');fetchUsers()})};
+window.activateUser=function(id){fetch(API+'/users/'+id+'/activate',{method:'POST'}).then(function(){showToast('User activated');fetchUsers()})};
+window.deleteUser=function(id){if(confirm('Delete this user? This is a soft delete.'))fetch(API+'/users/'+id,{method:'DELETE'}).then(function(){showToast('User deleted');fetchUsers()})};
+
+// ─── Logins ─────────────────────────────────────────────────
+var expandedLoginId=null;
+function fetchLogins(){
+  var params=[];
+  var res=document.getElementById('login-filter-result').value;if(res)params.push('success='+res);
+  var ip=document.getElementById('login-filter-ip').value.trim();if(ip)params.push('ip='+encodeURIComponent(ip));
+  params.push('limit=50');
+  fetch(API+'/login-attempts?'+params.join('&')).then(function(r){if(!r.ok)throw new Error();return r.json()}).then(function(d){
+    if(!Array.isArray(d))return;
+    cache.logins=d;renderLogins(d);
+  }).catch(function(){});
+}
+function renderLogins(attempts){
+  var tb=document.getElementById('logins-body'),tbl=document.getElementById('logins-table'),emp=document.getElementById('logins-empty'),cnt=document.getElementById('login-count');
+  if(!attempts||attempts.length===0){tbl.style.display='none';emp.style.display='block';cnt.textContent='';return}
+  emp.style.display='none';tbl.style.display='table';cnt.textContent='('+attempts.length+')';
+  var html='';
+  attempts.forEach(function(a){
+    var ok=a.success;
+    var dotC=ok?'dot-g':'dot-r';
+    var rowClass=ok?'':'fail-row';
+    html+='<tr class="expandable '+rowClass+'" onclick="toggleLoginDetail('+a.id+')">'+
+      '<td title="'+esc(fullDate(a.timestamp))+'" style="font-family:Consolas,monospace;font-size:.85em;color:var(--mut);white-space:nowrap">'+relTime(a.timestamp)+'</td>'+
+      '<td style="font-family:Consolas,monospace;font-size:.85em">'+esc(a.ip_address||'--')+'</td>'+
+      '<td style="font-size:.85em">'+esc(a.username_attempted||'--')+'</td>'+
+      '<td><span class="dot '+dotC+'"></span> '+(ok?'OK':'Fail')+'</td>'+
+      '<td style="font-size:.8em;color:var(--mut)">'+esc(a.failure_reason||'')+'</td>'+
+      '<td style="font-size:.7em;color:var(--mut)">&#9660;</td></tr>';
+    // Detail row
+    var ua=parseUA(a.user_agent);
+    html+='<tr id="ld-'+a.id+'" style="display:none"><td colspan="6" style="padding:0"><div class="login-detail show" style="display:block">'+
+      '<div class="ld-row"><span class="ld-label">Timestamp</span><span class="ld-val">'+esc(fullDate(a.timestamp))+'</span></div>'+
+      '<div class="ld-row"><span class="ld-label">IP Address</span><span class="ld-val">'+esc(a.ip_address||'--')+'</span></div>'+
+      '<div class="ld-row"><span class="ld-label">Username</span><span class="ld-val">'+esc(a.username_attempted||'--')+'</span></div>'+
+      '<div class="ld-row"><span class="ld-label">Result</span><span class="ld-val">'+(a.success?'<span class="ok">Success</span>':'<span class="crit">Failed</span> - '+esc(a.failure_reason||'unknown'))+'</span></div>'+
+      '<div class="ld-row"><span class="ld-label">Matched Type</span><span class="ld-val">'+esc(a.user_type_matched||'none')+'</span></div>'+
+      '<div class="ld-row"><span class="ld-label">Browser</span><span class="ld-val">'+esc(ua.browser)+' on '+esc(ua.os)+' ('+esc(ua.device)+')</span></div>'+
+      '<div class="ld-row"><span class="ld-label">User Agent</span><span class="ld-val" style="font-size:.8em;color:var(--mut)">'+esc(a.user_agent||'--')+'</span></div>'+
+      (a.ip_address?'<div style="margin-top:8px"><button class="btn btn-sm btn-danger" onclick="event.stopPropagation();banIPQuick(\''+esc(a.ip_address)+'\')">Ban This IP</button></div>':'')+
+    '</div></td></tr>';
+  });
+  tb.innerHTML=html;
+  // Re-expand if one was open
+  if(expandedLoginId){var el=document.getElementById('ld-'+expandedLoginId);if(el)el.style.display='table-row'}
+}
+window.toggleLoginDetail=function(id){
+  if(expandedLoginId===id){document.getElementById('ld-'+id).style.display='none';expandedLoginId=null;return}
+  if(expandedLoginId){var prev=document.getElementById('ld-'+expandedLoginId);if(prev)prev.style.display='none'}
+  document.getElementById('ld-'+id).style.display='table-row';expandedLoginId=id;
+};
+
+// ─── Customers ──────────────────────────────────────────────
+function fetchCustomers(){
+  var search=document.getElementById('cust-search').value.trim();
+  fetch(API+'/customers?limit=50'+(search?'&search='+encodeURIComponent(search):'')).then(function(r){if(!r.ok)throw new Error();return r.json()}).then(function(d){
+    if(d.error)return;
+    var custs=d.customers||d||[];cache.customers=custs;renderCustomers(custs,d.total);
+  }).catch(function(){});
+}
+function renderCustomers(custs,total){
+  var tb=document.getElementById('cust-body'),tbl=document.getElementById('cust-table'),emp=document.getElementById('cust-empty'),cnt=document.getElementById('cust-count');
+  if(!custs||custs.length===0){tbl.style.display='none';emp.style.display='block';cnt.textContent='';return}
+  emp.style.display='none';tbl.style.display='table';cnt.textContent='('+(total||custs.length)+')';
+  var html='';
+  custs.forEach(function(c){
+    var tagHtml='';
+    if(c.tags){c.tags.split(',').forEach(function(t){t=t.trim();if(t)tagHtml+='<span class="tag-pill">'+esc(t)+'</span>'})}
+    html+='<tr>'+
+      '<td>'+c.id+'</td><td>'+esc(c.email)+'</td><td>'+esc(c.name||'--')+'</td>'+
+      '<td title="'+esc(fullDate(c.creation_date))+'">'+relTime(c.creation_date)+'</td>'+
+      '<td>'+(c.purchase_count||0)+'</td>'+
+      '<td>'+tagHtml+'</td>'+
+      '<td><button class="btn btn-sm btn-outline" onclick="viewCustomer('+c.id+')">View</button> <button class="btn btn-sm btn-danger" onclick="deleteCustomer('+c.id+')">Delete</button></td></tr>';
+  });
+  tb.innerHTML=html;
+}
+window.viewCustomer=function(id){
+  var el=document.getElementById('cust-detail-content');el.innerHTML='Loading...';openModal('modal-cust-detail');
+  fetch(API+'/customers/'+id).then(function(r){return r.json()}).then(function(d){
+    if(d.error){el.innerHTML='<span class="crit">Error: '+esc(d.error)+'</span>';return}
+    var html='<div style="margin-bottom:12px"><strong>'+esc(d.email)+'</strong><br><span style="color:var(--mut);font-size:.85em">'+esc(d.name||'--')+' - Joined '+relTime(d.creation_date)+'</span></div>';
+    var p=d.purchases||[];
+    if(p.length>0){
+      html+='<table class="table"><thead><tr><th>Order #</th><th>Product</th><th>Location</th><th>Status</th><th>Date</th></tr></thead><tbody>';
+      p.forEach(function(o){
+        var sb=o.pay_status==='paid'?'badge-ok':o.pay_status==='pending'?'badge-warn':'badge-crit';
+        html+='<tr><td>'+o.id+'</td><td>'+esc(o.product_name)+'</td><td>'+esc((o.city||'')+', '+(o.state||''))+'</td><td><span class="badge '+sb+'">'+esc(o.pay_status)+'</span></td><td>'+relTime(o.purchase_date)+'</td></tr>';
+      });
+      html+='</tbody></table>';
+    }else{html+='<div class="alert-none">No purchases</div>';}
+    el.innerHTML=html;
+    document.getElementById('cd-cust-id').value=d.id;
+    document.getElementById('cd-tags').value=d.tags||'';
+    document.getElementById('cd-notes').value=d.admin_notes||'';
+  }).catch(function(){el.innerHTML='Failed to load'});
+};
+window.deleteCustomer=function(id){if(confirm('Delete this customer and all their purchases?'))fetch(API+'/customers/'+id,{method:'DELETE'}).then(function(){showToast('Customer deleted');fetchCustomers()})};
+window.saveCustomerMeta=function(){
+  var id=document.getElementById('cd-cust-id').value;if(!id)return;
+  var tags=document.getElementById('cd-tags').value,notes=document.getElementById('cd-notes').value;
+  fetch(API+'/customers/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({tags:tags,admin_notes:notes})})
+    .then(function(r){return r.json()}).then(function(d){
+      if(d.error){showToast('Error: '+d.error);return}
+      showToast('Customer updated');fetchCustomers();
+    }).catch(function(){showToast('Failed to update')});
+};
+
+// ─── Customer Insights ──────────────────────────────────────
+function fetchCustomerStats(){
+  fetch(API+'/customers/stats').then(function(r){if(!r.ok)throw new Error();return r.json()}).then(function(d){
+    if(d.error)return;
+    document.getElementById('cust-stats-row').style.display='flex';
+    var rep=d.repeat_customers||{};
+    document.getElementById('cs-repeat').textContent=rep.count||0;
+    document.getElementById('cs-repeat-pct').textContent=(rep.percentage||0).toFixed(1)+'%';
+    var geo=d.geographic||{},topS=(geo.top_states||[])[0];
+    document.getElementById('cs-top-state').textContent=topS?topS.state:'--';
+    var trend=d.acquisition_trend||[],latest=trend[trend.length-1];
+    document.getElementById('cs-new-week').textContent=latest?latest.count:'--';
+    // Acquisition trend chart
+    var el=document.getElementById('cust-acq-chart');
+    if(!trend.length){el.innerHTML='<div class="alert-none" style="font-size:.8em">No data</div>';return}
+    var mx=1;trend.forEach(function(t){if(t.count>mx)mx=t.count});
+    var html='';trend.slice(-12).forEach(function(t){
+      var pct=Math.round((t.count/mx)*100);
+      var lbl=t.period||'--';if(lbl.length>7)lbl=lbl.substring(5);
+      html+='<div class="bar-row"><span class="bar-label" style="min-width:50px;font-size:.65em">'+esc(lbl)+'</span><div class="bar-track" style="height:16px"><div class="bar-fill" style="width:'+pct+'%"></div></div><span class="bar-count" style="font-size:.7em">'+t.count+'</span></div>';
+    });
+    el.innerHTML=html;
+  }).catch(function(){});
+}
+function fetchCustomerGeo(){
+  fetch(API+'/customers/geo').then(function(r){if(!r.ok)throw new Error();return r.json()}).then(function(d){
+    if(d.error)return;
+    var states=(d.top_states||[]).map(function(s){return{name:s.state,count:s.count}});
+    renderMiniBarChart(states,'cust-geo-chart');
+    document.getElementById('cust-charts').style.display='block';
+  }).catch(function(){});
+}
+
+// ─── Purchases ──────────────────────────────────────────────
+function fetchPurchases(){
+  var st=document.getElementById('purch-status').value;
+  fetch(API+'/purchases?limit=50'+(st?'&status='+st:'')).then(function(r){if(!r.ok)throw new Error();return r.json()}).then(function(d){
+    if(!Array.isArray(d))return;
+    cache.purchases=d;renderPurchases(d);
+  }).catch(function(){});
+}
+function renderPurchases(items){
+  var tb=document.getElementById('purch-body'),tbl=document.getElementById('purch-table'),emp=document.getElementById('purch-empty'),cnt=document.getElementById('purch-count');
+  if(!items||items.length===0){tbl.style.display='none';emp.style.display='block';cnt.textContent='';return}
+  emp.style.display='none';tbl.style.display='table';cnt.textContent='('+items.length+')';
+  var html='';
+  items.forEach(function(p){
+    var sb=p.pay_status==='paid'?'badge-ok':p.pay_status==='pending'?'badge-warn':'badge-crit';
+    html+='<tr><td>'+p.id+'</td><td>'+esc(p.product_name)+'</td><td>'+esc(p.customer_email||'--')+'</td>'+
+      '<td>'+esc((p.city||'')+', '+(p.state||''))+'</td>'+
+      '<td><span class="badge '+sb+'">'+esc(p.pay_status||'--')+'</span></td>'+
+      '<td title="'+esc(fullDate(p.purchase_date))+'">'+relTime(p.purchase_date)+'</td></tr>';
+  });
+  tb.innerHTML=html;
+}
+
+// ─── Purchase & Revenue Analytics ───────────────────────────
+function fetchPurchaseStats(){
+  fetch(API+'/purchases/stats?days='+ordDays).then(function(r){if(!r.ok)throw new Error();return r.json()}).then(function(d){
+    if(d.error)return;
+    document.getElementById('purch-stats-row').style.display='flex';
+    var rev=d.revenue||{};
+    document.getElementById('ps-revenue').textContent='$'+((rev.total_cents||0)/100).toFixed(2);
+    document.getElementById('ps-avg').textContent='$'+((rev.avg_order_cents||0)/100).toFixed(2);
+    document.getElementById('ps-period-count').textContent=d.period_total||0;
+    var statuses=d.status_breakdown||[],paid=0,totalO=0;
+    statuses.forEach(function(s){totalO+=s.count;if(s.status==='paid')paid=s.count});
+    document.getElementById('ps-paid-rate').textContent=totalO>0?Math.round((paid/totalO)*100)+'%':'--';
+    // Orders over time chart
+    var oot=d.orders_over_time||[],chart=document.getElementById('purch-time-chart');
+    if(!oot.length){chart.innerHTML='<div class="alert-none" style="font-size:.8em">No data</div>';return}
+    var mx=1;oot.forEach(function(x){if(x.count>mx)mx=x.count});
+    var html='';oot.forEach(function(x){
+      var pct=Math.round((x.count/mx)*100);
+      var lbl=x.period||'--';if(lbl.length>5)lbl=lbl.substring(5);
+      html+='<div class="bar-row"><span class="bar-label" style="font-size:.65em">'+esc(lbl)+'</span><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%"></div></div><span class="bar-count">'+x.count+'</span></div>';
+    });
+    chart.innerHTML=html;
+  }).catch(function(){});
+}
+function fetchPurchaseGeo(){
+  fetch(API+'/purchases/geo').then(function(r){if(!r.ok)throw new Error();return r.json()}).then(function(d){
+    if(d.error)return;
+    var states=(d.top_states||[]).map(function(s){return{name:s.state,count:s.count}});
+    renderMiniBarChart(states,'purch-geo-chart');
+  }).catch(function(){});
+}
+function fetchPurchaseFunnel(){
+  fetch(API+'/purchases/funnel?days='+ordDays).then(function(r){if(!r.ok)throw new Error();return r.json()}).then(function(d){
+    if(d.error)return;
+    var el=document.getElementById('purch-funnel');
+    var steps=[
+      {label:'Visitors',count:d.unique_visitors||0,color:'var(--blue,#3b82f6)'},
+      {label:'/sell Views',count:d.sell_page_views||0,color:'var(--warn)'},
+      {label:'Purchases',count:d.completed_purchases||0,color:'var(--g)'}
+    ];
+    var mx=steps[0].count||1;
+    var html='';steps.forEach(function(s){
+      var pct=Math.max(2,Math.round((s.count/mx)*100));
+      html+='<div class="funnel-row"><span class="funnel-label">'+esc(s.label)+'</span><div class="funnel-bar"><div class="funnel-fill" style="width:'+pct+'%;background:'+s.color+'"></div></div><span class="funnel-count">'+s.count+'</span></div>';
+    });
+    el.innerHTML=html;
+  }).catch(function(){});
+}
+window.setOrdPeriod=function(days,btn){
+  ordDays=days;
+  document.querySelectorAll('.ord-period').forEach(function(b){b.classList.remove('active')});
+  btn.classList.add('active');fetchPurchaseStats();fetchPurchaseFunnel();
+};
+
+// ─── Feedback ───────────────────────────────────────────────
+function fbAgeColor(dateStr){
+  if(!dateStr)return'var(--mut)';
+  var hours=(Date.now()-new Date(dateStr).getTime())/3600000;
+  if(hours<72)return'var(--g)';if(hours<168)return'var(--blue,#3b82f6)';if(hours<336)return'var(--warn)';return'var(--crit)';
+}
+function fetchFeedback(){
+  var ty=document.getElementById('fb-filter-type').value,res=document.getElementById('fb-filter-resolved').value;
+  var params=[];if(ty)params.push('type='+ty);if(res)params.push('resolved='+res);
+  fetch(API+'/feedback?'+params.join('&')).then(function(r){if(!r.ok)throw new Error();return r.json()}).then(function(d){
+    if(!Array.isArray(d))return;
+    cache.feedback=d;renderFeedback(d);
+  }).catch(function(){});
+}
+function renderFeedback(items){
+  var list=document.getElementById('fb-list'),emp=document.getElementById('fb-empty'),cnt=document.getElementById('fb-count');
+  if(!items||items.length===0){list.innerHTML='';emp.style.display='block';cnt.textContent='';return}
+  emp.style.display='none';cnt.textContent='('+items.length+')';
+  var html='';
+  items.forEach(function(f){
+    var ref='TULL-'+String(f.id).padStart(4,'0');
+    var typeColors={General:'var(--blue)',Technical:'#a855f7',Order:'var(--warn)',Feature:'#14b8a6'};
+    var tc=typeColors[f.feedbacktype]||'var(--mut)';
+    var statusBadge=f.resolved?'badge-ok':'badge-warn';
+    var statusText=f.resolved?'Resolved':'Open';
+    html+='<div style="background:#0a0a0a;border:1px solid #1a1a1a;padding:10px 14px;margin-bottom:4px">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;cursor:pointer" onclick="toggleFb('+f.id+')">'+
+        '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">'+
+          '<span class="fb-age-dot" style="background:'+fbAgeColor(f.date)+'"></span>'+
+          '<span style="font-family:Consolas,monospace;font-size:.8em;color:var(--g)">'+ref+'</span>'+
+          '<span style="font-size:.8em">'+esc(f.feedbackmail)+'</span>'+
+          '<span style="padding:2px 8px;font-size:.6em;font-weight:700;text-transform:uppercase;letter-spacing:1px;background:rgba(255,255,255,.05);color:'+tc+'">'+esc(f.feedbacktype||'--')+'</span>'+
+          '<span class="badge '+statusBadge+'" style="font-size:.6em">'+statusText+'</span>'+
+        '</div>'+
+        '<div style="display:flex;align-items:center;gap:8px">'+
+          '<span style="font-size:.75em;color:var(--mut)">'+relTime(f.date)+'</span>'+
+          '<span style="font-size:.7em;color:var(--mut)">&#9660;</span>'+
+        '</div>'+
+      '</div>'+
+      '<div class="fb-detail" id="fb-'+f.id+'">'+
+        (f.feedbackorderid?'<div style="font-size:.8em;color:var(--mut);margin-bottom:4px">Order: '+esc(f.feedbackorderid)+'</div>':'')+
+        (f.serial_number?'<div style="font-size:.8em;color:var(--mut);margin-bottom:4px">Serial: '+esc(f.serial_number)+'</div>':'')+
+        '<div class="fb-msg">'+esc(f.feedbackfullfield||'No message')+'</div>'+
+        '<label style="display:block;font-size:.7em;color:var(--mut);text-transform:uppercase;letter-spacing:1px;margin:8px 0 4px">Admin Notes</label>'+
+        '<textarea id="fb-notes-'+f.id+'" style="width:100%;min-height:50px;background:#0a0a0a;border:1px solid var(--brd);color:var(--txt);padding:6px 8px;font-size:.85em;font-family:inherit;resize:vertical">'+esc(f.admin_notes||'')+'</textarea>'+
+        '<div style="display:flex;gap:8px;margin-top:8px">'+
+          '<button class="btn btn-sm '+(f.resolved?'btn-outline':'btn-primary')+'" onclick="toggleResolved('+f.id+','+(!f.resolved)+')">'+(f.resolved?'Mark Open':'Mark Resolved')+'</button>'+
+          '<button class="btn btn-sm btn-outline" onclick="saveFbNotes('+f.id+')">Save Notes</button>'+
+          '<button class="btn btn-sm btn-outline" onclick="openReply('+f.id+')">Reply</button>'+
+          '<button class="btn btn-sm btn-danger" onclick="deleteFb('+f.id+')">Delete</button>'+
+        '</div>'+
+        '<div class="reply-area" id="fb-reply-'+f.id+'" style="display:none">'+
+          '<textarea id="fb-reply-msg-'+f.id+'" placeholder="Type your reply to '+esc(f.feedbackmail)+'..."></textarea>'+
+          '<div style="display:flex;gap:8px">'+
+            '<button class="btn btn-sm btn-primary" onclick="sendReply('+f.id+',false)">Send Reply</button>'+
+            '<button class="btn btn-sm btn-outline" onclick="sendReply('+f.id+',true)">Send + Resolve</button>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  });
+  list.innerHTML=html;
+}
+window.toggleFb=function(id){var el=document.getElementById('fb-'+id);if(el)el.classList.toggle('show')};
+window.toggleResolved=function(id,val){
+  fetch(API+'/feedback/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({resolved:val})})
+    .then(function(r){return r.json()}).then(function(){showToast(val?'Marked resolved':'Marked open');fetchFeedback()}).catch(function(){showToast('Failed')});
+};
+window.saveFbNotes=function(id){
+  var notes=document.getElementById('fb-notes-'+id).value;
+  fetch(API+'/feedback/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({admin_notes:notes})})
+    .then(function(){showToast('Notes saved')}).catch(function(){showToast('Failed')});
+};
+window.deleteFb=function(id){if(confirm('Delete this feedback?'))fetch(API+'/feedback/'+id,{method:'DELETE'}).then(function(){showToast('Deleted');fetchFeedback()})};
+window.openReply=function(id){var el=document.getElementById('fb-reply-'+id);if(el)el.style.display=el.style.display==='block'?'none':'block'};
+window.sendReply=function(id,resolve){
+  var msg=document.getElementById('fb-reply-msg-'+id).value.trim();
+  if(!msg){showToast('Message is required');return}
+  fetch(API+'/feedback/'+id+'/reply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg,resolve:resolve||false})})
+    .then(function(r){return r.json()}).then(function(d){
+      if(d.error){showToast('Error: '+d.error);return}
+      showToast(d.email_sent?'Reply sent':'Reply saved (email failed)');fetchFeedback();fetchFeedbackStats();
+    }).catch(function(){showToast('Failed to send reply')});
+};
+
+// ─── Feedback Intelligence (Stats) ─────────────────────────
+function fetchFeedbackStats(){
+  fetch(API+'/feedback/stats').then(function(r){if(!r.ok)throw new Error();return r.json()}).then(function(d){
+    if(d.error)return;renderFeedbackStats(d);
+  }).catch(function(){});
+}
+function renderFeedbackStats(d){
+  var bar=document.getElementById('fb-stats-bar');bar.style.display='flex';
+  var types=d.type_distribution||[],dist=document.getElementById('fb-type-dist');
+  var mx=1;types.forEach(function(t){if(t.count>mx)mx=t.count});
+  var typeColors={General:'var(--blue,#3b82f6)',Technical:'#a855f7',Order:'var(--warn)',Feature:'#14b8a6'};
+  var html='';
+  types.forEach(function(t){
+    var h=Math.max(4,Math.round((t.count/mx)*24));
+    html+='<div class="fb-type-bar" style="height:'+h+'px;background:'+(typeColors[t.type]||'var(--mut)')+'" title="'+esc(t.type)+': '+t.count+'"></div>';
+  });
+  dist.innerHTML=html;
+  var aging=d.aging_buckets||{},agEl=document.getElementById('fb-aging');
+  agEl.innerHTML='<span class="age-badge age-fresh">&lt;3d: '+(aging.under_3d||0)+'</span> '+
+    '<span class="age-badge age-normal">3-7d: '+(aging['3_to_7d']||0)+'</span> '+
+    '<span class="age-badge age-aging">7-14d: '+(aging['7_to_14d']||0)+'</span> '+
+    '<span class="age-badge age-stale">&gt;14d: '+(aging.over_14d||0)+'</span>';
+  var res=d.resolution_metrics||{},avg=res.avg_hours;
+  document.getElementById('fb-avg-res').textContent=avg!=null?(avg<24?avg.toFixed(0)+'h':(avg/24).toFixed(1)+'d'):'--';
+}
+
+// ─── Visitors ───────────────────────────────────────────────
+function fetchVisitors(){
+  fetch(API+'/visitors?days='+visDays).then(function(r){return r.json()}).then(function(d){
+    if(d.error)return;cache.visitors=d;renderVisitors(d);
+  }).catch(function(){});
+  fetchVisitorDevices();fetchVisitorReferrers();fetchVisitorHeatmap();fetchVisitorPageflow();
+}
+function renderVisitors(d){
+  var chart=document.getElementById('vis-chart'),emp=document.getElementById('vis-empty');
+  document.getElementById('vis-unique').textContent=d.total_unique||0;
+  document.getElementById('vis-views').textContent=d.total_views||0;
+  document.getElementById('vis-avg').textContent=d.avg_daily||0;
+  var topP=(d.top_pages||[])[0];
+  document.getElementById('vis-top').textContent=topP?topP.path:'--';
+  var days=d.daily||[];
+  if(!days.length){chart.innerHTML='';emp.style.display='block';return}
+  emp.style.display='none';
+  var maxV=1;days.forEach(function(x){if(x.views>maxV)maxV=x.views});
+  var html='';
+  days.forEach(function(x){
+    var pct=Math.round((x.views/maxV)*100);
+    var label=x.day||'--';if(label.length>5)label=label.substring(5);
+    html+='<div class="bar-row"><span class="bar-label">'+esc(label)+'</span><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%"></div></div><span class="bar-count">'+x.views+'</span></div>';
+  });
+  chart.innerHTML=html;
+  // Top pages
+  var pages=d.top_pages||[];
+  var ptb=document.getElementById('vis-pages-body'),ptbl=document.getElementById('vis-pages-table');
+  if(pages.length>0){
+    ptbl.style.display='table';
+    var ph='';pages.forEach(function(p){ph+='<tr><td style="font-family:Consolas,monospace">'+esc(p.path)+'</td><td>'+p.hits+'</td><td>'+p.unique_ips+'</td></tr>'});
+    ptb.innerHTML=ph;
+  }else{ptbl.style.display='none'}
+}
+window.setVisPeriod=function(days,btn){
+  visDays=days;
+  document.querySelectorAll('.vis-period').forEach(function(b){b.classList.remove('active')});
+  btn.classList.add('active');fetchVisitors();
+};
+
+// ─── Security ───────────────────────────────────────────────
+function fetchSecurity(){
+  fetch(API+'/security/alerts').then(function(r){return r.json()}).then(function(d){
+    if(d.error)return;cache.security=d;renderSecurity(d);
+  }).catch(function(){});
+}
+function renderSecurity(d){
+  var banner=document.getElementById('threat-banner'),alerts=document.getElementById('sec-alerts'),emp=document.getElementById('sec-empty');
+  var bf=d.brute_force||[],sus=d.suspicious_ips||[],fu=d.failed_usernames||[];
+  if(bf.length>0){banner.className='threat-crit';banner.textContent='Active threats detected - '+bf.length+' brute force source(s)'}
+  else if(sus.length>0){banner.className='threat-warn';banner.textContent='Suspicious activity - '+sus.length+' IP(s) with repeated failures'}
+  else{banner.className='threat-ok';banner.textContent='No threats detected'}
+  var html='';
+  if(bf.length>0){
+    html+='<div style="margin-bottom:12px"><div style="font-size:.65em;color:var(--crit);text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;font-weight:700">Brute Force</div>';
+    bf.forEach(function(b){html+='<div class="alert-item"><div><span class="alert-ip" data-ip="'+esc(b.ip)+'">'+esc(b.ip)+'</span><span class="geo-tag" data-geo-ip="'+esc(b.ip)+'"></span><span class="alert-count"> - '+b.attempts+' attempts - '+relTime(b.latest)+'</span></div><div style="display:flex;gap:6px;align-items:center"><button class="btn btn-sm btn-danger" onclick="banIPQuick(\''+esc(b.ip)+'\')">Ban</button><span class="badge badge-crit">Critical</span></div></div>'});
+    html+='</div>';
+  }
+  if(sus.length>0){
+    html+='<div style="margin-bottom:12px"><div style="font-size:.65em;color:var(--warn);text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;font-weight:700">Suspicious IPs</div>';
+    sus.forEach(function(s){
+      var sev=s.attempts>=5?'badge-crit':'badge-warn';
+      html+='<div class="alert-item"><div><span class="alert-ip" data-ip="'+esc(s.ip)+'">'+esc(s.ip)+'</span><span class="geo-tag" data-geo-ip="'+esc(s.ip)+'"></span><span class="alert-count"> - '+s.attempts+' failures</span></div><div style="display:flex;gap:6px;align-items:center"><button class="btn btn-sm btn-danger" onclick="banIPQuick(\''+esc(s.ip)+'\')">Ban</button><span class="badge '+sev+'">'+esc(s.severity||'warning')+'</span></div></div>';
+    });
+    html+='</div>';
+  }
+  if(fu.length>0){
+    html+='<div><div style="font-size:.65em;color:var(--mut);text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;font-weight:700">Failed Usernames</div>';
+    html+='<div style="display:flex;flex-wrap:wrap;gap:6px">';
+    fu.forEach(function(u){
+      var botNames=['admin','root','test','administrator','user','guest','login','info','support'];
+      var isBot=botNames.indexOf((u.username||'').toLowerCase())>=0;
+      html+='<span style="padding:3px 10px;font-size:.8em;font-family:Consolas,monospace;background:'+(isBot?'rgba(255,50,50,.1);color:var(--crit)':'#0a0a0a;color:var(--txt)')+';border:1px solid #1a1a1a">'+esc(u.username)+' <span style="color:var(--mut)">('+u.attempts+')</span></span>';
+    });
+    html+='</div></div>';
+  }
+  if(!bf.length&&!sus.length&&!fu.length){emp.style.display='block';alerts.innerHTML=''}
+  else{emp.style.display='none';alerts.innerHTML=html;setTimeout(resolveGeoTags,100)}
+}
+
+// ─── Banned IPs ─────────────────────────────────────────────
+function fetchBannedIPs(){
+  fetch(API+'/banned-ips?active=true').then(function(r){if(!r.ok)throw new Error();return r.json()}).then(function(d){
+    if(!Array.isArray(d))return;renderBannedIPs(d);
+  }).catch(function(){});
+}
+function renderBannedIPs(bans){
+  var tb=document.getElementById('ban-body'),tbl=document.getElementById('ban-table'),emp=document.getElementById('ban-empty'),cnt=document.getElementById('ban-count');
+  if(!bans||bans.length===0){tbl.style.display='none';emp.style.display='block';cnt.textContent='';return}
+  emp.style.display='none';tbl.style.display='table';cnt.textContent='('+bans.length+')';
+  var html='';
+  bans.forEach(function(b){
+    html+='<tr><td style="font-family:Consolas,monospace;font-size:.85em">'+esc(b.ip_address)+'</td>'+
+      '<td style="font-size:.85em">'+esc(b.reason||'--')+'</td>'+
+      '<td><span class="badge '+(b.banned_by==='auto'?'badge-warn':'badge-ok')+'">'+esc(b.banned_by||'--')+'</span></td>'+
+      '<td style="font-size:.85em;color:var(--mut)">'+(b.expires_at?fullDate(b.expires_at):'Permanent')+'</td>'+
+      '<td><button class="btn btn-sm btn-outline" onclick="unbanIP('+b.id+')">Unban</button></td></tr>';
+  });
+  tb.innerHTML=html;
+}
+window.openBanModal=function(ip){
+  document.getElementById('ban-ip-input').value=ip||'';
+  document.getElementById('ban-reason').value='';
+  document.getElementById('ban-hours').value='24';
+  openModal('modal-ban-ip');
+};
+window.submitBanIP=function(){
+  var ip=document.getElementById('ban-ip-input').value.trim();
+  if(!ip){showToast('IP address required');return}
+  var reason=document.getElementById('ban-reason').value;
+  var hours=document.getElementById('ban-hours').value;
+  var body={ip_address:ip};
+  if(reason)body.reason=reason;
+  if(hours)body.expires_hours=parseInt(hours);
+  fetch(API+'/banned-ips',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(function(r){return r.json()}).then(function(d){
+      if(d.error){showToast('Error: '+d.error);return}
+      showToast('IP banned');closeModal('modal-ban-ip');fetchBannedIPs();
+    }).catch(function(){showToast('Failed to ban IP')});
+};
+window.unbanIP=function(id){if(confirm('Unban this IP?'))fetch(API+'/banned-ips/'+id,{method:'DELETE'}).then(function(){showToast('IP unbanned');fetchBannedIPs()})};
+window.banIPQuick=function(ip){openBanModal(ip)};
+
+// ─── Login Heatmap ──────────────────────────────────────────
+function fetchLoginHeatmap(){
+  fetch(API+'/security/login-heatmap?days=7').then(function(r){if(!r.ok)throw new Error();return r.json()}).then(function(d){
+    if(!d.hours)return;renderLoginHeatmap(d);
+  }).catch(function(){});
+}
+function renderLoginHeatmap(d){
+  var el=document.getElementById('sec-heatmap');
+  var hours=d.hours||[],mx=d.max||1;
+  var html='';
+  for(var i=0;i<24;i++){
+    var h=hours[i]||{total:0,failed:0};
+    var tPct=Math.round((h.total/mx)*100);
+    var fPct=h.total>0?Math.round((h.failed/h.total)*100):0;
+    html+='<div class="heatmap-cell" title="'+i+':00 - '+h.total+' total, '+h.failed+' failed">'+
+      '<div class="heatmap-bar">'+
+        '<div class="heatmap-fill" style="height:'+tPct+'%"></div>'+
+        (h.failed>0?'<div class="heatmap-fail" style="height:'+Math.round((h.failed/mx)*100)+'%"></div>':'')+
+      '</div>'+
+      '<span class="heatmap-hour">'+i+'</span></div>';
+  }
+  el.innerHTML=html;
+}
+
+// ─── Geo Resolution ─────────────────────────────────────────
+var geoCache={};
+function resolveGeoTags(){
+  var els=document.querySelectorAll('[data-geo-ip]');
+  var ipsNeeded=[];
+  els.forEach(function(el){
+    var ip=el.getAttribute('data-geo-ip');
+    if(geoCache[ip]){el.textContent='('+geoCache[ip]+')';return}
+    if(ipsNeeded.indexOf(ip)===-1)ipsNeeded.push(ip);
+  });
+  if(ipsNeeded.length===0)return;
+  fetch(API+'/security/resolve-geo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ips:ipsNeeded.slice(0,20)})})
+    .then(function(r){return r.json()}).then(function(d){
+      if(d.error)return;
+      Object.keys(d).forEach(function(ip){
+        var info=d[ip];
+        var label=[info.city,info.country].filter(Boolean).join(', ');
+        geoCache[ip]=label;
+      });
+      els.forEach(function(el){
+        var ip=el.getAttribute('data-geo-ip');
+        if(geoCache[ip])el.textContent='('+geoCache[ip]+')';
+      });
+    }).catch(function(){});
+}
+
+// ─── Audit Log ──────────────────────────────────────────────
+function fetchAuditLog(){
+  fetch(API+'/security/audit-log?limit=30').then(function(r){if(!r.ok)throw new Error();return r.json()}).then(function(d){
+    if(!Array.isArray(d))return;renderAuditLog(d);
+  }).catch(function(){});
+}
+function renderAuditLog(items){
+  var tb=document.getElementById('audit-body'),tbl=document.getElementById('audit-table'),emp=document.getElementById('audit-empty');
+  if(!items||items.length===0){tbl.style.display='none';emp.style.display='block';return}
+  emp.style.display='none';tbl.style.display='table';
+  var html='';
+  items.forEach(function(a){
+    var det=a.details||'';if(det.length>80)det=det.substring(0,80)+'...';
+    html+='<tr>'+
+      '<td style="white-space:nowrap;font-size:.8em;color:var(--mut)" title="'+esc(fullDate(a.timestamp))+'">'+relTime(a.timestamp)+'</td>'+
+      '<td style="font-size:.85em;font-family:Consolas,monospace">'+esc(a.action)+'</td>'+
+      '<td style="font-size:.85em">'+esc((a.target_type||'')+(a.target_id?' #'+a.target_id:''))+'</td>'+
+      '<td style="font-size:.8em;color:var(--mut);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(a.details||'')+'">'+esc(det)+'</td>'+
+      '<td style="font-family:Consolas,monospace;font-size:.8em">'+esc(a.admin_ip||'--')+'</td></tr>';
+  });
+  tb.innerHTML=html;
+}
+
+// ─── Visitor Analytics (Advanced) ───────────────────────────
+function fetchVisitorDevices(){
+  fetch(API+'/visitors/devices?days='+visDays).then(function(r){if(!r.ok)throw new Error();return r.json()}).then(function(d){
+    if(d.error)return;renderVisitorDevices(d);
+  }).catch(function(){});
+}
+function renderMiniBarChart(items,containerId){
+  var el=document.getElementById(containerId);
+  if(!items||items.length===0){el.innerHTML='<div class="alert-none" style="font-size:.8em">No data</div>';return}
+  var mx=1;items.forEach(function(x){if(x.count>mx)mx=x.count});
+  var html='';
+  items.slice(0,8).forEach(function(x){
+    var pct=Math.round((x.count/mx)*100);
+    html+='<div class="bar-row"><span class="bar-label" style="min-width:60px;font-size:.7em">'+esc(x.name)+'</span><div class="bar-track" style="height:16px"><div class="bar-fill" style="width:'+pct+'%"></div></div><span class="bar-count" style="font-size:.7em">'+x.count+'</span></div>';
+  });
+  el.innerHTML=html;
+}
+function renderVisitorDevices(d){
+  renderMiniBarChart(d.browsers||[],'vis-browsers');
+  renderMiniBarChart(d.os||[],'vis-os');
+  renderMiniBarChart(d.devices||[],'vis-devices');
+}
+
+function fetchVisitorReferrers(){
+  fetch(API+'/visitors/referrers?days='+visDays).then(function(r){if(!r.ok)throw new Error();return r.json()}).then(function(d){
+    if(d.error)return;renderVisitorReferrers(d);
+  }).catch(function(){});
+}
+function renderVisitorReferrers(d){
+  var stats=document.getElementById('vis-referrer-stats');
+  stats.innerHTML='<div class="inline-stat"><span class="is-val">'+(d.direct_hits||0)+'</span> <span class="is-label">direct</span></div>'+
+    '<div class="inline-stat"><span class="is-val">'+(d.external_hits||0)+'</span> <span class="is-label">external</span></div>'+
+    '<div class="inline-stat"><span class="is-val">'+(d.internal_hits||0)+'</span> <span class="is-label">internal</span></div>';
+  var sources=d.sources||[];
+  var tb=document.getElementById('vis-ref-body'),tbl=document.getElementById('vis-ref-table');
+  if(sources.length===0){tbl.style.display='none';return}
+  tbl.style.display='table';
+  var html='';
+  sources.forEach(function(s){
+    var tc=s.type==='external'?'var(--g)':s.type==='internal'?'var(--mut)':'var(--txt)';
+    html+='<tr><td style="font-family:Consolas,monospace;font-size:.85em">'+esc(s.domain)+'</td><td>'+s.hits+'</td><td style="color:'+tc+';font-size:.85em">'+esc(s.type)+'</td></tr>';
+  });
+  tb.innerHTML=html;
+}
+
+function fetchVisitorHeatmap(){
+  fetch(API+'/visitors/heatmap?days='+visDays).then(function(r){if(!r.ok)throw new Error();return r.json()}).then(function(d){
+    if(!d.hours)return;renderVisitorHeatmap(d);
+  }).catch(function(){});
+}
+function renderVisitorHeatmap(d){
+  var el=document.getElementById('vis-heatmap'),emp=document.getElementById('vis-heatmap-empty');
+  var hours=d.hours||[],mx=d.max||1;
+  if(!hours.length){el.innerHTML='';emp.style.display='block';return}
+  emp.style.display='none';
+  var html='';
+  for(var i=0;i<24;i++){
+    var cnt=hours[i]||0;
+    var pct=Math.round((cnt/mx)*100);
+    html+='<div class="heatmap-cell" title="'+i+':00 - '+cnt+' visits">'+
+      '<div class="heatmap-bar"><div class="heatmap-fill" style="height:'+pct+'%"></div></div>'+
+      '<span class="heatmap-hour">'+i+'</span></div>';
+  }
+  el.innerHTML=html;
+}
+
+function fetchVisitorPageflow(){
+  fetch(API+'/visitors/pageflow?days='+visDays).then(function(r){if(!r.ok)throw new Error();return r.json()}).then(function(d){
+    if(d.error)return;renderVisitorPageflow(d);
+  }).catch(function(){});
+}
+function renderVisitorPageflow(d){
+  var stats=document.getElementById('vis-flow-stats');
+  var br=d.bounce_rate!=null?d.bounce_rate.toFixed(1)+'%':'--';
+  stats.innerHTML='<div class="inline-stat"><span class="is-val">'+(d.sessions_total||0)+'</span> <span class="is-label">sessions</span></div>'+
+    '<div class="inline-stat"><span class="is-val">'+br+'</span> <span class="is-label">bounce rate</span></div>'+
+    '<div class="inline-stat"><span class="is-val">'+(d.sessions_single_page||0)+'</span> <span class="is-label">single-page</span></div>';
+  // Entry pages
+  var entries=d.entry_pages||[];
+  var mx=1;entries.forEach(function(x){if(x.count>mx)mx=x.count});
+  var epHtml='';
+  entries.slice(0,8).forEach(function(x){
+    var pct=Math.round((x.count/mx)*100);
+    epHtml+='<div class="bar-row"><span class="bar-label" style="min-width:40px;font-size:.7em">'+esc(x.path)+'</span><div class="bar-track" style="height:16px"><div class="bar-fill" style="width:'+pct+'%"></div></div><span class="bar-count" style="font-size:.7em">'+x.count+'</span></div>';
+  });
+  document.getElementById('vis-entry-pages').innerHTML=epHtml||'<div class="alert-none" style="font-size:.8em">No data</div>';
+  // Top sequences
+  var seqs=d.top_sequences||[];
+  var stb=document.getElementById('vis-seq-body'),stbl=document.getElementById('vis-seq-table');
+  if(seqs.length===0){stbl.style.display='none';return}
+  stbl.style.display='table';
+  var sHtml='';
+  seqs.slice(0,10).forEach(function(s){
+    sHtml+='<tr><td style="font-family:Consolas,monospace;font-size:.8em">'+esc(s.from)+'</td><td style="font-family:Consolas,monospace;font-size:.8em">'+esc(s.to)+'</td><td>'+s.count+'</td></tr>';
+  });
+  stb.innerHTML=sHtml;
+}
+
+// ─── Fetch All + Refresh ────────────────────────────────────
+function fetchAll(){fetchStats();fetchUsers();fetchLogins();fetchCustomers();fetchPurchases();fetchFeedback();fetchFeedbackStats();fetchVisitors();fetchSecurity();fetchBannedIPs();fetchLoginHeatmap();fetchAuditLog();fetchCustomerStats();fetchCustomerGeo();fetchPurchaseStats();fetchPurchaseGeo();fetchPurchaseFunnel()}
+function startCountdown(){
+  cd=REFRESH;
+  if(cdTimer)clearInterval(cdTimer);
+  cdTimer=setInterval(function(){cd--;if(cd<=0)cd=REFRESH;document.getElementById('countdown').textContent=cd+'s'},1000);
+}
+document.addEventListener('DOMContentLoaded',function(){
+  fetchAll();startCountdown();
+  refreshTimer=setInterval(function(){fetchAll();cd=REFRESH},REFRESH*1000);
+});
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(function(m){
+  m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('show')});
+});
+})();
+</script>
+{% endblock %}

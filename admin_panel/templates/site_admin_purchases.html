@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+{% block title %}Purchases - Site Admin{% endblock %}
+
+{% block head %}
+<style>
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px}
+.page-header h1{font-size:1.1em;font-weight:700;font-family:'Consolas',monospace;color:var(--txt)}
+
+.sub-nav{display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap}
+.sub-nav a{padding:6px 14px;font-size:.7em;font-weight:700;text-transform:uppercase;letter-spacing:1px;border:1px solid var(--brd);color:var(--mut);text-decoration:none;transition:all .2s}
+.sub-nav a:hover{color:var(--txt);border-color:#444}
+.sub-nav a.active{background:var(--g);color:#000;border-color:var(--g)}
+
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.filter-group{display:flex;flex-direction:column;gap:4px}
+.filter-bar label{font-size:.7em;color:var(--mut);text-transform:uppercase;letter-spacing:1px}
+.filter-bar input,.filter-bar select{padding:6px 8px;font-size:.85em}
+
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.empty-state{text-align:center;padding:40px 20px;color:var(--mut);font-family:monospace;font-size:.85em}
+.total-count{font-size:.7em;color:var(--mut);font-family:'Consolas',monospace;margin-left:10px;letter-spacing:0;text-transform:none}
+
+@media(max-width:768px){
+  .filter-bar{flex-direction:column;align-items:stretch}
+  .filter-group{width:100%}
+  .filter-group input,.filter-group select{width:100%}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="page-header">
+  <h1>// Purchase Management</h1>
+</div>
+
+<!-- Sub-nav -->
+<div class="sub-nav">
+  <a href="/site-admin">Dashboard</a>
+  <a href="/site-admin/users">Users</a>
+  <a href="/site-admin/logins">Logins</a>
+  <a href="/site-admin/customers">Customers</a>
+  <a href="/site-admin/purchases" class="active">Purchases</a>
+  <a href="/site-admin/feedback">Feedback</a>
+  <a href="/site-admin/visitors">Visitors</a>
+  <a href="/site-admin/security">Security</a>
+</div>
+
+<!-- Filter bar -->
+<div class="card" style="margin-bottom:16px">
+  <h2>// Filters</h2>
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label>From</label>
+      <input type="date" id="filter-from">
+    </div>
+    <div class="filter-group">
+      <label>To</label>
+      <input type="date" id="filter-to">
+    </div>
+    <div class="filter-group">
+      <label>Pay Status</label>
+      <select id="filter-status">
+        <option value="">All</option>
+        <option value="paid">Paid</option>
+        <option value="pending">Pending</option>
+        <option value="failed">Failed</option>
+      </select>
+    </div>
+    <div class="filter-group" style="justify-content:flex-end;margin-top:auto">
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-primary" onclick="applyFilters()">Filter</button>
+        <button class="btn btn-outline" onclick="exportPurchases()">Export CSV</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Purchases table -->
+<div class="card">
+  <h2>// Orders <span class="total-count" id="total-count"></span></h2>
+  <div class="table-wrap">
+    <table class="table" id="purchases-table">
+      <thead>
+        <tr>
+          <th>Order #</th>
+          <th>Product</th>
+          <th>Customer</th>
+          <th>Location</th>
+          <th>Pay Status</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody id="purchases-body">
+        <tr><td colspan="6" class="empty-state">Loading purchases...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function(){
+  function showToast(msg){
+    var t=document.getElementById('toast');
+    t.textContent=msg;
+    t.style.borderColor='var(--crit)';
+    t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); },3000);
+  }
+
+  function relativeTime(ts){
+    if(!ts) return '--';
+    var now=Date.now();
+    var d=new Date(ts);
+    var diff=Math.floor((now-d.getTime())/1000);
+    if(diff<0) return 'just now';
+    if(diff<60) return diff+'s ago';
+    if(diff<3600) return Math.floor(diff/60)+'m ago';
+    if(diff<86400) return Math.floor(diff/3600)+'h ago';
+    return Math.floor(diff/86400)+'d ago';
+  }
+
+  function fullDateTime(ts){
+    if(!ts) return '';
+    return new Date(ts).toLocaleString();
+  }
+
+  function esc(str){
+    var d=document.createElement('div');
+    d.textContent=str||'';
+    return d.innerHTML;
+  }
+
+  function statusBadge(status){
+    if(!status) return '<span class="badge badge-off">unknown</span>';
+    var s=status.toLowerCase();
+    if(s==='paid') return '<span class="badge badge-ok">paid</span>';
+    if(s==='pending') return '<span class="badge badge-warn">pending</span>';
+    return '<span class="badge badge-crit">'+esc(s)+'</span>';
+  }
+
+  function formatLocation(purchase){
+    var city=purchase.city||'';
+    var state=purchase.state||'';
+    if(city&&state) return esc(city+', '+state);
+    if(city) return esc(city);
+    if(state) return esc(state);
+    return '<span style="color:var(--mut)">--</span>';
+  }
+
+  function getFilterParams(){
+    var params=new URLSearchParams();
+    var from=document.getElementById('filter-from').value;
+    var to=document.getElementById('filter-to').value;
+    var status=document.getElementById('filter-status').value;
+    if(from) params.set('from',from);
+    if(to) params.set('to',to);
+    if(status) params.set('status',status);
+    return params.toString();
+  }
+
+  function renderPurchases(purchases){
+    var tbody=document.getElementById('purchases-body');
+    var countEl=document.getElementById('total-count');
+
+    if(!purchases||!purchases.length){
+      tbody.innerHTML='<tr><td colspan="6" class="empty-state">No purchases found</td></tr>';
+      countEl.textContent='(0 orders)';
+      return;
+    }
+
+    countEl.textContent='('+purchases.length+' order'+(purchases.length!==1?'s':'')+')';
+
+    var html='';
+    for(var i=0;i<purchases.length;i++){
+      var p=purchases[i];
+      var customer=p.email||p.customer_email||'Unknown';
+      html+='<tr>';
+      html+='<td style="font-family:monospace">'+esc(String(p.id))+'</td>';
+      html+='<td>'+esc(p.product||p.product_name||'--')+'</td>';
+      html+='<td>'+esc(customer)+'</td>';
+      html+='<td>'+formatLocation(p)+'</td>';
+      html+='<td>'+statusBadge(p.pay_status||p.status)+'</td>';
+      html+='<td title="'+fullDateTime(p.created_at||p.date)+'">'+relativeTime(p.created_at||p.date)+'</td>';
+      html+='</tr>';
+    }
+    tbody.innerHTML=html;
+  }
+
+  async function fetchPurchases(){
+    try{
+      var qs=getFilterParams();
+      var url='/api/site-admin/purchases'+(qs?'?'+qs:'');
+      var resp=await fetch(url);
+      if(!resp.ok) throw new Error('Failed to fetch purchases');
+      var data=await resp.json();
+      var purchases=Array.isArray(data)?data:(data.purchases||data.orders||[]);
+      renderPurchases(purchases);
+    }catch(e){
+      showToast('Error loading purchases: '+e.message);
+      document.getElementById('purchases-body').innerHTML='<tr><td colspan="6" class="empty-state">Failed to load purchases</td></tr>';
+      document.getElementById('total-count').textContent='';
+    }
+  }
+
+  function applyFilters(){
+    fetchPurchases();
+  }
+
+  function exportPurchases(){
+    var qs=getFilterParams();
+    var url='/api/site-admin/export/purchases'+(qs?'?'+qs:'');
+    window.location.href=url;
+  }
+
+  // Expose to onclick handlers
+  window.applyFilters=applyFilters;
+  window.exportPurchases=exportPurchases;
+
+  // Initial load
+  fetchPurchases();
+})();
+</script>
+{% endblock %}

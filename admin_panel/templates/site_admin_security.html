@@ -1,0 +1,399 @@
+{% extends "base.html" %}
+{% block title %}Security - Site Admin{% endblock %}
+
+{% block head %}
+<style>
+.page-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px}
+.page-hdr h1{font-size:1.1em;font-weight:700;font-family:'Consolas',monospace;color:var(--txt)}
+.pulse-dot{width:10px;height:10px;border-radius:50%;background:var(--g);animation:pulse-glow 2s infinite}
+@keyframes pulse-glow{0%,100%{opacity:1;box-shadow:0 0 4px var(--g)}50%{opacity:.4;box-shadow:0 0 8px var(--g)}}
+
+.sub-nav{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.sub-nav a{padding:6px 14px;font-size:.75em;font-weight:700;text-transform:uppercase;letter-spacing:1px;border:1px solid var(--brd);color:var(--mut);text-decoration:none;transition:all .2s}
+.sub-nav a:hover,.sub-nav a.active{color:var(--g);border-color:var(--g)}
+
+.threat-banner{padding:16px 20px;margin-bottom:16px;font-weight:700;font-size:.9em;letter-spacing:1px;text-transform:uppercase;display:flex;align-items:center;gap:10px;transition:all .3s}
+.threat-banner .threat-icon{font-size:1.4em}
+.threat-banner.threat-crit{background:rgba(255,51,51,.15);border:1px solid var(--crit);color:var(--crit)}
+.threat-banner.threat-warn{background:rgba(255,153,0,.12);border:1px solid var(--warn);color:var(--warn)}
+.threat-banner.threat-ok{background:rgba(106,189,69,.1);border:1px solid var(--g);color:var(--g)}
+
+.mono{font-family:'Consolas',monospace}
+.ua-cell{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:help}
+.bot-name{color:var(--crit);font-weight:700}
+.empty-state{text-align:center;padding:40px;color:var(--mut);font-size:.85em;font-family:'Consolas',monospace}
+.attempts-red{font-family:'Consolas',monospace;font-weight:700;color:var(--crit)}
+
+.actions-row{display:flex;gap:8px;flex-wrap:wrap}
+
+@media(max-width:768px){
+  .page-hdr{flex-direction:column;align-items:flex-start}
+  .actions-row{width:100%}
+  .actions-row .btn{flex:1;text-align:center}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="page-hdr">
+  <div style="display:flex;align-items:center;gap:12px">
+    <h1>// Security Dashboard</h1>
+    <span class="pulse-dot" id="pulse-dot"></span>
+  </div>
+  <button class="btn btn-outline" onclick="refreshAll()">Refresh</button>
+</div>
+
+<!-- Sub-nav -->
+<div class="sub-nav">
+  <a href="/site-admin">Dashboard</a>
+  <a href="/site-admin/users">Users</a>
+  <a href="/site-admin/logins">Logins</a>
+  <a href="/site-admin/security" class="active">Security</a>
+</div>
+
+<!-- Threat Level Banner -->
+<div class="threat-banner threat-ok" id="threat-banner">
+  <span class="threat-icon" id="threat-icon">&#9679;</span>
+  <span id="threat-text">Checking threat status...</span>
+</div>
+
+<!-- 24h Login Summary -->
+<div class="card">
+  <h2>// 24h Login Summary</h2>
+  <div class="grid-3">
+    <div class="si">
+      <label>Total Attempts</label>
+      <div class="val mono" id="stat-total">--</div>
+    </div>
+    <div class="si">
+      <label>Successful</label>
+      <div class="val mono ok" id="stat-success">--</div>
+    </div>
+    <div class="si">
+      <label>Failed</label>
+      <div class="val mono crit" id="stat-failed">--</div>
+    </div>
+  </div>
+</div>
+
+<!-- Brute Force Alerts -->
+<div class="card">
+  <h2>// Brute Force Alerts</h2>
+  <div id="brute-force-container">
+    <div class="empty-state" id="brute-empty">Loading...</div>
+  </div>
+</div>
+
+<!-- Suspicious Activity -->
+<div class="card">
+  <h2>// Suspicious Activity</h2>
+  <div class="table-scroll">
+    <table class="table" id="suspicious-table" style="display:none">
+      <thead>
+        <tr>
+          <th>IP Address</th>
+          <th>Failed Attempts</th>
+          <th>Last Attempt</th>
+          <th>User Agent</th>
+          <th>Severity</th>
+        </tr>
+      </thead>
+      <tbody id="suspicious-body"></tbody>
+    </table>
+  </div>
+  <div class="empty-state" id="suspicious-empty">Loading...</div>
+</div>
+
+<!-- Failed Login Usernames -->
+<div class="card">
+  <h2>// Failed Login Usernames</h2>
+  <div class="table-scroll">
+    <table class="table" id="usernames-table" style="display:none">
+      <thead>
+        <tr>
+          <th>Username Attempted</th>
+          <th>Attempt Count</th>
+        </tr>
+      </thead>
+      <tbody id="usernames-body"></tbody>
+    </table>
+  </div>
+  <div class="empty-state" id="usernames-empty">Loading...</div>
+</div>
+
+<!-- Quick Actions -->
+<div class="card">
+  <h2>// Quick Actions</h2>
+  <div class="actions-row">
+    <button class="btn btn-primary" onclick="exportLogins()">Export Login Report</button>
+    <button class="btn btn-outline" onclick="refreshAll()">Refresh</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function(){
+  var API_BASE = '/api/site-admin';
+  var REFRESH_INTERVAL = 30;
+  var refreshTimer = null;
+
+  var BOT_USERNAMES = ['admin','root','test','administrator','user','guest','info','mysql',
+    'postgres','oracle','ftp','www','ubuntu','deploy','git','support','demo'];
+
+  // DOM refs
+  var threatBanner = document.getElementById('threat-banner');
+  var threatIcon = document.getElementById('threat-icon');
+  var threatText = document.getElementById('threat-text');
+
+  var statTotal = document.getElementById('stat-total');
+  var statSuccess = document.getElementById('stat-success');
+  var statFailed = document.getElementById('stat-failed');
+
+  var bruteContainer = document.getElementById('brute-force-container');
+  var bruteEmpty = document.getElementById('brute-empty');
+
+  var suspiciousTable = document.getElementById('suspicious-table');
+  var suspiciousBody = document.getElementById('suspicious-body');
+  var suspiciousEmpty = document.getElementById('suspicious-empty');
+
+  var usernamesTable = document.getElementById('usernames-table');
+  var usernamesBody = document.getElementById('usernames-body');
+  var usernamesEmpty = document.getElementById('usernames-empty');
+
+  // Toast
+  function showToast(msg, isError) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.borderColor = isError ? 'var(--crit)' : 'var(--g)';
+    t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); }, 3000);
+  }
+
+  // Relative time
+  function relTime(ts) {
+    if (!ts) return '--';
+    var now = Date.now();
+    var then = new Date(ts).getTime();
+    var diff = Math.max(0, Math.floor((now - then) / 1000));
+    if (diff < 60) return diff + 's ago';
+    if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+    if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+    return Math.floor(diff / 86400) + 'd ago';
+  }
+
+  // HTML escape
+  function esc(str) {
+    var d = document.createElement('div');
+    d.textContent = str || '';
+    return d.innerHTML;
+  }
+
+  // Truncate string
+  function truncate(str, len) {
+    if (!str) return '';
+    return str.length > len ? str.substring(0, len) + '...' : str;
+  }
+
+  // Check if username is a common bot target
+  function isBotUsername(name) {
+    if (!name) return false;
+    return BOT_USERNAMES.indexOf(name.toLowerCase()) !== -1;
+  }
+
+  // Update threat banner based on data
+  function updateThreatLevel(bruteForce, suspiciousIps) {
+    var hasBrute = bruteForce && bruteForce.length > 0;
+    var hasSuspicious = suspiciousIps && suspiciousIps.length > 0;
+
+    if (hasBrute) {
+      threatBanner.className = 'threat-banner threat-crit';
+      threatIcon.innerHTML = '&#9888;';
+      threatText.textContent = 'ACTIVE THREATS DETECTED - ' + bruteForce.length + ' brute force alert(s)';
+    } else if (hasSuspicious) {
+      threatBanner.className = 'threat-banner threat-warn';
+      threatIcon.innerHTML = '&#9888;';
+      threatText.textContent = 'Suspicious Activity - ' + suspiciousIps.length + ' flagged IP(s)';
+    } else {
+      threatBanner.className = 'threat-banner threat-ok';
+      threatIcon.innerHTML = '&#9679;';
+      threatText.textContent = 'No Threats Detected';
+    }
+  }
+
+  // Render brute force alerts
+  function renderBruteForce(alerts) {
+    // Remove existing items
+    var items = bruteContainer.querySelectorAll('.alert-row');
+    for (var i = 0; i < items.length; i++) items[i].remove();
+
+    if (!alerts || alerts.length === 0) {
+      bruteEmpty.textContent = 'No brute force activity detected';
+      bruteEmpty.style.display = 'block';
+      return;
+    }
+    bruteEmpty.style.display = 'none';
+
+    for (var j = 0; j < alerts.length; j++) {
+      var a = alerts[j];
+      var severity = (a.severity || 'medium').toLowerCase();
+      var badgeClass = 'badge-off';
+      if (severity === 'critical' || severity === 'high') badgeClass = 'badge-crit';
+      else if (severity === 'medium' || severity === 'warning') badgeClass = 'badge-warn';
+      else if (severity === 'low') badgeClass = 'badge-ok';
+
+      var row = document.createElement('div');
+      row.className = 'alert-row';
+      row.style.cssText = 'background:#0a0a0a;border:1px solid #1a1a1a;padding:10px 14px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:.85em';
+      row.innerHTML =
+        '<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">' +
+          '<span class="mono" style="font-weight:700">' + esc(a.ip || a.ip_address || '--') + '</span>' +
+          '<span class="attempts-red">' + (a.attempts || a.attempt_count || 0) + ' attempts</span>' +
+          '<span class="mono" style="color:var(--mut);font-size:.9em">' + relTime(a.last_seen || a.last_attempt) + '</span>' +
+        '</div>' +
+        '<span class="badge ' + badgeClass + '">' + esc(severity) + '</span>';
+
+      bruteContainer.insertBefore(row, bruteEmpty);
+    }
+  }
+
+  // Render suspicious IPs
+  function renderSuspicious(ips) {
+    suspiciousBody.innerHTML = '';
+    if (!ips || ips.length === 0) {
+      suspiciousTable.style.display = 'none';
+      suspiciousEmpty.textContent = 'No suspicious activity detected';
+      suspiciousEmpty.style.display = 'block';
+      return;
+    }
+    suspiciousEmpty.style.display = 'none';
+    suspiciousTable.style.display = 'table';
+
+    for (var i = 0; i < ips.length; i++) {
+      var s = ips[i];
+      var count = s.failed_attempts || s.attempt_count || s.count || 0;
+      var badgeClass = count >= 5 ? 'badge-crit' : (count >= 3 ? 'badge-warn' : 'badge-off');
+      var badgeLabel = count >= 5 ? 'Critical' : (count >= 3 ? 'Warning' : 'Low');
+
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td class="mono">' + esc(s.ip || s.ip_address || '--') + '</td>' +
+        '<td class="attempts-red">' + count + '</td>' +
+        '<td class="mono" style="color:var(--mut)">' + relTime(s.last_attempt || s.last_seen) + '</td>' +
+        '<td class="ua-cell" title="' + esc(s.user_agent || '') + '">' + esc(truncate(s.user_agent, 40)) + '</td>' +
+        '<td><span class="badge ' + badgeClass + '">' + badgeLabel + '</span></td>';
+      suspiciousBody.appendChild(tr);
+    }
+  }
+
+  // Render failed usernames
+  function renderUsernames(usernames) {
+    usernamesBody.innerHTML = '';
+    if (!usernames || usernames.length === 0) {
+      usernamesTable.style.display = 'none';
+      usernamesEmpty.textContent = 'No failed login usernames recorded';
+      usernamesEmpty.style.display = 'block';
+      return;
+    }
+    usernamesEmpty.style.display = 'none';
+    usernamesTable.style.display = 'table';
+
+    for (var i = 0; i < usernames.length; i++) {
+      var u = usernames[i];
+      var name = u.username || u.name || '--';
+      var count = u.count || u.attempts || u.attempt_count || 0;
+      var isBot = isBotUsername(name);
+
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td class="mono' + (isBot ? ' bot-name' : '') + '">' + esc(name) +
+          (isBot ? ' <span class="badge badge-crit" style="margin-left:6px">bot target</span>' : '') +
+        '</td>' +
+        '<td class="mono">' + count + '</td>';
+      usernamesBody.appendChild(tr);
+    }
+  }
+
+  // Update login stats
+  function updateStats(data) {
+    var s = data.login_24h || {};
+    statTotal.textContent = s.total != null ? s.total : '--';
+
+    var success = s.success != null ? s.success : null;
+    statSuccess.textContent = success != null ? success : '--';
+
+    var failed = s.failed != null ? s.failed : null;
+    statFailed.textContent = failed != null ? failed : '--';
+  }
+
+  // Export login report
+  function exportLogins() {
+    window.location.href = API_BASE + '/export/logins';
+  }
+
+  // Fetch security alerts
+  function fetchAlerts() {
+    fetch(API_BASE + '/security/alerts')
+      .then(function(r) {
+        if (!r.ok) throw new Error('API error ' + r.status);
+        return r.json();
+      })
+      .then(function(data) {
+        var bruteForce = data.brute_force || [];
+        var suspiciousIps = data.suspicious_ips || [];
+        var failedUsernames = data.failed_usernames || [];
+
+        updateThreatLevel(bruteForce, suspiciousIps);
+        renderBruteForce(bruteForce);
+        renderSuspicious(suspiciousIps);
+        renderUsernames(failedUsernames);
+      })
+      .catch(function(err) {
+        console.error('Security alerts error:', err);
+        showToast('Failed to load security alerts: ' + err.message, true);
+        updateThreatLevel([], []);
+        renderBruteForce([]);
+        renderSuspicious([]);
+        renderUsernames([]);
+      });
+  }
+
+  // Fetch stats
+  function fetchStats() {
+    fetch(API_BASE + '/stats')
+      .then(function(r) {
+        if (!r.ok) throw new Error('API error ' + r.status);
+        return r.json();
+      })
+      .then(function(data) {
+        updateStats(data);
+      })
+      .catch(function(err) {
+        console.error('Stats error:', err);
+        statTotal.textContent = '--';
+        statSuccess.textContent = '--';
+        statFailed.textContent = '--';
+      });
+  }
+
+  // Refresh all data
+  function refreshAll() {
+    fetchAlerts();
+    fetchStats();
+  }
+
+  // Expose to onclick handlers
+  window.refreshAll = refreshAll;
+  window.exportLogins = exportLogins;
+
+  // Initial load
+  refreshAll();
+
+  // Auto-refresh every 30 seconds
+  refreshTimer = setInterval(refreshAll, REFRESH_INTERVAL * 1000);
+})();
+</script>
+{% endblock %}
